@@ -18,7 +18,7 @@ F = 1.0
 Fsim = 100.0															
 #
 #7: diffusion constant [variance=2*diffconst] of the gaussian distribution for the intrinsic frequencies
-domega = 0.05
+domega = 0.0
 #
 #8: diffusion constant [variance=2*diffconst] of the gaussian distribution for the coupling strength
 diffconstK = 0.0

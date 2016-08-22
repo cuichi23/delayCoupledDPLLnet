@@ -84,10 +84,13 @@ class VoltageControlledOscillator:
 	"""A voltage controlled oscillator class"""
 	def __init__(self,F,F_Omeg,K,dt,domega,diffconstK,c=None,phi=None):
 		self.sOmeg = 2.0*np.pi*F_Omeg											# set angular frequency of synchronized state under investigation (sOmeg)
-		if domega != 0:
+		if domega != 0.0:
 			self.F = np.random.normal(loc=F, scale=np.sqrt(2.0*domega))			# set intrinsic frequency of the VCO plus gaussian dist. random variable from a distribution
 			self.omega = 2.0*np.pi*F											# set intrinsic angular frequency of the VCO plus gaussian dist. random variable from a distribution
-			# print('Intrinsic freq. from gaussian dist.:', self.omega)
+			print('Intrinsic freq. from gaussian dist.:', self.omega, 'for diffusion constant domega:', domega)
+
+wasn hier los
+
 		else:
 			self.omega = 2.0*np.pi*F											# set intrinsic frequency of the VCO
 		if diffconstK != 0:														# set input sensitivity of VCO [ok to do here, since this is only called when the PLL objects are created]
