@@ -1,0 +1,167 @@
+#!/usr/bin/python
+
+from __future__ import division
+from __future__ import print_function
+
+import sys
+import simulation as sim
+import numpy as np
+import multiprocessing as mp
+from multiprocessing import Pool, freeze_support
+import itertools
+from itertools import permutations as permu
+from itertools import combinations as combi
+import time
+import datetime
+
+def rotate_phases(phi0, isInverse=False):
+	''' Rotates the phases such that the phase space direction phi_0 is rotated onto the main diagonal of the n dimensional phase space
+
+		Author: Daniel Platz
+
+	Parameters
+	----------
+	phi  :  np.array
+			array of phases
+	isInverse  :  bool
+				  if True rotates back the rotated phase space back to the physical phase space
+				  (implies that isInverse=True gives you the coordinates in the rotated system)
+
+	Returns
+	-------
+	phi_0_rotated  :  np.array
+					  phases in rotated or physical phase space '''
+
+	# Determine rotation angle
+	n = len(phi0)
+	alpha = -np.arccos(1.0 / np.sqrt(n))
+
+	# Construct rotation matrix
+	v = np.zeros((n, n))
+	v[0, 0] = 1.0
+	v[1:, 1:] = 1.0 / float(n - 1)
+	w = np.zeros((n, n))
+	w[1:, 0] = -1.0 / np.sqrt(n - 1)
+	w[0, 1:] = 1.0 / np.sqrt(n - 1)
+	r = np.identity(n) + (np.cos(alpha) - 1) * v + np.sin(alpha) * w
+	# print('---------------------------------------')
+	# print('---------------------------------------')
+	# print(v)
+	# print('---------------------------------------')
+	# print(w)
+	# print('---------------------------------------')
+	# print(r)
+
+	# Apply rotation matrix
+	if not isInverse:
+		return np.dot(r, phi0)
+	else:
+		return np.dot(np.transpose(r), phi0)
+
+def simulatePllNetwork(topology, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, isPlottingTimeSeries=False):
+	''' Simulation of Network '''
+	phi = sim.simulateNetwork(N,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,phiS, phiM)
+
+	''' KURAMOTO ORDER PARAMETER '''
+	r = sim.oracle_mTwistOrderParameter(phi[-int(2*1.0/(F*dt)):, :], k)			# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod
+	orderparam = sim.oracle_mTwistOrderParameter(phi[:, :], k)					# calculate the m-twist order parameter for all times
+	#print('mean of modulus of the order parameter, R, over 2T:', np.mean(r), ' last value of R', r[-1])
+
+	''' PLOT PHASE & FREQUENCY TIME SERIES '''
+	if isPlottingTimeSeries:
+		plotTimeSeries(phi, F, dt, orderparam, k, delay, F_Omeg, K)
+
+	''' RETURN '''																# return value of mean order parameter, last order parameter, and the variance of r during the last 2T_{\omega}
+	return np.mean(r), r[len(r)-1], np.var(r)
+
+''' MAIN '''
+if __name__ == '__main__':
+	''' MAIN:
+
+	N		  : integer
+				number of oscillators
+
+	topology  : string
+		global: fully connected network
+		ring  : a 1D-ring (closed boundary conditions)
+		chain :	a 1D-chain (open boundary conditions)
+
+		!sqrt(N) needs to be an integer
+		square:
+		hexagon:
+		octagon:
+	Fc		   : cut-off frequency of the low-pass LF
+	F_Omeg     : frequency of state of initial history
+	K          : sensetivity of the PLLs
+
+	k		   : integer 0 <= k <= N-1
+				 k-Twist
+
+	delay	   : float
+
+	phiS	   : np.array
+				 real-valued 2d matrix or 1d vector of phases
+				 in the 2d case the columns of the matrix represent the individual oscillators
+
+	Returns
+	-------
+	0 		   :  phi0 is not stable for specified k-Twist
+	1		   :  phi0 is stable for specified k-Twist	'''
+
+	''' SIMULATION PARAMETER'''
+
+	mode = int(1);																# mode=0 -> algorithm usage mode, mode=1 -> single realization mode,
+																				# mode=2 -> brute force scanning mode for parameter interval scans
+	multiproc = True															# for multiprocessing set to True (brute-force mode 2)
+	paramDiscretization = 50													# discretization for brute force scan in rotated phase space with phi'_k
+
+	F = 1.0																		# free-running frequency of the PLLs
+	c = 1.0E-9																	# phase noise parameter
+
+	Fsim = 100.0*F																# simulate phase model with given sample frequency -- goal: about 100 samples per period
+
+	Tsim = 150.0*(1.0/F)  														# simulation time in multiples of the period of the uncoupled oscillators
+	dt = 1.0/Fsim
+	Nsteps = int(round(Tsim*Fsim)) 												# calculate number of iterations -- add output?
+	# Tsim = 250.0*delay 														# simulation time in multiples of the delay
+	# K = 0.25 																	# sensitivity of the PLLs
+	# Fc = 0.1																	# cut-off frequency of the low-pass LF
+	# delay = 0.5																# transmission delay between coupled PLLs
+
+	now = datetime.datetime.now()
+	# print('algorithm mode (Josefine)')
+	# process arguments -- provided on program call, e.g. python oracle.py [arg0] [arg1] ... [argN], call, e.g.: oracle.py ring 3 1 0.25 0.1 1.15 1 1. 1. 1. 0.0 0.0 0.0
+	topology = str(sys.argv[1])
+	N = int(sys.argv[2])
+	k = int(sys.argv[3])
+	K = float(sys.argv[4])
+	Fc = float(sys.argv[5])
+	delay = float(sys.argv[6])
+	F_Omeg = float(sys.argv[7])
+	Tsim = float(sys.argv[8])
+	# phiSr are the phases in the rotated phase space that perturb the synchronized state of interest during the initial history defined in [-tau, 0] at -dt (additive)
+	phiSr = np.asarray([float(phi) for phi in sys.argv[9:(9+N)]])
+
+	# choose the value of phi'_0, i.e., where the plane, rectangular to the axis phi'_0 in the rotated phase space, is placed; this direction corresponds to the case where all phi_k
+	# in the original phase space are equal phi_0==phi_1==...==phi_N-1 or (all) have constant phase differences; if unequal from zero, that causes a global phase shift in the history
+	initPhiPrime0 = 0.0
+	# we rotated the original phase space such that along the (new) phi'_0 axis all phase differences remain equal and keep the associated phase constant,
+	# considering only the perpendicular plane spanned by phi'_1, phi'_2, ..., phi'_N; if non-zero however, it introduces a global phase shift into the history, implying a different history
+	phiSr[0] = initPhiPrime0
+	Nsteps = int(round(Tsim*Fsim)) 											# calculate number of iterations -- add output?
+	# if looking for m-twists, this variable holds the phase difference between neighboring oscillators in a stable m-twist state
+	twistdelta = ( 2.0 * np.pi * k / (1.0*N) )
+	if k == 0:
+		phiM = np.zeros(N)
+	else:
+		phiM = np.arange(0.0, N*twistdelta, twistdelta)						# vector mit N entries from 0 increasing by twistdelta for every element, i.e., the phase-configuration
+																			# in the original phase space of an m-twist solution
+	phiS = rotate_phases(phiSr, isInverse=False)							# rotate initial phases into physical phase space of phases for simulation
+	# check input values -- we only want to check in a 2pi periodic interval [phiS'-pi, phiS'+pi] (for all phiS) around each solution in phase-space
+	# with that we are using the periodicity of m-twist solutions in the phase-space of phases (rotated phase space!)
+	if any(phiSr[:]<-np.pi) | any(phiSr[:]> np.pi):
+		print(0)
+	else:
+		print(simulatePllNetwork(topology, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, False))
+
+
