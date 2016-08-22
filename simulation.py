@@ -84,26 +84,24 @@ class VoltageControlledOscillator:
 	"""A voltage controlled oscillator class"""
 	def __init__(self,F,F_Omeg,K,dt,domega,diffconstK,c=None,phi=None):
 		self.sOmeg = 2.0*np.pi*F_Omeg											# set angular frequency of synchronized state under investigation (sOmeg)
+		self.diffconstK = diffconstK
+		self.domega = domega
 		if domega != 0.0:
-			self.F = np.random.normal(loc=F, scale=np.sqrt(2.0*domega))			# set intrinsic frequency of the VCO plus gaussian dist. random variable from a distribution
-			self.omega = 2.0*np.pi*F											# set intrinsic angular frequency of the VCO plus gaussian dist. random variable from a distribution
-			print('Intrinsic freq. from gaussian dist.:', self.omega, 'for diffusion constant domega:', domega)
-
-wasn hier los
-
+			self.F = np.random.normal(loc=F, scale=np.sqrt(2.0*self.domega))	# set intrinsic frequency of the VCO plus gaussian dist. random variable from a distribution
+			self.omega = 2.0*np.pi*self.F											# set intrinsic angular frequency of the VCO plus gaussian dist. random variable from a distribution
+			print('Intrinsic freq. from gaussian dist.:', self.omega, 'for diffusion constant domega:', self.domega)
 		else:
 			self.omega = 2.0*np.pi*F											# set intrinsic frequency of the VCO
 		if diffconstK != 0:														# set input sensitivity of VCO [ok to do here, since this is only called when the PLL objects are created]
-			self.diffconstK = 2.0*np.pi*diffconstK
-			self.K = np.random.normal(loc=2.0*np.pi*K, scale=np.sqrt(2.0*self.diffconstK))	# provide coupling strength - here needed for x_k^C(0)
-			# print('K from gaussian dist.:', self.K)
+			self.K = np.random.normal(loc=K, scale=np.sqrt(2.0*self.diffconstK))# provide coupling strength - here needed for x_k^C(0)
+			self.K = 2.0*np.pi*self.K
+			print('K from gaussian dist.:', self.K, 'for diffusion constant diffconstK:', self.diffconstK)
 		else:
 			self.K = 2.0*np.pi*K
 
 		self.dt = dt															# set time step with which the equations are evolved
 		self.phi = phi															# this is the internal representation of phi, NOT the container in simulateNetwork
 		self.c = c																# noise strength -- chose something like variance or std here!
-		self.F = F
 
 	def next(self,x_ctrl):														# compute change of phase per time-step due to intrinsic frequency and noise (if non-zero variance)
 		self.d_phi = self.omega + self.K * x_ctrl
