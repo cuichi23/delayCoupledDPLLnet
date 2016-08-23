@@ -115,7 +115,7 @@ def plotTimeSeries(phi, F, dt, orderparam, k, delay, F_Omeg, K):
 	plt.draw()
 
 ''' EVALUATION BRUTE-FORCE BASIN OF ATTRACTION '''
-def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints, initPhiPrime0, paramDiscretization):
+def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints, initPhiPrime0, paramDiscretization, delays_0):
 	''' Here addtional output, e.g., graphs or matrices can be implemented for testing '''
 	# we want to plot all the m-twist locations in rotated phase space: calculate phases, rotate and then plot into the results
 	twist_points  = np.zeros((N, N), dtype=np.float)							# twist points in physical phase space
@@ -210,13 +210,13 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 
 
 ''' EVALUATION MANY (noisy, dstributed parameters) REALIZATIONS '''
-def doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints, dt, orderparam, r, phi, omega_0, K_0):
+def doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, domega, twistdelta, results, allPoints, dt, orderparam, r, phi, omega_0, K_0, delays_0):
 	orderparam = np.array(orderparam)
 	r          = np.array(r)
 
 	#firstfreq  = (np.diff(phi[:,0:1, :], axis=1)/(dt))						# calculate first frequency of each time series (history of simulation): for each oscillator and realization
 	firstfreqs    = (np.diff(phi[:,0:int(round(delay/dt))+4, :], axis=1)/(dt))	# calculate first frequencies of each time series: for each oscillator and realization
-	firstfreqsext = (np.diff(phi[:,0:int(round((8*delay)/dt)), :], axis=1)/(dt))
+	firstfreqsext = (np.diff(phi[:,0:int(round((8*delay)/dt))+4, :], axis=1)/(dt))
 	firstfreq     = firstfreqs[:,0,:]
 	simstartfreq  = firstfreqs[:,int(round(delay/dt))+2,:]
 	lastfreq      = (np.diff(phi[:,-2:, :], axis=1)/(dt))
@@ -232,112 +232,140 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoint
 	'''PLOT TEST'''
 	dpi_value  = 300
 	histo_bins = 75
-
-	# mpl.rcParams['mathtext.fontset'] = 'custom'
-	# mpl.rcParams['mathtext.rm'] = 'Helvetica'
-	# mpl.rcParams['mathtext.it'] = 'Helvetica:italic'
-	# mpl.rcParams['mathtext.bf'] = 'Helvetica:bold'
-	t = np.arange(phi.shape[1])												# plot the phases of the oscillators over time, create "time vector"
+	t = np.arange(phi.shape[1])													# plot the phases of the oscillators over time, create "time vector"
 
 	print('plot data:\n')
 	''' HISTOGRAMS PHASES AND FREQUENCIES '''
 
-	plt.figure('histo: orderparameter at t=TSim over all realizations') 	# plot the distribution of instantaneous frequencies of the history
+	if np.std(delays_0.flatten()) > 1E-15:
+		plt.figure('histo: static distributed transmission delays')				 # plot the distribution of instantaneous frequencies of the history
+		plt.clf()
+		plt.hist(delays_0.flatten(),
+						bins=np.linspace(np.mean(delays_0.flatten())-4.0*np.std(delays_0.flatten()), np.mean(delays_0.flatten())+4.0*np.std(delays_0.flatten()), num=histo_bins),
+						rwidth=0.75, histtype='bar', normed=True, log=True)
+		plt.title(r'histo: transmission delays $\tau$ of each osci over all realizations')
+		plt.xlabel(r'$\tau$')
+		plt.ylabel(r'log[$P(\tau)$]')
+		plt.savefig('results/hist_transdelays_static_%d_%d_%d.pdf' %(now.year, now.month, now.day))
+
+	if np.std(K_0.flatten()) > 1E-15:
+		plt.figure('histo: static distributed coupling strength')				# plot the distribution of instantaneous frequencies of the history
+		plt.clf()
+		plt.hist(K_0.flatten(),
+						bins=np.linspace(np.mean(K_0.flatten())-4.0*np.std(K_0.flatten()), np.mean(K_0.flatten())+4.0*np.std(K_0.flatten()), num=histo_bins),
+						rwidth=0.75, histtype='bar', normed=True, log=True)
+		plt.title(r'histo: coupling strengths $K$ of each osci over all realizations')
+		plt.xlabel(r'$K$')
+		plt.ylabel(r'log[$P(K)$]')
+		plt.savefig('results/hist_distCoupStr_static_%d_%d_%d.pdf' %(now.year, now.month, now.day))
+
+	if np.std(omega_0.flatten()) > 1E-15:
+		plt.figure('histo: intrinsic frequencies of oscillators drawn at setup: omega_k(-delay)')
+		plt.clf()
+		plt.hist(omega_0.flatten(),
+						bins=np.linspace(np.mean(omega_0.flatten())-4.0*np.std(omega_0.flatten()), np.mean(omega_0.flatten())+4.0*np.std(omega_0.flatten()), num=histo_bins),
+						rwidth=0.75, histtype='bar', normed=True, log=True)
+		plt.title(r'mean intrinsic frequency $\bar{f}=%.3f$ and std $\sigma_f=%.5f$  [Hz]' %( np.mean(omega_0.flatten())/(2.0*np.pi), np.std(omega_0.flatten())/(2.0*np.pi) ) )
+		plt.xlabel(r'frequency bins [rad/s]')
+		plt.ylabel(r'$log[g(\omega)]$')
+		plt.savefig('results/omega0_intfreq_histo_%d_%d_%d.pdf' %(now.year, now.month, now.day))
+
+	plt.figure('histo: orderparameter at t=TSim over all realizations') 		# plot the distribution of instantaneous frequencies of the history
 	plt.clf()
-	for i in range (phi.shape[0]):											# loop over all realizations
-		plt.hist(orderparam[:,-1], bins=np.linspace(0, 1, num=histo_bins), rwidth=0.75, histtype='bar', normed=True, log=True)
+	for i in range (phi.shape[0]):												# loop over all realizations
+		plt.hist(orderparam[:,-1],
+						bins=np.linspace(np.mean(orderparam[:,-1])-4*np.std(orderparam[:,-1]), np.mean(orderparam[:,-1])+4*np.std(orderparam[:,-1]), num=histo_bins),
+						rwidth=0.75, histtype='bar', normed=True, log=True)
 	plt.title(r'histo: orderparam $R(t_{end})$ of each osci over all realizations')
 	plt.xlabel(r'R($t_{end}$)')
-	plt.ylabel(r'hist[$R(t_{end})$]')
+	plt.ylabel(r'loghist[$R(t_{end})$]')
 	plt.savefig('results/hist_orderparam_TSim_%d_%d_%d.pdf' %(now.year, now.month, now.day))
 
-	plt.figure('histo: intrinsic frequencies of oscillators drawn at setup: omega_k(-delay)')
+	plt.figure('histo: phases at t={0, TSim} over all realizations and oscis - shifted dist. at TSim to mean of first')	# plot the distribution of instantaneous frequencies of the history
 	plt.clf()
-	plt.hist(omega_0.flatten(), bins=np.linspace(2*np.pi*(F-3*K), 2*np.pi*(F+3*K), num=histo_bins), rwidth=0.75, histtype='bar', normed=True, log=True)
-	plt.title(r'mean intrinsic frequency $\bar{f}=%.3f$ and std $\sigma_f=%.3f$  [Hz]' %( np.mean(omega_0.flatten())/(2.0*np.pi), np.std(omega_0.flatten())/(2.0*np.pi) ) )
-	plt.xlabel(r'frequency bins [rad/s]')
-	plt.ylabel(r'$g[\omega]$')
-	plt.savefig('results/omega0_intfreq_histo_%d_%d_%d.pdf' %(now.year, now.month, now.day))
-
-	plt.figure('histo: phases at t={0,TSim} over all realizations and oscis - shifted dist. at TSim to mean of first')	# plot the distribution of instantaneous frequencies of the history
-	plt.clf()
-	shift_mean = ( np.mean( phi[:,-1,:].flatten() ) - np.mean( phi[:,int(round(delay/dt))+1,:].flatten() ) ) # distance between the mean values of the distribution at different times
-	# common_bins=np.linspace(min( np.array( [ (phi[:,int(round(delay/dt)),:].flatten()+shift_mean), (phi[:,-1,:]) ] ).flatten() ),
-	# 						max( np.array( [ (phi[:,int(round(delay/dt)),:].flatten()+shift_mean), (phi[:,-1,:]) ] ).flatten() ),
-	# 						num=histo_bins)
+	shift_mean0 = ( np.mean( phi[:,-1,:].flatten() ) - np.mean( phi[:,int(round(delay/dt))+1,:].flatten() ) ) # distance between the mean values of the distribution at different times
+	common_bins=np.linspace(min( np.array([(phi[:,int(round(delay/dt))+1,:].flatten()+shift_mean0), (phi[:,-1,:].flatten())]).flatten() ),
+							max( np.array([(phi[:,int(round(delay/dt))+1,:].flatten()+shift_mean0), (phi[:,-1,:].flatten())]).flatten() ),
+							num=histo_bins)
 	# print(phi[:,int(round(delay/dt))+1,:].flatten() + shift_mean)
-	plt.hist(phi[:,int(round(delay/dt))+1,:].flatten()+shift_mean,
-			#bins=common_bins,
+	plt.hist(phi[:,int(round(delay/dt))+1,:].flatten()+shift_mean0,
+			bins=common_bins,
 			color='b', rwidth=0.75, histtype='bar', label='t=0', normed=True, log=True)
 	plt.hist( ( phi[:,-1,:].flatten() ),
-			#bins=common_bins,
+			bins=common_bins,
 			color='r', rwidth=0.75, histtype='bar', label='t=TSim', normed=True, log=True)
 	#plt.xlim((1.1*min(firstfreq), 1.1*max(firstfreq)))
 	plt.legend(loc='best')
-	plt.title(r't=0: mean phase $\bar{\phi}=%.3f$ and std $\sigma_{\phi}=%.3f$  [Hz]' %( np.mean(phi[:,int(round(delay/dt))+1,:].flatten()), np.mean(np.std(phi[:,int(round(delay/dt))+1,:], axis=1),axis=0) ) )
+	plt.title(r't=0: mean phase $\bar{\phi}=%.3f$ and std $\sigma_{\phi}=%.5f$  [Hz]' %( np.mean(phi[:,int(round(delay/dt))+1,:].flatten()), np.mean(np.std(phi[:,int(round(delay/dt))+1,:], axis=1),axis=0) ) )
 	plt.xlabel(r'$\phi(t=0,TSim)$')
-	plt.ylabel(r'hist$[\phi(t=0,TSim)]$')
+	plt.ylabel(r'loghist$[\phi(t=0,TSim)]$')
 	plt.savefig('results/histo_phases_t0_TSim_%d_%d_%d.pdf' %(now.year, now.month, now.day))
 
-	plt.figure('histo: phases over all oscis at t={2,4,6,8}*delay')	# plot a histogram of the last frequency of each oscillators over all realizations
+	plt.figure('histo: phases over all oscis at t={2,4,6,8}*delay shifted to same mean')	# plot a histogram of the last frequency of each oscillators over all realizations
 	plt.clf()
-	common_bins=np.linspace( min(phi[:,int(round(2*delay/dt)),:].flatten()), max(phi[:,int(round(8*delay/dt)),:].flatten()), num=histo_bins)
-	plt.hist(phi[:,int(round((2.*delay)/dt)),:].flatten(),
+	# print('mean phase at t = 8*tau', np.mean( phi[:,int(round(8*delay/dt)),:].flatten() ) )
+	common_bins=np.linspace( ( np.mean( phi[:,int(round(8*delay/dt)),:].flatten() ) - 4.0*np.std( phi[:,int(round(8*delay/dt)),:].flatten() ) ),
+							 ( np.mean( phi[:,int(round(8*delay/dt)),:].flatten() ) + 4.0*np.std( phi[:,int(round(8*delay/dt)),:].flatten() ) ),
+							 num=histo_bins)
+	shift_mean1 = np.mean( phi[:,int(round((8.*delay)/dt)),:].flatten() ) - np.mean( phi[:,int(round((2.*delay)/dt)),:].flatten() )
+	shift_mean2 = np.mean( phi[:,int(round((8.*delay)/dt)),:].flatten() ) - np.mean( phi[:,int(round((4.*delay)/dt)),:].flatten() )
+	shift_mean3 = np.mean( phi[:,int(round((8.*delay)/dt)),:].flatten() ) - np.mean( phi[:,int(round((6.*delay)/dt)),:].flatten() )
+	plt.hist( ( phi[:,int(round((2.*delay)/dt)),:].flatten() + shift_mean1),
 			bins=common_bins, rwidth=0.75, normed=True, log=True, histtype='bar', alpha=0.9, label='t=2*tau')
-	plt.hist(phi[:,int(round((4.*delay)/dt)),:].flatten(),
+	plt.hist( ( phi[:,int(round((4.*delay)/dt)),:].flatten() + shift_mean2),
 			bins=common_bins, rwidth=0.75, normed=True, log=True, histtype='bar', alpha=0.75, label='t=4*tau')
-	plt.hist(phi[:,int(round((6.*delay)/dt)),:].flatten(),
+	plt.hist( ( phi[:,int(round((6.*delay)/dt)),:].flatten() + shift_mean3),
 			bins=common_bins, rwidth=0.75, normed=True, log=True, histtype='bar', alpha=0.6, label='t=6*tau')
-	plt.hist(phi[:,int(round((8.*delay)/dt)-10),:].flatten(),
+	plt.hist( phi[:,int(round((8.*delay)/dt)-10),:].flatten(),
 			bins=common_bins, rwidth=0.75, normed=True, log=True, histtype='bar', alpha=0.45, label='t=8*tau')
-	plt.xlim((2*np.pi*(F-3*K), 2*np.pi*(F+3*K)))
 	plt.legend()
 	plt.title(r't=$8\tau$: mean phase $\bar{f}=%.3f$ and std $\sigma_f=%.3f$  [Hz]' %( np.mean(phi[:,int(round((8.*delay)/dt)-10),:].flatten())/(2.0*np.pi), np.mean(np.std(phi[:,int(round((8.*delay)/dt)-10),:], axis=1), axis=0)/(2.0*np.pi) ) )
 	plt.xlabel(r'phase bins [rad]')
-	plt.ylabel(r'$\phi$')
+	plt.ylabel(r'$\log[hist(\phi)]$')
 	plt.savefig('results/histo_phases_all_osci_diff_times_%d_%d_%d.pdf' %(now.year, now.month, now.day))
 
-	# plt.figure('histo: instant. frequencies t=-delay and t=dt of all oscis over all realizations') 	# plot the distribution of instantaneous frequencies of the history
-	# plt.clf()
-	# plt.hist(firstfreq[:,:].flatten(), bins=np.linspace(2*np.pi*(F-K), 2*np.pi*(F+K), num=histo_bins), rwidth=0.75, normed=True, log=True, histtype='bar', label='t = -delay')
-	# plt.hist(simstartfreq[:,:].flatten(), bins=np.linspace(2*np.pi*(F-K), 2*np.pi*(F+K), num=histo_bins), rwidth=0.75, normed=True, log=True, histtype='bar', label='t = dt')
-	# plt.legend(loc='best')
-	# #plt.xlim((1.1*min(firstfreq), 1.1*max(firstfreq)))
-	# plt.title(r't=dt: mean frequency $\bar{f}=%.3f$ and std $\sigma_f=%.3f$  [Hz]' %( np.mean(simstartfreq[:,:].flatten())/(2.0*np.pi), np.mean(np.std(simstartfreq[:,:], axis=1),axis=0)/(2.0*np.pi) ) )
-	# plt.xlabel(r'frequency bins [rad/s]')
-	# plt.ylabel(r'hist$[\dot{\phi}]$')
-	# plt.savefig('results/histo_-taufreq_dt-freq_tau_%d_%d_%d.pdf' %(now.year, now.month, now.day))
-
-	plt.figure('histo: last instant. freq. over all oscis at t=TSim')		# plot a histogram of the last frequency of each oscillators over all realizations
+	plt.figure('histo: last instant. freq. over all oscis at t=TSim')			# plot a histogram of the last frequency of each oscillators over all realizations
 	plt.clf()
-	plt.hist(lastfreq[:,:,:].flatten(), bins=np.linspace(2*np.pi*(F-3*K), 2*np.pi*(F+3*K), num=histo_bins), rwidth=0.75, normed=True, log=True, histtype='bar')  #, color=(1, np.random.rand(1), np.random.rand(1)) )
-	plt.title(r't=TSim: mean frequency $\bar{f}=%.3f$ and std $\sigma_f=%.3f$  [Hz]' %( np.mean(lastfreq[:,0,:].flatten())/(2.0*np.pi), np.mean(np.std(lastfreq[:,0,:], axis=1),axis=0)/(2.0*np.pi) ) )
+	plt.hist(lastfreq[:,:,:].flatten(),
+						bins=np.linspace( ( np.mean(lastfreq[:,:,:].flatten())-4.0*np.std(lastfreq[:,:,:].flatten()) ), ( np.mean(lastfreq[:,:,:].flatten())+4.0*np.std(lastfreq[:,:,:].flatten()) ),
+						num=histo_bins), rwidth=0.75, normed=True, log=True, histtype='bar')  #, color=(1, np.random.rand(1), np.random.rand(1)) )
+	plt.title(r't=TSim: mean frequency $\bar{f}=%.3f$ and std $\sigma_f=%.5f$  [Hz]' %( np.mean(lastfreq[:,0,:].flatten())/(2.0*np.pi), np.mean(np.std(lastfreq[:,0,:], axis=1),axis=0)/(2.0*np.pi) ) )
 	plt.xlabel(r'frequency bins [rad/s]')
-	plt.ylabel(r'$\dot{\phi}(t=TSim)$')
+	plt.ylabel(r'$loghist[\dot{\phi}(t=TSim)]$')
 	plt.savefig('results/histo_lastfreq_all_TSim_%d_%d_%d.pdf' %(now.year, now.month, now.day))
 
-	plt.figure('histo: instant. freq. over all oscis at t={0.1,TSim}')		# plot a histogram of the last frequency of each oscillators over all realizations
+	plt.figure('histo: instant. freq. over all oscis at t={0.1,TSim}')			# plot a histogram of the last frequency of each oscillators over all realizations
 	plt.clf()
-	plt.hist(firstfreqsext[:,int(round((delay+.1)/dt)),:].flatten(), bins=np.linspace(2*np.pi*(F-3*K), 2*np.pi*(F+3*K), num=histo_bins), rwidth=0.75, normed=True, log=True, histtype='bar', label='t=0.1')
-	plt.hist(lastfreq[:,:,:].flatten(), bins=np.linspace(2*np.pi*(F-3*K), 2*np.pi*(F+3*K), num=histo_bins), rwidth=0.75, normed=True, log=True, histtype='bar', alpha=0.75, label='t=TSim')
-	plt.xlim((2*np.pi*(F-3*K), 2*np.pi*(F+3*K)))
+	common_bins = np.linspace(	min( np.array([firstfreqsext[:,int(round((delay+.1)/dt)),:].flatten(), lastfreq[:,:,:].flatten()]).flatten() ),
+							  	max( np.array([firstfreqsext[:,int(round((delay+.1)/dt)),:].flatten(), lastfreq[:,:,:].flatten()]).flatten() ),
+								num=histo_bins )
+	plt.hist(firstfreqsext[:,int(round((delay+.1)/dt)),:].flatten(), bins=common_bins,
+						rwidth=0.75, normed=True, log=True, histtype='bar', label='t=0.1')
+	plt.hist(lastfreq[:,:,:].flatten(), bins=common_bins,
+						rwidth=0.75, normed=True, log=True, histtype='bar', alpha=0.75, label='t=TSim')
 	plt.legend()
-	plt.title(r't=$0.1$: mean frequency $\bar{f}=%.3f$ and std $\sigma_f=%.3f$  [Hz]' %( np.mean(firstfreqsext[:,int(round((delay+.1)/dt)),:].flatten()/(2.0*np.pi)), np.mean(np.std(firstfreqsext[:,int(round((delay+.1)/dt)),:], axis=1), axis=0)/(2.0*np.pi) ) )
+	plt.title(r't=$0.1$: mean frequency $\bar{f}=%.3f$ and std $\sigma_f=%.5f$  [Hz]' %( np.mean(firstfreqsext[:,int(round((delay+.1)/dt)),:].flatten()/(2.0*np.pi)), np.mean(np.std(firstfreqsext[:,int(round((delay+.1)/dt)),:], axis=1), axis=0)/(2.0*np.pi) ) )
 	plt.xlabel(r'frequency bins [rad/s]')
-	plt.ylabel(r'hist[$\dot{\phi}$]')
+	plt.ylabel(r'loghist[$\dot{\phi}$]')
 	plt.savefig('results/histo_freq_all_osci_t0p1_tTSim_%d_%d_%d.pdf' %(now.year, now.month, now.day))
 
-	plt.figure('histo: instant. freq. over all oscis at t={2,4,6,8}*delay')	# plot a histogram of the last frequency of each oscillators over all realizations
+	plt.figure('histo: instant. freq. over all oscis at t={2,4,6,8}*delay')		# plot a histogram of the last frequency of each oscillators over all realizations
 	plt.clf()
-	plt.hist(firstfreqsext[:,int(round((2.*delay)/dt)),:].flatten(), bins=np.linspace(2*np.pi*(F-3*K), 2*np.pi*(F+3*K), num=histo_bins), rwidth=0.75, normed=True, log=True, histtype='bar', alpha=0.9, label='t=2*tau')
-	plt.hist(firstfreqsext[:,int(round((4.*delay)/dt)),:].flatten(), bins=np.linspace(2*np.pi*(F-3*K), 2*np.pi*(F+3*K), num=histo_bins), rwidth=0.75, normed=True, log=True, histtype='bar', alpha=0.75, label='t=4*tau')
-	plt.hist(firstfreqsext[:,int(round((6.*delay)/dt)),:].flatten(), bins=np.linspace(2*np.pi*(F-3*K), 2*np.pi*(F+3*K), num=histo_bins), rwidth=0.75, normed=True, log=True, histtype='bar', alpha=0.6, label='t=6*tau')
-	plt.hist(firstfreqsext[:,int(round((8.*delay)/dt)-10),:].flatten(), bins=np.linspace(2*np.pi*(F-3*K), 2*np.pi*(F+3*K), num=histo_bins), rwidth=0.75, normed=True, log=True, histtype='bar', alpha=0.45, label='t=8*tau')
-	plt.xlim((2*np.pi*(F-3*K), 2*np.pi*(F+3*K)))
+	common_bins = np.linspace( 	min( np.array([firstfreqsext[:,int(round((2.*delay)/dt)),:].flatten(), firstfreqsext[:,int(round((8.*delay)/dt)),:].flatten()]).flatten() ),
+								max( np.array([firstfreqsext[:,int(round((2.*delay)/dt)),:].flatten(), firstfreqsext[:,int(round((8.*delay)/dt)),:].flatten()]).flatten() ),
+								num=histo_bins )
+	plt.hist(firstfreqsext[:,int(round((2.*delay)/dt)),:].flatten(), bins=common_bins,
+	 					rwidth=0.75, normed=True, log=True, histtype='bar', alpha=0.9, label='t=2*tau')
+	plt.hist(firstfreqsext[:,int(round((4.*delay)/dt)),:].flatten(), bins=common_bins,
+						rwidth=0.75, normed=True, log=True, histtype='bar', alpha=0.75, label='t=4*tau')
+	plt.hist(firstfreqsext[:,int(round((6.*delay)/dt)),:].flatten(), bins=common_bins,
+						rwidth=0.75, normed=True, log=True, histtype='bar', alpha=0.6, label='t=6*tau')
+	plt.hist(firstfreqsext[:,int(round((8.*delay)/dt)-10),:].flatten(), bins=common_bins,
+						rwidth=0.75, normed=True, log=True, histtype='bar', alpha=0.45, label='t=8*tau')
 	plt.legend()
-	plt.title(r't=$8\tau$: mean frequency $\bar{f}=%.3f$ and std $\sigma_f=%.3f$  [Hz]' %( np.mean(firstfreqsext[:,int(round((8.*delay)/dt)-10),:].flatten())/(2.0*np.pi), np.mean(np.std(firstfreqsext[:,int(round((8.*delay)/dt)-10),:], axis=1), axis=0)/(2.0*np.pi) ) )
+	plt.title(r't=$8\tau$: mean frequency $\bar{f}=%.3f$ and std $\sigma_f=%.5f$  [Hz]' %( np.mean(firstfreqsext[:,int(round((8.*delay)/dt)-10),:].flatten())/(2.0*np.pi), np.mean(np.std(firstfreqsext[:,int(round((8.*delay)/dt)-10),:], axis=1), axis=0)/(2.0*np.pi) ) )
 	plt.xlabel(r'frequency bins [rad/s]')
-	plt.ylabel(r'$\dot{\phi}$')
+	plt.ylabel(r'$loghist[\dot{\phi}]$')
 	plt.savefig('results/histo_freq_all_osci_diff_times_%d_%d_%d.pdf' %(now.year, now.month, now.day))
 
 	''' TIME EVOLUTION '''

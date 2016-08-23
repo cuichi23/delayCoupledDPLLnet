@@ -187,15 +187,17 @@ if __name__ == '__main__':
 							itertools.product(*scanValues), itertools.repeat(initPhiPrime0), itertools.repeat(topology), itertools.repeat(couplingfct), itertools.repeat(F), itertools.repeat(Nsteps),
 							itertools.repeat(dt), itertools.repeat(c),itertools.repeat(Fc), itertools.repeat(F_Omeg), itertools.repeat(K), itertools.repeat(N), itertools.repeat(k), itertools.repeat(delay),
 							itertools.repeat(phiM), itertools.repeat(domega), itertools.repeat(diffconstK), itertools.repeat(plot_Phases_Freq) ) ) )
-		results=[]; phi=[]; omega_0=[]; K_0=[];
+		results=[]; phi=[]; omega_0=[]; K_0=[]; delays_0=[];
 		for i in range(Nsim):
 			''' evaluate dictionaries '''
 			results.append( [ pool_data[0][i]['mean_order'],  pool_data[0][i]['last_orderP'], pool_data[0][i]['stdev_orderP'] ] )
 			phi.append( pool_data[0][i]['phases'] )
 			omega_0.append( pool_data[0][i]['intrinfreq'] )
-			K_0 .append( pool_data[0][i]['coupling_strength'] )
+			K_0.append( pool_data[0][i]['coupling_strength'] )
+			# delays_0.append( pool_data[0][i]['transdelays'] )
 
 		phi=np.array(phi); omega_0=np.array(omega_0); K_0=np.array(K_0);
+		# delays_0=np.array(delays_0);
 		results=np.array(results);
 		#print( list( pool.map(multihelper_star, itertools.izip( 			# this makes a map of all parameter combinations that have to be simulated, itertools.repeat() names the constants
 		#					itertools.product(*scanValues), itertools.repeat(initPhiPrime0), itertools.repeat(topology), itertools.repeat(F), itertools.repeat(Nsteps), itertools.repeat(dt),
@@ -224,9 +226,11 @@ if __name__ == '__main__':
 			results.append( [ data['mean_order'],  data['last_orderP'], data['stdev_orderP'] ] )
 			phi.append( data['phases'] )
 			omega_0.append( data['intrinfreq'] )
-			K_0 .append( data['coupling_strength'] )
+			K_0.append( data['coupling_strength'] )
+			delays_0.append( data['transdelays'] )
 			results = np.array(results)
 
+		phi=np.array(phi); omega_0=np.array(omega_0); K_0=np.array(K_0); delays_0=np.array(delays_0);
 			#print( list( simulatePllNetwork(topology, Fc, F_Omeg, K, N, k, delay, phiS, phiM, plot_Phases_Freq) ) )
 		print('results:', results)
 		print('time needed for execution of simulations sequentially: ', (time.time()-t0), ' seconds')
@@ -240,4 +244,4 @@ if __name__ == '__main__':
 	np.savez('results/allInitPerturbPoints_%d_%d_%d.npz' %(now.year, now.month, now.day), allPoints=allPoints)
 
 	''' EXTRA EVALUATION '''
-	out.doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints, initPhiPrime0, paramDiscretization)
+	out.doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints, initPhiPrime0, paramDiscretization,delays_0)

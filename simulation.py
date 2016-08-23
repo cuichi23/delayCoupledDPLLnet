@@ -87,15 +87,15 @@ class VoltageControlledOscillator:
 		self.diffconstK = diffconstK
 		self.domega = domega
 		if domega != 0.0:
-			self.F = np.random.normal(loc=F, scale=np.sqrt(2.0*self.domega))	# set intrinsic frequency of the VCO plus gaussian dist. random variable from a distribution
+			self.F = np.random.normal(loc=F, scale=np.sqrt(2.0*domega))			# set intrinsic frequency of the VCO plus gaussian dist. random variable from a distribution
 			self.omega = 2.0*np.pi*self.F											# set intrinsic angular frequency of the VCO plus gaussian dist. random variable from a distribution
-			print('Intrinsic freq. from gaussian dist.:', self.omega, 'for diffusion constant domega:', self.domega)
+			# print('Intrinsic freq. from gaussian dist.:', self.omega, 'for diffusion constant domega:', self.domega)
 		else:
 			self.omega = 2.0*np.pi*F											# set intrinsic frequency of the VCO
 		if diffconstK != 0:														# set input sensitivity of VCO [ok to do here, since this is only called when the PLL objects are created]
-			self.K = np.random.normal(loc=K, scale=np.sqrt(2.0*self.diffconstK))# provide coupling strength - here needed for x_k^C(0)
+			self.K = np.random.normal(loc=K, scale=np.sqrt(2.0*diffconstK))		# provide coupling strength - here needed for x_k^C(0)
 			self.K = 2.0*np.pi*self.K
-			print('K from gaussian dist.:', self.K, 'for diffusion constant diffconstK:', self.diffconstK)
+			# print('2*pi*K from gaussian dist.:', self.K, 'for diffusion constant diffconstK:', self.diffconstK)
 		else:
 			self.K = 2.0*np.pi*K
 
@@ -189,6 +189,7 @@ class Delayer:
 	"""A delayer class"""
 	def __init__(self,delay,dt):
 		# print('Delayer set to identical transmission delays')
+		self. delay = delay
 		self.delay_steps = int(round(delay/dt))									# when initialized, the delay in time-steps is set to delay_steps
 		#print('\ndelay steps:', self.delay_steps, '\n')
 
@@ -203,9 +204,12 @@ class DistDelayDelayer(Delayer):
 	"""A delayer class"""
 	def __init__(self,delay,dt,std_dist_delay,std_dyn_delay_noise):
 		print('Delayer: FOR THIS CASE YOU HAVE TO FIND A SOLUTION FOR THE FREQUENCIES AND HISTORIES! -- take the mean delay to approximate the global frequency, also return distribution of delays')
-		delay = delay + np.random.normal(0.0, scale=std_dist_delay)				# process variation, the delays in the network are gaussian distributed about the mean delay
+		if std_dist_delay != 0:
+			self.delay = np.random.normal(loc=delay, scale=std_dist_delay)		# process variation, the delays in the network are gaussian distributed about the mean delay
+		else:
+			self.delay = delay
 																				# NOTE: static distribution of transmission delays - t
-		self.delay_steps = int(round(delay/dt))									# when initialized, the delay in time-steps is set to delay_steps
+		self.delay_steps = int(round(self.delay/dt))							# when initialized, the delay in time-steps is set to delay_steps
 		#print('\ndelay steps:', self.delay_steps, '\n')
 
 	def next(self,idx_time,x):
@@ -219,9 +223,11 @@ class DistDelayDelayerWithDynNoise(Delayer):
 	"""A delayer class"""
 	def __init__(self,delay,dt,std_dist_delay,std_dyn_delay_noise):
 		print('Delayer: FOR THIS CASE YOU HAVE TO FIND A SOLUTION FOR THE FREQUENCIES AND HISTORIES! -- take the mean delay to approximate the global frequency, also return distribution of delays')
-		delay = delay + np.random.normal(0.0, scale=std_dist_delay)				# process variation, the delays in the network are gaussian distributed about the mean delay
-																				# NOTE: static distribution of transmission delays - t
-		self.delay_steps = int(round(delay/dt))									# when initialized, the delay in time-steps is set to delay_steps
+		if std_dist_delay != 0:
+			self.delay = np.random.normal(loc=delay, scale=std_dist_delay)		# process variation, the delays in the network are gaussian distributed about the mean delay
+		else:																	# NOTE: static distribution of transmission delays - t
+			self.delay = delay
+		self.delay_steps = int(round(self.delay/dt))							# when initialized, the delay in time-steps is set to delay_steps
 		#print('\ndelay steps:', self.delay_steps, '\n')
 
 	def next(self,idx_time,x,std_dist_delay,std_dyn_delay_noise):
@@ -248,6 +254,7 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,coupling
 	# print('phi[0,:] ->', phi[0,:])
 	omega_0  = [pll.vco.omega for pll in pll_list]								# obtain the randomly distributed (gaussian) values for the intrinsic frequencies
 	K_0      = [pll.vco.K for pll in pll_list]									# obtain the randomly distributed (gaussian) values for the coupling strength of the VCO
+	delays_0 = [pll.delayer.delay for pll in pll_list]							# obtain the randomly distributed (gaussian) values for the transmission delays
 	# print('omega_0 ->', omega_0)
 	# this is the for-loop that iterates the system, first the initial conditions is set, then the dynamics are computed
 	for idx_time in range(Nsteps+delay_steps-1):									# iterate over Nsteps from 0 to "Nsteps + delay_steps" -> of that "delay_steps+1" is history
@@ -278,7 +285,7 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,coupling
 			#if idx_time < delay_steps+10:
 			#	print( 'new   [step =', idx_time+1 ,'] entry phi-container simulateNetwork-fct:', phi[idx_time+1][:], 'difference: ', phi[idx_time+1][:] - phi[idx_time][:])
 
-	return {'phases': phi, 'intrinfreq': omega_0, 'coupling_strength': K_0}
+	return {'phases': phi, 'intrinfreq': omega_0, 'coupling_strength': K_0, 'transdelays': delays_0}
 
 ''' CREATE PLL LIST '''
 def generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,y0,phiM,domega,diffconstK):

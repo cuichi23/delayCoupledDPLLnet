@@ -25,6 +25,7 @@ def simulatePllNetwork(mode,topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg,
 	phi     = simresult['phases']
 	omega_0 = simresult['intrinfreq']
 	K_0     = simresult['coupling_strength']
+	delays_0= simresult['transdelays']
 	# print('type phi:', type(phi), 'phi:', phi)
 
 	''' KURAMOTO ORDER PARAMETER '''
@@ -37,7 +38,7 @@ def simulatePllNetwork(mode,topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg,
 		out.plotTimeSeries(phi, F, dt, orderparam, k, delay, F_Omeg, K)
 
 	''' RETURN '''																# return value of mean order parameter, last order parameter, and the variance of r during the last 2T_{\omega}
-	return {'mean_order':np.mean(r), 'last_orderP':r[len(r)-1], 'stdev_orderP':np.var(r), 'phases': phi, 'intrinfreq': omega_0, 'coupling_strength': K_0}
+	return {'mean_order':np.mean(r), 'last_orderP':r[len(r)-1], 'stdev_orderP':np.var(r), 'phases': phi, 'intrinfreq': omega_0, 'coupling_strength': K_0, 'transdelays': delays_0}
 
 def multihelper(phiSr, initPhiPrime0, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiM, domega, diffconstK, plot_Phases_Freq):
 	if N > 2:
@@ -157,15 +158,16 @@ if __name__ == '__main__':
 							itertools.repeat(c),itertools.repeat(Fc), itertools.repeat(F_Omeg), itertools.repeat(K), itertools.repeat(N), itertools.repeat(k), itertools.repeat(delay),
 							itertools.repeat(phiM), itertools.repeat(domega), itertools.repeat(diffconstK), itertools.repeat(plot_Phases_Freq) ) ) )
 		# print('pool_data:', pool_data, 'type(pool_data):', type(pool_data) )
-		results=[]; phi=[]; omega_0=[]; K_0=[];
+		results=[]; phi=[]; omega_0=[]; K_0=[]; delays_0=[];
 		for i in range(Nsim):
 			''' evaluate dictionaries '''
 			results.append( [ pool_data[0][i]['mean_order'],  pool_data[0][i]['last_orderP'], pool_data[0][i]['stdev_orderP'] ] )
 			phi.append( pool_data[0][i]['phases'] )
 			omega_0.append( pool_data[0][i]['intrinfreq'] )
-			K_0 .append( pool_data[0][i]['coupling_strength'] )
+			K_0.append( pool_data[0][i]['coupling_strength'] )
+			delays_0.append( pool_data[0][i]['transdelays'] )
 
-		phi=np.array(phi); omega_0=np.array(omega_0); K_0=np.array(K_0);
+		phi=np.array(phi); omega_0=np.array(omega_0); K_0=np.array(K_0); delays_0=np.array(delays_0);
 		results=np.array(results);
 
 		# print('data[0]["mean_order"]', data[0]['mean_order'])
@@ -176,8 +178,8 @@ if __name__ == '__main__':
 		print('time needed for execution of simulations in multiproc mode: ', (time.time()-t0), ' seconds')
 		# print('data:', data, 'type(data[0]):', type(data[0]))
 	else:
-		results=[]; phi=[]; omega_0=[]; K_0=[]; data=[];					# prepare container for results of simulatePllNetwork
-		for i in range (allPoints.shape[0]):								# iterate through all points in the N-1 dimensional rotated phase space
+		results=[]; phi=[]; omega_0=[]; K_0=[]; data=[]; delays_0=[];			# prepare container for results of simulatePllNetwork
+		for i in range (allPoints.shape[0]):									# iterate through all points in the N-1 dimensional rotated phase space
 			print('calculation #:', i+1, 'of', allPoints.shape[0])
 			#print( allPoints[i], '\n')
 			#print( 'type of allPoints[i]', type(allPoints[i]))
@@ -190,9 +192,10 @@ if __name__ == '__main__':
 			results.append( [ data['mean_order'],  data['last_orderP'], data['stdev_orderP'] ] )
 			phi.append( data['phases'] )
 			omega_0.append( data['intrinfreq'] )
-			K_0 .append( data['coupling_strength'] )
+			K_0.append( data['coupling_strength'] )
+			delays_0.append( data['transdelays'] )
 
-		phi=np.array(phi); omega_0=np.array(omega_0); K_0=np.array(K_0);
+		phi=np.array(phi); omega_0=np.array(omega_0); K_0=np.array(K_0); delays_0=np.array(delays_0);
 		results=np.array(results);
 		print('results:', results, 'type(results):', type(results))
 		print('time needed for execution of simulations sequentially: ', (time.time()-t0), ' seconds')
@@ -204,7 +207,7 @@ if __name__ == '__main__':
 		orderparam.append(eva.oracle_mTwistOrderParameter(phi[i,:, :], k))			# calculate the m-twist order parameter for all times
 
 	''' EXTRA EVALUATION '''
-	out.doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints, dt, orderparam, r, phi, omega_0, K_0)
+	out.doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, domega, twistdelta, results, allPoints, dt, orderparam, r, phi, omega_0, K_0,delays_0)
 	# print(r'frequency of zeroth osci at the beginning and end of the simulation:, $\dot{\phi}_0(t_{start})=%.4f$, $\dot{\phi}_0(t_{end})=%.4f$  [rad/Hz]', ((phi[0][int(round(delay/dt))+2][0]-phi[0][int(round(delay/dt))+1][0])/(dt)), ((phi[0][-4][0]-phi[0][-5][0])/(dt)) )
 	# print('last values of the phases:\n', phi[0,-3:,0])
 

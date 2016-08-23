@@ -18,10 +18,10 @@ F = 1.0
 Fsim = 100.0															
 #
 #7: diffusion constant [variance=2*diffconst] of the gaussian distribution for the intrinsic frequencies
-domega = 0.0
+domega = 1E-6
 #
 #8: diffusion constant [variance=2*diffconst] of the gaussian distribution for the coupling strength
-diffconstK = 0.0
+diffconstK = 1E-9
 #
 #9: multiples of the period of the uncoupled oscillators to set simulation time -- usually set with argument on startup
 #Tsim = 150  														
