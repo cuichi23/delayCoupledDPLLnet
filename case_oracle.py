@@ -22,9 +22,10 @@ import datetime
 def simulatePllNetwork(mode,topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, isPlottingTimeSeries=False):
 	''' SIMULATION OF NETWORK '''
 	simresult = sim.simulateNetwork(mode,N,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,couplingfct,phiS, phiM, domega, diffconstK)
-	phi     = simresult['phases']
-	omega_0 = simresult['intrinfreq']
-	K_0     = simresult['coupling_strength']
+	phi		  = simresult['phases']
+	omega_0   = simresult['intrinfreq']
+	K_0       = simresult['coupling_strength']
+	delays_0  = simresult['transdelays']
 	# print('type phi:', type(phi), 'phi:', phi)
 
 	''' KURAMOTO ORDER PARAMETER '''

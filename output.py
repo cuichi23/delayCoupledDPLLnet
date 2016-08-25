@@ -18,9 +18,42 @@ plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
 
 ''' EVALUATION SINGLE REALIZATION '''
-def plotTimeSeries(phi, F, dt, orderparam, k, delay, F_Omeg, K):
+def plotTimeSeries(phi, F, dt, orderparam, k, delay, F_Omeg, K, coupFct, Fsim=None):
+
+	phi = phi[:,:,:]; orderparam = orderparam[0,:]								# there is only one realization of interest -reduces dimensionof phi array
+	if coupFct == 'triang':
+		print('Calculate spectrum for square wave signals. Fsim=%d' %Fsim)
+		f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'square')					# calculate spectrum of signals, i.e., of this state
+	elif coupFct == 'sin':
+		print('check that... sine coupFct only if cos and sin signal input')
+		f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'sin')						# calculate spectrum of signals, i.e., of this state
+	elif coupFct == 'cos':
+		f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'sin')						# calculate spectrum of signals, i.e., of this state
+
 	now = datetime.datetime.now()
 
+	plt.figure('spectrum of synchronized state')								# plot spectrum
+	plt.clf()
+	for i in range (len(f)):
+		plt.plot(f[i], Pxx_db[i], '-')
+	plt.title('spectra in dB')
+	plt.xlim(0,F+20*K);	#plt.ylim(-100,0);
+	plt.xlabel('frequencies [Hz]'); plt.ylabel('dB')
+	plt.grid()
+	plt.savefig('results/powerdensity_dB_%d_%d_%d.pdf' %(now.year, now.month, now.day))
+	plt.savefig('results/powerdensity_dB_%d_%d_%d.png' %(now.year, now.month, now.day), dpi=300)
+
+	# plot spectrum
+	# plt.figure(2)
+	# plt.plot(f,spectrum['global'][1],'-',label='global2')
+	# plt.plot(f,spectrum['free'][0],'-',label='free')
+	# plt.title('global2 vs free ')
+	# plt.xlim(500,1500)
+	# plt.ylim(-100,0)
+	# plt.legend()
+	# plt.grid()
+
+	phi = phi[0,:,:];															# from here on the phi array is reduced in dimension - realization 0 picked
 	t = np.arange(phi.shape[0])													# plot the phases of the oscillators over time
 	plt.figure(9)
 	plt.clf()
@@ -28,7 +61,7 @@ def plotTimeSeries(phi, F, dt, orderparam, k, delay, F_Omeg, K):
 	# print(np.arange(0,len(phi),2*np.pi*F_Omeg*dt))
 	#plt.plot(phi[:,1]-2*np.pi*dt*F_Omeg*np.arange(len(phi)))					# plots the difference between the expected phase (according to Omega) vs the actual phase evolution
 	plt.plot(int(round(delay/dt)), phi[int(round(delay/dt)),0], 'yo', ms=5)
-	plt.axvspan(t[-int(2*1.0/(F*dt))], t[-1], color='b', alpha=0.3)
+	# plt.axvspan(t[-int(2*1.0/(F*dt))], t[-1], color='b', alpha=0.3)
 	plt.title(r'time series phases, $\dot{\phi}_0(t_{start})=%.4f$, $\dot{\phi}_0(t_{end})=%.4f$  [rad/Hz]' %( ((phi[2][0]-phi[1][0])/(dt)), ((phi[-4][0]-phi[-5][0])/(dt)) ) )
 	plt.xlabel(r'$t$ in steps $dt$')
 	plt.ylabel(r'$\phi(t)$')
@@ -36,6 +69,8 @@ def plotTimeSeries(phi, F, dt, orderparam, k, delay, F_Omeg, K):
 	plt.savefig('results/phases-vs-time_%d_%d_%d.png' %(now.year, now.month, now.day), dpi=200)
 	print(r'frequency of zeroth osci at the beginning and end of the simulation:, $\dot{\phi}_0(t_{start})=%.4f$, $\dot{\phi}_0(t_{end})=%.4f$  [rad/Hz]', ((phi[2][0]-phi[1][0])/(dt)), ((phi[-4][0]-phi[-5][0])/(dt)) )
 	print('last values of the phases:\n', phi[-3:,:])
+	plt.savefig('results/phases_vs_time_%d_%d_%d.pdf' %(now.year, now.month, now.day))
+	plt.savefig('results/phases_vs_time_%d_%d_%d.png' %(now.year, now.month, now.day), dpi=300)
 
 	#plot distribution of instantaneous frequencies for time invterval t-2tau bis t
 
@@ -53,6 +88,7 @@ def plotTimeSeries(phi, F, dt, orderparam, k, delay, F_Omeg, K):
 	plt.xlabel(r'frequency bins [rad/s]')
 	plt.ylabel(r'number')
 	plt.savefig('results/freq_histo_%d_%d_%d.pdf' %(now.year, now.month, now.day))
+	plt.savefig('results/freq_histo_%d_%d_%d.png' %(now.year, now.month, now.day), dpi=300)
 
 	# plot phase modulo 2pi vs time
 	# plt.figure(11)
@@ -71,7 +107,7 @@ def plotTimeSeries(phi, F, dt, orderparam, k, delay, F_Omeg, K):
 	phidot = np.diff(phi, axis=0)/dt
 	plt.plot(phidot)
 	plt.plot(int(round(delay/dt)), phidot[int(round(delay/dt)),0], 'yo', ms=5)
-	plt.axvspan(t[-int(2*1.0/(F*dt))], t[-1], color='b', alpha=0.3)
+	# plt.axvspan(t[-int(2*1.0/(F*dt))], t[-1], color='b', alpha=0.3)
 	# print(t[-int(2*1.0/(F*dt))], t[-1])
 	plt.title(r'time series frequencies [rad Hz]')								# , last value in [Hz]: f_1 = %.3d' % (phi[-1][0]-phi[-2][0])/dt )
 	plt.xlabel(r'$t$ in steps $dt$')
@@ -145,7 +181,7 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	plt.figure(1)																#
 	plt.clf()
 	plt.scatter(allPoints[:,0], allPoints[:,1], c=results[:,0], alpha=0.5, edgecolor='')
-	plt.title(r'mean $R(t,m)$, constant dim: $\phi_0^{\prime}=%.2f$' % initPhiPrime0)
+	plt.title(r'mean $R(t,m=%d )$, constant dim: $\phi_0^{\prime}=%.2f$' %(k ,initPhiPrime0) )
 	plt.xlabel(r'$\phi_1^{\prime}$')
 	plt.ylabel(r'$\phi_2^{\prime}$')
 	plt.xlim([1.05*allPoints[:,0].min(), 1.05*allPoints[:,0].max()])
@@ -159,7 +195,7 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	plt.figure(2)
 	plt.clf()
 	plt.scatter(allPoints[:,0], allPoints[:,1], c=results[:,1], alpha=0.5, edgecolor='')
-	plt.title(r'last $R(t,m)$, constant dim: $\phi_0^{\prime}=%.2f$' % initPhiPrime0)
+	plt.title(r'last $R(t,m=%d )$, constant dim: $\phi_0^{\prime}=%.2f$' %(k ,initPhiPrime0) )
 	plt.xlabel(r'$\phi_1^{\prime}$')
 	plt.ylabel(r'$\phi_2^{\prime}$')
 	plt.xlim([1.05*allPoints[:,0].min(), 1.05*allPoints[:,0].max()])
@@ -175,7 +211,7 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	tempresults = results[:,0].reshape((paramDiscretization, paramDiscretization))   #np.flipud()
 	tempresults = np.transpose(tempresults)
 	plt.imshow(tempresults, interpolation='nearest', cmap=cm.coolwarm, aspect='auto', origin='lower', extent=(allPoints[:,0].min(), allPoints[:,0].max(), allPoints[:,1].min(), allPoints[:,1].max()), vmin=0, vmax=1)
-	plt.title(r'mean $R(t,m)$, constant dim: $\phi_0^{\prime}=%.2f$' % initPhiPrime0)
+	plt.title(r'mean $R(t,m=%d )$, constant dim: $\phi_0^{\prime}=%.2f$' %(k ,initPhiPrime0) )
 	plt.xlabel(r'$\phi_1^{\prime}$')
 	plt.ylabel(r'$\phi_2^{\prime}$')
 	plt.colorbar()
@@ -192,7 +228,7 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	tempresults = np.transpose(tempresults)
 	plt.imshow(tempresults, interpolation='nearest', cmap=cm.coolwarm, aspect='auto', origin='lower', extent=(allPoints[:,0].min(), allPoints[:,0].max(), allPoints[:,1].min(), allPoints[:,1].max()), vmin=0, vmax=1)
 	plt.title(r'last $R(t,m)$, constant dim: $\phi_0^{\prime}=%.2f$' % initPhiPrime0)
-	plt.title(r'last $R(t,m=)$, constant dim: $\phi_0^{\prime}=%.2f$' % initPhiPrime0)
+	plt.title(r'last $R(t,m=%d )$, constant dim: $\phi_0^{\prime}=%.2f$' %(k ,initPhiPrime0) )
 	plt.xlabel(r'$\phi_1^{\prime}$')
 	plt.ylabel(r'$\phi_2^{\prime}$')
 	plt.colorbar()
@@ -207,7 +243,6 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	plt.show()
 
 	return 0.0
-
 
 ''' EVALUATION MANY (noisy, dstributed parameters) REALIZATIONS '''
 def doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, domega, twistdelta, results, allPoints, dt, orderparam, r, phi, omega_0, K_0, delays_0):

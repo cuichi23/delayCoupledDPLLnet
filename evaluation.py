@@ -18,6 +18,8 @@ from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes
 from mpl_toolkits.axes_grid1.inset_locator import mark_inset
 import time
 import datetime
+import scipy
+from scipy import signal
 
 ''' All plots in latex mode '''
 from matplotlib import rc
@@ -162,14 +164,31 @@ def oracle_mTwistOrderParameter(phi, k):
 	return rk
 
 ''' CALCULATE SPECTRUM '''
-def calcSpectrum(phi,Fs,waveform='sin'):
-	signal = generateOscillationSignal(phi,waveform=waveform)
-	f, Pxx = periodogram(signal, Fs, return_onesided=True)
-	Pxx_db = 10*np.log10(Pxx)
+def calcSpectrum(phi,Fsample,waveform='sin'):
+	Pxx_db=[]; f=[];
+	window = scipy.signal.get_window('hamming', Fsample)						# choose window from: boxcar, triang, blackman, hamming, hann, bartlett, flattop, parzen, bohman, blackmanharris, nuttall,
+																				# barthann, kaiser (needs beta), gaussian (needs std), general_gaussian (needs power, width), slepian (needs width), chebwin (needs attenuation)
+	print('calculate spectrum for signals with waveform:', waveform)
+	for i in range ( len(phi[0,0,:]) ):
+		tsdata = generateOscillationSignal(phi[0,:,i],waveform=waveform)
+		ftemp, Pxx = scipy.signal.periodogram(tsdata, Fsample, return_onesided=True, window='boxcar', axis=0)
+		Pxx_db.append( 10*np.log10(Pxx) )
+		f.append( ftemp )
 
-	ma = np.ma.masked_inside(f,0,2e3)											# mask spectrum
+	# ma = np.ma.masked_inside(f_db,0,2)										# mask spectrum
 
-	return f[ma.mask], Pxx_db[ma.mask]
+	# print('f_db:', f_db, 'Pxx_db:', Pxx_db)
+	# return f_db[ma.mask], Pxx_db[ma.mask]
+	return f, Pxx_db
+
+''' GENERATE OSCILLATION SIGNAL -- a function to call different coupling functions'''
+def generateOscillationSignal(phi,waveform):
+	if waveform == 'square':
+		return scipy.signal.square(phi,duty=0.5)
+	elif waveform == 'sin':
+		return np.sqrt(2)*np.sin(phi)
+	elif waveform == 'cos':
+		return np.sqrt(2)*np.cos(phi)
 
 ''' GET FILTER STATUS IN SYNCHRONISED STATE '''
 def getFilterStatus(F,K,Fc,delay,Fsim,Tsim):
@@ -210,12 +229,3 @@ def fitModelDemir(f_model,d_model,fitrange=0):
 	d_model_ma = d_model
 
 	return f_model, optimize_func(p_final), p_final
-
-''' GENERATE OSCILLATION SIGNAL -- a function to call different coupling functions'''
-def generateOscillationSignal(phi,waveform):
-	if waveform == 'square':
-		return square(phi,duty=0.5)
-	elif waveform == 'sin':
-		return np.sqrt(2)*np.sin(phi)
-	elif waveform == 'cos':
-		return np.sqrt(2)*np.cos(phi)
