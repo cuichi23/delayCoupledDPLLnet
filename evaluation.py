@@ -164,9 +164,11 @@ def oracle_mTwistOrderParameter(phi, k):
 	return rk
 
 ''' CALCULATE SPECTRUM '''
-def calcSpectrum(phi,Fsample,waveform='sin'):
+def calcSpectrum(phi,Fsample,waveform=None):
 	Pxx_db=[]; f=[];
-	window = scipy.signal.get_window('hamming', Fsample)						# choose window from: boxcar, triang, blackman, hamming, hann, bartlett, flattop, parzen, bohman, blackmanharris, nuttall,
+	windowset='hamming'
+	print('current window option is', windowset, 'for waveform', waveform)
+	window = scipy.signal.get_window(windowset, Fsample, fftbins=True)			# choose window from: boxcar, triang, blackman, hamming, hann, bartlett, flattop, parzen, bohman, blackmanharris, nuttall,
 																				# barthann, kaiser (needs beta), gaussian (needs std), general_gaussian (needs power, width), slepian (needs width), chebwin (needs attenuation)
 	print('calculate spectrum for signals with waveform:', waveform)
 	for i in range ( len(phi[0,0,:]) ):

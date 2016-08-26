@@ -17,6 +17,28 @@ from matplotlib import rc
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
 
+''' STYLEPACKS '''
+titlefont = {
+        'family' : 'serif',
+        'color'  : 'black',
+        'weight' : 'normal',
+        'size'   : 22,
+        }
+
+labelfont = {
+        'family' : 'sans-serif',
+        'color'  : 'black',
+        'weight' : 'normal',
+        'size'   : 16,
+        }
+
+annotationfont = {
+        'family' : 'monospace',
+        'color'  : (0, 0.27, 0.08),
+        'weight' : 'normal',
+        'size'   : 14,
+        }
+
 ''' EVALUATION SINGLE REALIZATION '''
 def plotTimeSeries(phi, F, dt, orderparam, k, delay, F_Omeg, K, coupFct, Fsim=None):
 
@@ -36,115 +58,59 @@ def plotTimeSeries(phi, F, dt, orderparam, k, delay, F_Omeg, K, coupFct, Fsim=No
 	plt.clf()
 	for i in range (len(f)):
 		plt.plot(f[i], Pxx_db[i], '-')
-	plt.title('spectra in dB')
+	plt.title('power spectrum', fontdict = titlefont)
 	plt.xlim(0,F+20*K);	#plt.ylim(-100,0);
-	plt.xlabel('frequencies [Hz]'); plt.ylabel('dB')
+	plt.xlabel('frequencies [Hz]', fontdict = labelfont); plt.ylabel('P [dB]', fontdict = labelfont)
 	plt.grid()
 	plt.savefig('results/powerdensity_dB_%d_%d_%d.pdf' %(now.year, now.month, now.day))
 	plt.savefig('results/powerdensity_dB_%d_%d_%d.png' %(now.year, now.month, now.day), dpi=300)
 
-	# plot spectrum
-	# plt.figure(2)
-	# plt.plot(f,spectrum['global'][1],'-',label='global2')
-	# plt.plot(f,spectrum['free'][0],'-',label='free')
-	# plt.title('global2 vs free ')
-	# plt.xlim(500,1500)
-	# plt.ylim(-100,0)
-	# plt.legend()
-	# plt.grid()
-
 	phi = phi[0,:,:];															# from here on the phi array is reduced in dimension - realization 0 picked
 	t = np.arange(phi.shape[0])													# plot the phases of the oscillators over time
-	plt.figure(9)
+
+	plt.figure('phases over time')
 	plt.clf()
-	plt.plot(phi)
-	# print(np.arange(0,len(phi),2*np.pi*F_Omeg*dt))
-	#plt.plot(phi[:,1]-2*np.pi*dt*F_Omeg*np.arange(len(phi)))					# plots the difference between the expected phase (according to Omega) vs the actual phase evolution
+	plt.plot((t*dt),phi)
 	plt.plot(int(round(delay/dt)), phi[int(round(delay/dt)),0], 'yo', ms=5)
-	# plt.axvspan(t[-int(2*1.0/(F*dt))], t[-1], color='b', alpha=0.3)
-	plt.title(r'time series phases, $\dot{\phi}_0(t_{start})=%.4f$, $\dot{\phi}_0(t_{end})=%.4f$  [rad/Hz]' %( ((phi[2][0]-phi[1][0])/(dt)), ((phi[-4][0]-phi[-5][0])/(dt)) ) )
-	plt.xlabel(r'$t$ in steps $dt$')
-	plt.ylabel(r'$\phi(t)$')
+	plt.title(r'time series phases, $\dot{\phi}_0(t_{start})=%.4f$, $\dot{\phi}_0(t_{end})=%.4f$  [rad/Hz]' %( ((phi[2][0]-phi[1][0])/(dt)), ((phi[-4][0]-phi[-5][0])/(dt)) ), fontdict = titlefont)
+	plt.xlabel(r'$t$ $[s]$', fontdict = labelfont)
+	plt.ylabel(r'$\phi(t)$', fontdict = labelfont)
 	plt.savefig('results/phases-vs-time_%d_%d_%d.pdf' %(now.year, now.month, now.day))
-	plt.savefig('results/phases-vs-time_%d_%d_%d.png' %(now.year, now.month, now.day), dpi=200)
+	plt.savefig('results/phases-vs-time_%d_%d_%d.png' %(now.year, now.month, now.day), dpi=300)
 	print(r'frequency of zeroth osci at the beginning and end of the simulation:, $\dot{\phi}_0(t_{start})=%.4f$, $\dot{\phi}_0(t_{end})=%.4f$  [rad/Hz]', ((phi[2][0]-phi[1][0])/(dt)), ((phi[-4][0]-phi[-5][0])/(dt)) )
 	print('last values of the phases:\n', phi[-3:,:])
-	plt.savefig('results/phases_vs_time_%d_%d_%d.pdf' %(now.year, now.month, now.day))
-	plt.savefig('results/phases_vs_time_%d_%d_%d.png' %(now.year, now.month, now.day), dpi=300)
 
-	#plot distribution of instantaneous frequencies for time invterval t-2tau bis t
+	plt.figure('frequencies over time')											# plot the frequencies of the oscillators over time
+	plt.clf()
+	phidot = np.diff(phi, axis=0)/dt
+	plt.plot((t[0:-1]*dt),phidot)
+	plt.plot(int(round(delay/dt)), phidot[int(round(delay/dt)),0], 'yo', ms=5)
+	plt.title(r'mean frequency [rad Hz] of last $2T$-eigenperiods $\dot{\bar{\phi}}=$%.4f' % np.mean(phidot[-int(round(2*1.0/(F*dt))):, 0] ), fontdict = titlefont)
+	plt.xlabel(r'$t$ $[s]$', fontdict = labelfont)
+	plt.ylabel(r'$\dot{\phi}(t)$ $[rad Hz]$', fontdict = labelfont)
+	plt.savefig('results/freq-vs-time_%d_%d_%d.pdf' %(now.year, now.month, now.day))
+	plt.savefig('results/freq-vs-time_%d_%d_%d.png' %(now.year, now.month, now.day), dpi=300)
 
-	# print('the last entries of phi_0 or its derivative:', np.diff(phi[-4:, 0]))
-	# print('\nphi check dimension, Doppelklammer', phi[-4:][0])				# CAREFUL HERE!!!, not always the same, the first case M=phi[-4:] is returned and then of this M, M[0] is taken
-	# print('phi check dimension, Doppelklammer',   phi[-4:, 0], '\n')			# here
-	#print('the last entries of phi_0', np.linspace(F-K, F+K, num=20) )
-
-	plt.figure(10)																# plot a histogram of the frequencies of the oscillators over time
+	plt.figure('histogram of frequencies')										# plot a histogram of the frequencies of the oscillators over time
 	plt.clf()
 	lastfreqs = (np.diff(phi[-int(2*1.0/(F*dt)):, :], axis=0).flatten()/(dt))
 	plt.hist(lastfreqs, bins=np.linspace(2*np.pi*(F-K), 2*np.pi*(F+K), num=21), rwidth=0.75 )
 	plt.xlim((2*np.pi*(F-K), 2*np.pi*(F+K)))
-	plt.title(r'mean frequency $\bar{f}=%.3f$ and std $\sigma_f=%.3f$  [rad/Hz]' %( np.mean(lastfreqs)/(2.0*np.pi), np.std(lastfreqs)/(2.0*np.pi) ) )
-	plt.xlabel(r'frequency bins [rad/s]')
-	plt.ylabel(r'number')
+	plt.title(r'mean frequency [Hz] $\bar{f}=$%.3f and std $\bar{\sigma}_f=$%.4f' %( np.mean(lastfreqs)/(2.0*np.pi), np.std(lastfreqs)/(2.0*np.pi) ), fontdict = titlefont)
+	plt.xlabel(r'$\dot{\phi}(-2T -> T_{end})$ $[rad/s]$', fontdict = labelfont)
+	plt.ylabel(r'histogram', fontdict = labelfont)
 	plt.savefig('results/freq_histo_%d_%d_%d.pdf' %(now.year, now.month, now.day))
 	plt.savefig('results/freq_histo_%d_%d_%d.png' %(now.year, now.month, now.day), dpi=300)
 
-	# plot phase modulo 2pi vs time
-	# plt.figure(11)
-	# plt.clf()
-	# plt.plot(np.fmod(phi, 2.0*np.pi))
-	# plt.plot(np.fmod(phi[:,1]-2*np.pi*dt*F_Omeg*np.arange(len(phi)),2*np.pi))
-	# plt.title(r'time series phases modulo $2\pi$')
-	# plt.axvspan(t[-int(2*1.0/(F*dt))], t[-1], color='b', alpha=0.3)
-	# plt.xlabel(r'$t$ in steps $dt$')
-	# plt.ylabel(r'$\phi(t)$')
-	# plt.savefig('results/phases2pi-vs-time_%d_%d_%d.pdf' %(now.year, now.month, now.day))
-	# plt.savefig('results/phases2pi-vs-time.png', dpi=150)
-
-	plt.figure(12)																# plot the frequencies of the oscillators over time
+	plt.figure('order parameter over time')										# plot the order parameter in dependence of time
 	plt.clf()
-	phidot = np.diff(phi, axis=0)/dt
-	plt.plot(phidot)
-	plt.plot(int(round(delay/dt)), phidot[int(round(delay/dt)),0], 'yo', ms=5)
-	# plt.axvspan(t[-int(2*1.0/(F*dt))], t[-1], color='b', alpha=0.3)
-	# print(t[-int(2*1.0/(F*dt))], t[-1])
-	plt.title(r'time series frequencies [rad Hz]')								# , last value in [Hz]: f_1 = %.3d' % (phi[-1][0]-phi[-2][0])/dt )
-	plt.xlabel(r'$t$ in steps $dt$')
-	plt.ylabel(r'$\dot{\phi}(t)$')
-	plt.savefig('results/freq-vs-time_%d_%d_%d.pdf' %(now.year, now.month, now.day))
-	plt.savefig('results/freq-vs-time_%d_%d_%d.png' %(now.year, now.month, now.day), dpi=200)
-
-	# fig, ax = plt.subplots() 													# create a new figure with a default 111 subplot
-	# phidot = np.diff(phi, axis=0)/dt
-	# plt.title(r'time series frequencies [rad Hz]')								# , last value in [Hz]: f_1 = %.3d' % (phi[-1][0]-phi[-2][0])/dt )
-	# plt.xlabel(r'$t$ in steps $dt$')
-	# plt.ylabel(r'$\dot{\phi}(t)$')
-	# ax.plot(phidot)
-	# plt.plot(int(round(delay/dt)), phidot[int(round(delay/dt)),0], 'yo', ms=5)
-	# plt.axvspan(t[-int(2*1.0/(F*dt))], t[-1], color='b', alpha=0.3)
-	# axins = zoomed_inset_axes(ax, 5, loc=4) 									# zoom-factor: 2.5, location: 'best': 0, (only implemented for axes legends)
-	# 																			# 'upper right': 1, 'upper left'  : 2, 'lower left'  : 3, 'lower right' : 4, 'right' : 5,
-	# 																			# 'center left': 6, 'center right': 7, 'lower center': 8, 'upper center': 9, 'center': 10
-	# axins.plot(phidot)
-	# x1, x2, y1, y2 = t[-int((25/F)/dt)], t[-1], phidot[-1,0]-5*F, phidot[-1,0]+5*F	# specify the limits of the inset
-	# print('inset coordinates: x1=', x1, 'x2=', x2, 'y1=', y1, 'y2=', y2)
-	# axins.set_xlim(x1, x2) 														# apply the x-limits
-	# axins.set_ylim(y1, y2) 														# apply the y-limits
-	# plt.yticks(visiblesimulateNetwork=False)
-	# plt.xticks(visible=False)
-	# mark_inset(ax, axins, loc1=2, loc2=4, fc="none", ec="0.5")
-	# print(t[-int(2*1.0/(F*dt))], t[-1])
-
-	plt.figure(14)																# plot the order parameter in dependence of time
-	plt.clf()
-	plt.plot(t, orderparam)
+	plt.plot((t*dt), orderparam)
 	plt.plot(int(round(delay/dt)), orderparam[int(round(delay/dt))], 'yo', ms=5)# mark where the simulation starts
-	plt.title(r'order parameter, with 1-$\bar{R}$=%.3e, and std=%.3e' %(1-np.mean(orderparam[-int(2*1.0/(F*dt)):]), np.std(orderparam[-int(2*1.0/(F*dt)):])) )
-	plt.xlabel(r'$t$ in steps $dt$')
-	plt.ylabel(r'$R( t,m = %d )$' % k)
+	plt.title(r'mean order parameter $\bar{R}=$%.2f, and $\bar{\sigma}=$%.4f' %(np.mean(orderparam[-int(round(2*1.0/(F*dt))):]), np.std(orderparam[-int(round(2*1.0/(F*dt))):])), fontdict = titlefont)
+	plt.xlabel(r'$t$ $[s]$', fontdict = labelfont)
+	plt.ylabel(r'$R( t,m = %d )$' % k, fontdict = labelfont)
 	plt.savefig('results/orderParam-vs-time_%d_%d_%d.pdf' %(now.year, now.month, now.day))
-	plt.savefig('results/orderParam-vs-time_%d_%d_%d.png' %(now.year, now.month, now.day), dpi=200)
+	plt.savefig('results/orderParam-vs-time_%d_%d_%d.png' %(now.year, now.month, now.day), dpi=300)
 	#print('\nlast entry order parameter: R-1 = %.3e' % (orderparam[-1]-1) )
 	#print('\nlast entries order parameter: R = ', orderparam[-25:])
 
@@ -190,7 +156,7 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	if N==3:
 		plt.plot(alltwistPR[:,1],alltwistPR[:,2], 'yo', ms=8)
 	plt.savefig('results/rot_red_PhaseSpace_meanR_%d_%d_%d.pdf' %(now.year, now.month, now.day))
-	plt.savefig('results/rot_red_PhaseSpace_meanR_%d_%d_%d.png' %(now.year, now.month, now.day), dpi=200)
+	plt.savefig('results/rot_red_PhaseSpace_meanR_%d_%d_%d.png' %(now.year, now.month, now.day), dpi=300)
 
 	plt.figure(2)
 	plt.clf()
@@ -204,7 +170,7 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	if N==3:
 		plt.plot(alltwistPR[:,1],alltwistPR[:,2], 'yo', ms=8)
 	plt.savefig('results/rot_red_PhaseSpace_lastR_%d_%d_%d.pdf' %(now.year, now.month, now.day))
-	plt.savefig('results/rot_red_PhaseSpace_lastR_%d_%d_%d.png' %(now.year, now.month, now.day), dpi=200)
+	plt.savefig('results/rot_red_PhaseSpace_lastR_%d_%d_%d.png' %(now.year, now.month, now.day), dpi=300)
 
 	plt.figure(3)
 	plt.clf()
@@ -458,23 +424,23 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, domega, twistdelta, results, 
 	#plt.plot(phi[:,1]-2*np.pi*dt*F_Omeg*np.arange(len(phi)))				# plots the difference between the expected phase (according to Omega) vs the actual phase evolution
 	plt.plot(int(round(delay/dt)), phi[0,int(round(delay/dt)),0], 'yo', ms=5)
 	plt.axvspan(t[-int(2*1.0/(F*dt))], t[-1], color='b', alpha=0.3)
-	plt.title(r'time series phases, $\dot{\phi}_0(t_{start})=%.4f$, $\dot{\phi}_0(t_{end})=%.4f$  [rad Hz]' %( ((phi[0][11][0]-phi[0][1][0])/(10*dt)), ((phi[0][-4][0]-phi[0][-14][0])/(10*dt)) ) )
-	plt.xlabel(r'$t$ in steps $dt$')
-	plt.ylabel(r'$\phi(t)$')
+	plt.title(r'time series phases, $\dot{\phi}_0(t_{start})=$%.4f, $\dot{\phi}_0(t_{end})=$%.4f [rad/Hz]' %( ((phi[0][11][0]-phi[0][1][0])/(10*dt)), ((phi[0][-4][0]-phi[0][-14][0])/(10*dt)) ) )
+	plt.xlabel(r't [s]', fontdict = labelfont)
+	plt.ylabel(r'$\phi(t)$', fontdict = labelfont)
 	plt.savefig('results/phases-vs-time_%d_%d_%d.pdf' %(now.year, now.month, now.day))
 	plt.savefig('results/phases-vs-time_%d_%d_%d.png' %(now.year, now.month, now.day), dpi=dpi_value)
 
 	plt.figure('plot instantaneous-frequencies for first realization')		# plot the frequencies of the oscillators over time
 	plt.clf()
 	for i in range (phi.shape[2]):											# for each oscillator: plot of frequency vs time
-		plt.plot(np.transpose( np.diff(phi[0,:,i])/dt ))
+		plt.plot((t[0:-1]*dt), np.transpose( np.diff(phi[0,:,i])/dt ))
 	phidot = np.diff(phi[:,:,0], axis=1)/dt
 	plt.plot(int(round(delay/dt)), phidot[0,int(round(delay/dt))], 'yo', ms=5)
 	plt.axvspan(t[-int(2*1.0/(F*dt))], t[-1], color='b', alpha=0.3)
 	# print(t[-int(2*1.0/(F*dt))], t[-1])
-	plt.title(r'time series frequencies [rad Hz]')							# , last value in [Hz]: f_1 = %.3d' % (phi[-1][0]-phi[-2][0])/dt )
-	plt.xlabel(r'$t$ in steps $dt$')
-	plt.ylabel(r'$\dot{\phi}(t)$')
+	plt.title(r'mean frequency [rad Hz] of last $2T$-eigenperiods $\bar{f}=$%.4f' % np.mean(phidot[-int(round(2*1.0/(F*dt))):, 0] ))
+	plt.xlabel(r't [s]', fontdict = labelfont)
+	plt.ylabel(r'$\dot{\phi}(t)$ $[rad Hz]$', fontdict = labelfont)
 	plt.savefig('results/freq-vs-time_%d_%d_%d.pdf' %(now.year, now.month, now.day))
 	plt.savefig('results/freq-vs-time_%d_%d_%d.png' %(now.year, now.month, now.day), dpi=dpi_value)
 
