@@ -22,7 +22,7 @@ titlefont = {
         'family' : 'serif',
         'color'  : 'black',
         'weight' : 'normal',
-        'size'   : 22,
+        'size'   : 20,
         }
 
 labelfont = {
@@ -68,33 +68,11 @@ def plotTimeSeries(phi, F, dt, orderparam, k, delay, F_Omeg, K, coupFct, Fsim=No
 	phi = phi[0,:,:];															# from here on the phi array is reduced in dimension - realization 0 picked
 	t = np.arange(phi.shape[0])													# plot the phases of the oscillators over time
 
-	plt.figure('phases over time')
-	plt.clf()
-	plt.plot((t*dt),phi)
-	plt.plot(int(round(delay/dt)), phi[int(round(delay/dt)),0], 'yo', ms=5)
-	plt.title(r'time series phases, $\dot{\phi}_0(t_{start})=%.4f$, $\dot{\phi}_0(t_{end})=%.4f$  [rad/Hz]' %( ((phi[2][0]-phi[1][0])/(dt)), ((phi[-4][0]-phi[-5][0])/(dt)) ), fontdict = titlefont)
-	plt.xlabel(r'$t$ $[s]$', fontdict = labelfont)
-	plt.ylabel(r'$\phi(t)$', fontdict = labelfont)
-	plt.savefig('results/phases-vs-time_%d_%d_%d.pdf' %(now.year, now.month, now.day))
-	plt.savefig('results/phases-vs-time_%d_%d_%d.png' %(now.year, now.month, now.day), dpi=300)
-	print(r'frequency of zeroth osci at the beginning and end of the simulation:, $\dot{\phi}_0(t_{start})=%.4f$, $\dot{\phi}_0(t_{end})=%.4f$  [rad/Hz]', ((phi[2][0]-phi[1][0])/(dt)), ((phi[-4][0]-phi[-5][0])/(dt)) )
-	print('last values of the phases:\n', phi[-3:,:])
-
-	plt.figure('frequencies over time')											# plot the frequencies of the oscillators over time
-	plt.clf()
-	phidot = np.diff(phi, axis=0)/dt
-	plt.plot((t[0:-1]*dt),phidot)
-	plt.plot(int(round(delay/dt)), phidot[int(round(delay/dt)),0], 'yo', ms=5)
-	plt.title(r'mean frequency [rad Hz] of last $2T$-eigenperiods $\dot{\bar{\phi}}=$%.4f' % np.mean(phidot[-int(round(2*1.0/(F*dt))):, 0] ), fontdict = titlefont)
-	plt.xlabel(r'$t$ $[s]$', fontdict = labelfont)
-	plt.ylabel(r'$\dot{\phi}(t)$ $[rad Hz]$', fontdict = labelfont)
-	plt.savefig('results/freq-vs-time_%d_%d_%d.pdf' %(now.year, now.month, now.day))
-	plt.savefig('results/freq-vs-time_%d_%d_%d.png' %(now.year, now.month, now.day), dpi=300)
-
 	plt.figure('histogram of frequencies')										# plot a histogram of the frequencies of the oscillators over time
 	plt.clf()
 	lastfreqs = (np.diff(phi[-int(2*1.0/(F*dt)):, :], axis=0).flatten()/(dt))
 	plt.hist(lastfreqs, bins=np.linspace(2*np.pi*(F-K), 2*np.pi*(F+K), num=21), rwidth=0.75 )
+	plt.axvspan(t[-int(2*1.0/(F*dt))]*dt, t[-1]*dt, color='b', alpha=0.3)
 	plt.xlim((2*np.pi*(F-K), 2*np.pi*(F+K)))
 	plt.title(r'mean frequency [Hz] $\bar{f}=$%.3f and std $\bar{\sigma}_f=$%.4f' %( np.mean(lastfreqs)/(2.0*np.pi), np.std(lastfreqs)/(2.0*np.pi) ), fontdict = titlefont)
 	plt.xlabel(r'$\dot{\phi}(-2T -> T_{end})$ $[rad/s]$', fontdict = labelfont)
@@ -102,10 +80,37 @@ def plotTimeSeries(phi, F, dt, orderparam, k, delay, F_Omeg, K, coupFct, Fsim=No
 	plt.savefig('results/freq_histo_%d_%d_%d.pdf' %(now.year, now.month, now.day))
 	plt.savefig('results/freq_histo_%d_%d_%d.png' %(now.year, now.month, now.day), dpi=300)
 
+	plt.figure('phases over time')
+	plt.clf()
+	plt.plot((t*dt),phi)
+	plt.plot(delay, phi[int(round(delay/dt)),0], 'yo', ms=5)
+	plt.axvspan(t[-int(2*1.0/(F*dt))]*dt, t[-1]*dt, color='b', alpha=0.3)
+	plt.title(r'time series phases, $\dot{\phi}_0(t_{start})=%.4f$, $\dot{\phi}_0(t_{end})=%.4f$  [rad/Hz]' %( ((phi[2][0]-phi[1][0])/(dt)), ((phi[-4][0]-phi[-5][0])/(dt)) ), fontdict = titlefont)
+	plt.xlabel(r'$t$ $[s]$', fontdict = labelfont)
+	plt.ylabel(r'$\phi(t)$', fontdict = labelfont)
+	plt.savefig('results/phases-vs-time_%d_%d_%d.pdf' %(now.year, now.month, now.day))
+	plt.savefig('results/phases-vs-time_%d_%d_%d.png' %(now.year, now.month, now.day), dpi=300)
+	print(r'frequency of zeroth osci at the beginning and end of the simulation:, freqStart=%.4f, freqEnd=%.4f  [rad/Hz]' %(((phi[2][0]-phi[1][0])/(dt)), ((phi[-4][0]-phi[-5][0])/(dt))) )
+	print('last values of the phases:\n', phi[-3:,:])
+
+	plt.figure('frequencies over time')											# plot the frequencies of the oscillators over time
+	plt.clf()
+	phidot = np.diff(phi, axis=0)/dt
+	plt.plot((t[0:-1]*dt),phidot)
+	plt.plot(delay-dt, phidot[int(round(delay/dt)-1),0], 'yo', ms=5)
+	plt.axvspan(t[-int(2*1.0/(F*dt))]*dt, t[-1]*dt, color='b', alpha=0.3)
+	plt.title(r'mean frequency [rad Hz] of last $2T$-eigenperiods $\dot{\bar{\phi}}=$%.4f' % np.mean(phidot[-int(round(2*1.0/(F*dt))):, 0] ), fontdict = titlefont)
+	plt.xlabel(r'$t$ $[s]$', fontdict = labelfont)
+	plt.ylabel(r'$\dot{\phi}(t)$ $[rad Hz]$', fontdict = labelfont)
+	plt.savefig('results/freq-vs-time_%d_%d_%d.pdf' %(now.year, now.month, now.day))
+	plt.savefig('results/freq-vs-time_%d_%d_%d.png' %(now.year, now.month, now.day), dpi=300)
+
+
 	plt.figure('order parameter over time')										# plot the order parameter in dependence of time
 	plt.clf()
 	plt.plot((t*dt), orderparam)
-	plt.plot(int(round(delay/dt)), orderparam[int(round(delay/dt))], 'yo', ms=5)# mark where the simulation starts
+	plt.plot(delay, orderparam[int(round(delay/dt))], 'yo', ms=5)				# mark where the simulation starts
+	plt.axvspan(t[-int(2*1.0/(F*dt))]*dt, t[-1]*dt, color='b', alpha=0.3)
 	plt.title(r'mean order parameter $\bar{R}=$%.2f, and $\bar{\sigma}=$%.4f' %(np.mean(orderparam[-int(round(2*1.0/(F*dt))):]), np.std(orderparam[-int(round(2*1.0/(F*dt))):])), fontdict = titlefont)
 	plt.xlabel(r'$t$ $[s]$', fontdict = labelfont)
 	plt.ylabel(r'$R( t,m = %d )$' % k, fontdict = labelfont)
@@ -375,12 +380,12 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, domega, twistdelta, results, 
 	plt.clf()
 	for i in range (orderparam.shape[0]):
 		# print('Plot order parameter of realization #', i)
-		plt.plot(t,orderparam[i,:], alpha=0.2)
-	plt.plot(t,np.mean(orderparam[:,:], axis=0), label='mean order param', color='r')
-	plt.plot(int(round(delay/dt)), orderparam[0,int(round(delay/dt))], 'yo', ms=5)# mark where the simulation starts
-	plt.title(r'order parameter, with 1-$\bar{R}$=%.3e, and std=%.3e' %(1-np.mean(orderparam[-int(2*1.0/(F*dt)):]), np.std(orderparam[-int(2*1.0/(F*dt)):])) )
-	plt.xlabel(r'$t$ in steps $dt$')
-	plt.ylabel(r'$R( t,m = %d )$' % k)
+		plt.plot(t*dt,orderparam[i,:], alpha=0.2)
+	plt.plot(t*dt,np.mean(orderparam[:,:], axis=0), label='mean order param', color='r')
+	plt.plot(delay, orderparam[0,int(round(delay/dt))], 'yo', ms=5)# mark where the simulation starts
+	plt.title(r'order parameter, with 1-$\bar{R}$=%.3e, and std=%.3e' %(1-np.mean(orderparam[-int(2*1.0/(F*dt)):]), np.std(orderparam[-int(2*1.0/(F*dt)):])), fontdict=titlefont)
+	plt.xlabel(r'$t$ $[s]$', fontdict=labelfont)
+	plt.ylabel(r'$R( t,m = %d )$' % k, fontdict=labelfont)
 	plt.legend(loc='center right')
 	plt.savefig('results/orderParams-vs-time_%d_%d_%d.pdf' %(now.year, now.month, now.day))
 	plt.savefig('results/orderParams-vs-time_%d_%d_%d.png' %(now.year, now.month, now.day), dpi=dpi_value)
@@ -388,45 +393,45 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, domega, twistdelta, results, 
 	plt.figure('time evolution of mean and standard deviation of phases, first and all realization')
 	plt.subplot(2,1,1)
 	plt.title('time evolution of mean and std of phases')
-	plt.plot(t, np.mean(phi[0,:,:], axis=1), label=r'$\langle \phi_{first} \rangle$')
-	plt.plot(t, np.mean(phi[:,:,:], axis=tuple(range(0, 3, 2))), label=r'$\langle \phi_{all} \rangle$')
-	plt.ylabel(r'$\bar{\phi}$')
+	plt.plot(t*dt, np.mean(phi[0,:,:], axis=1), label=r'$\langle \phi_{first} \rangle$')
+	plt.plot(t*dt, np.mean(phi[:,:,:], axis=tuple(range(0, 3, 2))), label=r'$\langle \phi_{all} \rangle$')
+	plt.ylabel(r'$\bar{\phi}$', fontdict = labelfont)
 	plt.legend(loc='upper left')
 	plt.subplot(2,1,2)
-	plt.plot(t, np.std(phi[0,:,:], axis=1), label=r'$\sigma_{\phi,first}$')
-	plt.plot(t, np.mean(np.std(phi[:,:,:], axis=2), axis=0), label=r'$\sigma_{\phi,all}$')
+	plt.plot(t*dt, np.std(phi[0,:,:], axis=1), label=r'$\sigma_{\phi,first}$')
+	plt.plot(t*dt, np.mean(np.std(phi[:,:,:], axis=2), axis=0), label=r'$\sigma_{\phi,all}$')
 	plt.legend(loc='upper left')
-	plt.xlabel(r'time in time steps dt=%.3f' %dt)
-	plt.ylabel(r'$\sigma_{\phi}$')
+	plt.xlabel(r'$t$ $[s]$', fontdict=labelfont)
+	plt.ylabel(r'$\sigma_{\phi}$', fontdict=labelfont)
 	plt.savefig('results/mean_of_phase_vs_t_%d_%d_%d.pdf' %(now.year, now.month, now.day))
 
 	plt.figure('time evolution of mean and standard deviation of frequencies, first and all realizations')
 	plt.subplot(2,1,1)
 	plt.title('time evolution of mean and std of frequencies')
-	plt.plot(t[0:-1], np.mean(np.diff(phi[0,:,:], axis=0)/dt, axis=1), label=r'$\langle \dot{\phi}_{first} \rangle$')
-	plt.plot(t[0:-1], np.mean(np.diff(phi[:,:,:], axis=1)/dt, axis=tuple(range(0, 3, 2))), label=r'$\langle \dot{\phi}_{all} \rangle$')
+	plt.plot(t[0:-1]*dt, np.mean(np.diff(phi[0,:,:], axis=0)/dt, axis=1), label=r'$\langle \dot{\phi}_{first} \rangle$')
+	plt.plot(t[0:-1]*dt, np.mean(np.diff(phi[:,:,:], axis=1)/dt, axis=tuple(range(0, 3, 2))), label=r'$\langle \dot{\phi}_{all} \rangle$')
 	plt.legend(loc='best')
 	plt.ylabel(r'$\dot{\bar{\phi}}$')
 	plt.subplot(2,1,2)
-	plt.plot(t[0:-1], np.std(np.diff(phi[0,:,:], axis=0)/dt, axis=1), label=r'$\sigma_{\dot{\phi},first}$')
-	plt.plot(t[0:-1], np.std(np.diff(phi[:,:,:], axis=1)/dt, axis=tuple(range(0, 3, 2))), label=r'$\sigma_{\dot{\phi},all}$')
+	plt.plot(t[0:-1]*dt, np.std(np.diff(phi[0,:,:], axis=0)/dt, axis=1), label=r'$\sigma_{\dot{\phi},first}$')
+	plt.plot(t[0:-1]*dt, np.std(np.diff(phi[:,:,:], axis=1)/dt, axis=tuple(range(0, 3, 2))), label=r'$\sigma_{\dot{\phi},all}$')
 	plt.legend(loc='best')
-	plt.xlabel(r'time in time steps dt=%.3f' %dt)
-	plt.ylabel(r'$\sigma_{\dot{\phi}}$')
+	plt.xlabel(r'$t$ $[s]$', fontdict=labelfont)
+	plt.ylabel(r'$\sigma_{\dot{\phi}}$', fontdict=labelfont)
 	plt.savefig('results/mean_of_freq_vs_t_%d_%d_%d.pdf' %(now.year, now.month, now.day))
 
 	plt.figure('plot phase time-series for first realization')						# plot the phase time-series of all oscis and all realizations
 	plt.clf()
 	for i in range (phi.shape[2]):
 		#print('Plot now osci #', i, '\n')
-		plt.plot(t,phi[0,:,i])
+		plt.plot((t*dt),phi[0,:,i])
 	# print(np.arange(0,len(phi),2*np.pi*F_Omeg*dt))
 	#plt.plot(phi[:,1]-2*np.pi*dt*F_Omeg*np.arange(len(phi)))				# plots the difference between the expected phase (according to Omega) vs the actual phase evolution
-	plt.plot(int(round(delay/dt)), phi[0,int(round(delay/dt)),0], 'yo', ms=5)
-	plt.axvspan(t[-int(2*1.0/(F*dt))], t[-1], color='b', alpha=0.3)
-	plt.title(r'time series phases, $\dot{\phi}_0(t_{start})=$%.4f, $\dot{\phi}_0(t_{end})=$%.4f [rad/Hz]' %( ((phi[0][11][0]-phi[0][1][0])/(10*dt)), ((phi[0][-4][0]-phi[0][-14][0])/(10*dt)) ) )
-	plt.xlabel(r't [s]', fontdict = labelfont)
-	plt.ylabel(r'$\phi(t)$', fontdict = labelfont)
+	plt.plot(delay, phi[0,int(round(delay/dt)),0], 'yo', ms=5)
+	plt.axvspan(t[-int(2*1.0/(F*dt))]*dt, t[-1]*dt, color='b', alpha=0.3)
+	plt.title(r'time series phases, $\dot{\phi}_0(t_{start})=$%.4f, $\dot{\phi}_0(t_{end})=$%.4f  [rad/Hz]' %( ((phi[0][11][0]-phi[0][1][0])/(10*dt)), ((phi[0][-4][0]-phi[0][-14][0])/(10*dt)) ), fontdict=titlefont)
+	plt.xlabel(r'$t$ $[s]$', fontdict=labelfont)
+	plt.ylabel(r'$\phi(t)$', fontdict=labelfont)
 	plt.savefig('results/phases-vs-time_%d_%d_%d.pdf' %(now.year, now.month, now.day))
 	plt.savefig('results/phases-vs-time_%d_%d_%d.png' %(now.year, now.month, now.day), dpi=dpi_value)
 
@@ -435,12 +440,12 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, domega, twistdelta, results, 
 	for i in range (phi.shape[2]):											# for each oscillator: plot of frequency vs time
 		plt.plot((t[0:-1]*dt), np.transpose( np.diff(phi[0,:,i])/dt ))
 	phidot = np.diff(phi[:,:,0], axis=1)/dt
-	plt.plot(int(round(delay/dt)), phidot[0,int(round(delay/dt))], 'yo', ms=5)
-	plt.axvspan(t[-int(2*1.0/(F*dt))], t[-1], color='b', alpha=0.3)
+	plt.plot(delay-dt, phidot[0,int(round(delay/dt)-1)], 'yo', ms=5)
+	plt.axvspan(t[-int(2*1.0/(F*dt))]*dt, t[-1]*dt, color='b', alpha=0.3)
 	# print(t[-int(2*1.0/(F*dt))], t[-1])
 	plt.title(r'mean frequency [rad Hz] of last $2T$-eigenperiods $\bar{f}=$%.4f' % np.mean(phidot[-int(round(2*1.0/(F*dt))):, 0] ))
 	plt.xlabel(r't [s]', fontdict = labelfont)
-	plt.ylabel(r'$\dot{\phi}(t)$ $[rad Hz]$', fontdict = labelfont)
+	plt.ylabel(r'$\dot{\phi}(t)$ $[rad Hz]$', fontdict=labelfont)
 	plt.savefig('results/freq-vs-time_%d_%d_%d.pdf' %(now.year, now.month, now.day))
 	plt.savefig('results/freq-vs-time_%d_%d_%d.png' %(now.year, now.month, now.day), dpi=dpi_value)
 

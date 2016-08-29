@@ -2,7 +2,7 @@
 #1: for multiprocessing set to True
 multiproc = True
 #
-#2: discretization for brute force scan in rotated phase space with phi'_k
+#2: discretization for brute force scan in rotated phase space with phi'_k (for each dimension)
 paramDiscretization = 5
 #
 #3: number of processors that can be used --> with INTEL HT: 2*number of cores of proc.
