@@ -1,3 +1,4 @@
-modules.pyc
-oracle.pyc
 results
+evaluation.pyc
+simulation.pyc
+output.pyc
