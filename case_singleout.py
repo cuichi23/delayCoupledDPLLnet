@@ -117,10 +117,20 @@ if __name__ == '__main__':
 	phiSr 		= np.asarray([float(phi) for phi in sys.argv[11:(11+N)]])		# this input allows to simulate specific points in !rotated phase space plane
 
 	if len(phiSr)==N:
-		print('Parameters set.')
+		print('Parameters set, perturbations provided manually in rotated phase space of phases.')
+		# choose the value of phi'_0, i.e., where the plane, rectangular to the axis phi'_0 in the rotated phase space, is placed
+		# this direction corresponds to the case where all phi_k in the original phase space are equal phi_0==phi_1==...==phi_N-1 or (all) have constant phase differences
+		initPhiPrime0 = 0.0
+		print('shift along the first axis in rotated phase space, equivalent to phase kick of all oscillators before simulation starts: phi`_0=', initPhiPrime0)
+		phiSr[0] = initPhiPrime0							  					# set value of the first dimension, phi'_0, the axis along which all phase differences are preserved
+		print('\nvalues of the initial phases in ROTATED phase space, i.e., last time-step of history set as initial condition:', phiSr)
+		phiS = eva.rotate_phases(phiSr, isInverse=False)		  				# rotate back into physical phase space for simulation
+		print('values of initial phase in ORIGINAL phase space:', phiS, '\n')
 	else:
 		print('Error in parameters - supply: \ncase_[sim_mode].py [topology] [#osci] [K] [F_c] [delay] [F_Omeg] [k] [Tsim] [c] [Nsim] [N entries for the value of the perturbation to oscis]')
-		sys.exit(0)
+		# sys.exit(0)
+		phiSValues = np.zeros((Nsim, N), dtype=np.float)						# create vector that will contain the initial perturbation (in the history) for each realizations
+		print('\nNo perturbation set, hence all perturbations have the default value zero (in original phase space of phases)!')
 
 	Tsim 	= Tsim*(1.0/F)				  										# simulation time in multiples of the period of the uncoupled oscillators
 	Nsteps 	= int(round(Tsim*Fsim))												# calculate number of iterations -- add output?
@@ -135,15 +145,6 @@ if __name__ == '__main__':
 	else:
 		phiM = np.arange(0.0, N*twistdelta, twistdelta)							# vector mit N entries from 0 increasing by twistdelta for every element, i.e., the phase-configuration
 																				# in the original phase space of an m-twist solution
-	# choose the value of phi'_0, i.e., where the plane, rectangular to the axis phi'_0 in the rotated phase space, is placed
-	# this direction corresponds to the case where all phi_k in the original phase space are equal phi_0==phi_1==...==phi_N-1 or (all) have constant phase differences
-	initPhiPrime0 = 0.0
-	print('shift along the first axis in rotated phase space, equivalent to phase kick of all oscillators before simulation starts: phi`_0=', initPhiPrime0)
-	phiSr[0] = initPhiPrime0							  						# set value of the first dimension, phi'_0, the axis along which all phase differences are preserved
-	print('\nvalues of the initial phases in ROTATED phase space, i.e., last time-step of history set as initial condition:', phiSr)
-	phiS = eva.rotate_phases(phiSr, isInverse=False)		  					# rotate back into physical phase space for simulation
-	print('values of initial phase in ORIGINAL phase space:', phiS, '\n')
-
 	t0 = time.time()
 	data = simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, plot_Phases_Freq) # initiates simulation and saves result in results container
 	print('time needed for execution of simulation: ', (time.time()-t0), ' seconds')
@@ -162,9 +163,9 @@ if __name__ == '__main__':
 
 	''' PLOT PHASE & FREQUENCY TIME SERIES '''
 	if plot_Phases_Freq:
-		out.plotTimeSeries(phi, F, dt, orderparam, k, delay, F_Omeg, K, couplingfct, Fsim)
+		out.plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, couplingfct, Fsim)
 
 	plt.show()
 	''' SAVE RESULTS '''
-	np.savez('results/orderparam_%d_%d_%d.npz' %(now.year, now.month, now.day), results=results)
-	np.savez('results/initialperturb_%d_%d_%d.npz' %(now.year, now.month, now.day), phiS=phiS)
+	np.savez('results/orderparam_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), results=results)
+	np.savez('results/initialperturb_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), phiS=phiS)

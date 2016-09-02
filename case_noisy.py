@@ -35,7 +35,7 @@ def simulatePllNetwork(mode,topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg,
 
 	''' PLOT PHASE & FREQUENCY TIME SERIES '''
 	if isPlottingTimeSeries:
-		out.plotTimeSeries(phi, F, dt, orderparam, k, delay, F_Omeg, K)
+		out.plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K)
 
 	''' RETURN '''																# return value of mean order parameter, last order parameter, and the variance of r during the last 2T_{\omega}
 	return {'mean_order':np.mean(r), 'last_orderP':r[len(r)-1], 'stdev_orderP':np.var(r), 'phases': phi, 'intrinfreq': omega_0, 'coupling_strength': K_0, 'transdelays': delays_0}
@@ -118,37 +118,37 @@ if __name__ == '__main__':
 	Nsim 		= int(sys.argv[10])												# number of realizations for parameterset -- should be one here
 	phiSr 		= np.asarray([float(phi) for phi in sys.argv[11:(11+N)]])		# this input allows to simulate specific points in !rotated phase space plane
 
+	initPhiPrime0 = 0															# here, this is just set to be handed over to the next modules
 	if len(phiSr)==N:
-		print('Parameters set.')
+		print('Parameters set, perturbations provided manually in rotated phase space of phases.')
+		phiSr[0] = initPhiPrime0
+		phiS 	 = eva.rotate_phases(phiSr, isInverse=False)					# rotate back into physical phase space
+		for i in range (Nsim):
+			phiSValues.append(phiS)												# create vector that will contain the initial perturbation (in the history) for each realizations
 	else:
 		print('Error in parameters - supply: \ncase_[sim_mode].py [topology] [#osci] [K] [F_c] [delay] [F_Omeg] [k] [Tsim] [c] [Nsim] [N entries for the value of the perturbation to oscis]')
-		sys.exit(0)
-	phiSr = np.zeros(N)
+		# sys.exit(0)
+		phiSValues = np.zeros((Nsim, N), dtype=np.float)						# create vector that will contain the initial perturbation (in the history) for each realizations
+		print('\nNo perturbation set, hence all perturbations have the default value zero (in original phase space of phases)!')
 
-	phiS = eva.rotate_phases(phiSr, isInverse=False)							# rotate back into physical phase space
-	Tsim 	= Tsim*(1.0/F)				  										# simulation time in multiples of the period of the uncoupled oscillators
-	Nsteps 	= int(round(Tsim*Fsim))												# calculate number of iterations -- add output?
+	Tsim   = Tsim*(1.0/F)				  										# simulation time in multiples of the period of the uncoupled oscillators
+	Nsteps = int(round(Tsim*Fsim))												# calculate number of iterations -- add output?
 	print('total simulation time in multiples of the eigentfrequency:', int(Tsim*F),'\n')
-	initPhiPrime0 = 0
-	plot_Phases_Freq = False												# whether or not the phases and frequencies are being plotted
-
-	twistdelta = ( 2.0 * np.pi * k / float(N) )								# phase difference between neighboring oscillators in a stable m-twist state
+	plot_Phases_Freq = False													# whether or not the phases and frequencies are being plotted
+	twistdelta = ( 2.0 * np.pi * k / float(N) )									# phase difference between neighboring oscillators in a stable m-twist state
 	#print('phase differences of',k,'-twist:', twistdelta, '\n')
 	if k == 0:
-		phiM = np.zeros(N)													# vector mit N entries from 0 increasing by twistdelta for every element, i.e., the initial phase-configuration
-	else:																	# in the original phase space
+		phiM = np.zeros(N)														# vector mit N entries from 0 increasing by twistdelta for every element, i.e., the initial phase-configuration
+	else:																		# in the original phase space
 		phiM = np.arange(0.0, N*twistdelta, twistdelta)
 		#print('phiM = ', phiM, '\n')
 
-	phiSValues = np.zeros((Nsim, N), dtype=np.float)						# create vector that will contain the initial perturbation (in the history) for each realizations
-	#print('phiSValues:\n', phiSValues)
-
 	_allPoints = phiSValues
-	phiSValues = list(phiSValues)											# scanValues is a list of lists: create a new list that gives all the possible combinations of items between the lists
-	allPoints = np.array(phiSValues) 										# convert the list to an array
+	phiSValues = list(phiSValues)												# scanValues is a list of lists: create a new list that gives all the possible combinations of items between the lists
+	allPoints = np.array(phiSValues) 											# convert the list to an array
 
 	t0 = time.time()
-	if multiproc:															# multiprocessing option for parameter sweep calulcations
+	if multiproc:																# multiprocessing option for parameter sweep calulcations
 		print('multiprocessing', Nsim, 'realizations')
 		pool_data=[]; data=[]
 		freeze_support()
@@ -213,5 +213,5 @@ if __name__ == '__main__':
 
 	''' SAVE RESULTS '''
 	now = datetime.datetime.now()
-	np.savez('results/orderparam_%d_%d_%d.npz' %(now.year, now.month, now.day), results=results)
-	np.savez('results/allInitPerturbPoints_%d_%d_%d.npz' %(now.year, now.month, now.day), allPoints=allPoints)
+	np.savez('results/orderparam_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), results=results)
+	np.savez('results/allInitPerturbPoints_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), allPoints=allPoints)

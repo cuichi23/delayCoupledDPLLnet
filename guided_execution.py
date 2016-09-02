@@ -13,6 +13,8 @@ from PIL import ImageDraw
 import configparser
 from configparser import ConfigParser
 
+import evaluation as eva
+
 import case_noisy as cnois
 import case_bruteforce as cbrut
 import case_singleout as csing
@@ -20,58 +22,129 @@ import case_singleout as csing
 sys.path.append(os.path.abspath("./GlobFreq_LinStab"))
 import synctools
 
-''' NOTE
-    -> script is organized such that it is placed in a folder that is created in the directory that contains the results
-    -> extracted plots will then be placed in a new folder with the name determined by the constant parameters and are named such that they have an order
-'''
-
-# def copyFiles(newfilename1, newfilename2, targetdir, resultsfolder, in_plot_name):
-#     # loop over all files in the target folder and copy them to the resultsfolder, thereby renaming them such that they arrange in order
-#     print('Copy to folder with name: ', resultsfolder, ' from folder with name: ', targetdir)
-#     for file in os.listdir(targetdir):
-#         if not file.endswith(".npz"):                                           # exclude data files
-#             print('Copy file: ', targetdir+file)
-#             if file.endswith(".png"):                                           # pick png plots
-#                 if file.startswith("rot_red_PhaseSpace_lastR"):
-#                     shutil.copy2(targetdir+file, resultsfolder+'/png/lastR/scatt_'+newfilename1+'.png')
-#                 if file.startswith("rot_red_PhaseSpace_meanR"):
-#                     shutil.copy2(targetdir+file, resultsfolder+'/png/meanR/scatt_'+newfilename2+'.png')
-#                 if file.startswith("imshow_PhaseSpace_lastR"):
-#                     shutil.copy2(targetdir+file, resultsfolder+'/png/lastR/imsh_'+newfilename1+'.png')
-#                 if file.startswith("imshow_PhaseSpace_meanR"):
-#                     shutil.copy2(targetdir+file, resultsfolder+'/png/meanR/imsh_'+newfilename2+'.png')
-#                     # add parameter values to the png file
-#                     font = ImageFont.truetype("Calibri.ttf", 256)
-#                     img = Image.open(resultsfolder+'/png/meanR/imsh_'+newfilename2+'.png')
-#                     draw = ImageDraw.Draw(img)
-#                     draw.text((300, 100), in_plot_name, (0, 0, 0), font=font)
-#                     img.save(resultsfolder+'/png/meanR/imsh_'+newfilename2+'.png')
-#             else:
-#                 if file.startswith("rot_red_PhaseSpace_lastR"):
-#                     shutil.copy2(targetdir+file, resultsfolder+'/pdf_lastR/scatt_'+newfilename1+'.pdf')
-#                 if file.startswith("rot_red_PhaseSpace_meanR"):
-#                     shutil.copy2(targetdir+file, resultsfolder+'/scatt_'+newfilename2+'.pdf')
-#                 if file.startswith("imshow_PhaseSpace_lastR"):
-#                     shutil.copy2(targetdir+file, resultsfolder+'/pdf_lastR/imsh_'+newfilename1+'.pdf')
-#                 if file.startswith("imshow_PhaseSpace_meanR"):
-#                     shutil.copy2(targetdir+file, resultsfolder+'/imsh_'+newfilename2+'.pdf')
-#     return 0
-
-def chooseTopology(None):
+def chooseTopology():															# ask user-input for topology
 	a_true = True
 	while a_true:
 		# get user input to know which topology should be analyzed
-		topology = raw_input("\nPlease specify topology from 1-dim [chain, ring], 2-dim [square, hexgon, octagon] or mean-field [global] to be analyzed: ")
-		if ( topology == 'square' or topology == 'hexagon' or topology == 'octagon' or topology == 'chain' or topology == 'ring' or topology == 'global' )
+		topology = str(raw_input("\nPlease specify topology from 1-dim [chain, ring], 2-dim [square, hexgon, octagon] or mean-field [global] to be analyzed: "))
+		if ( topology == 'square' or topology == 'hexagon' or topology == 'octagon' or topology == 'chain' or topology == 'ring' or topology == 'global' ):
 			break
 		else:
-			print('Please provide one of these inputs [chain, ring, square, hexgon, octagon, global]!')
+			print('Please provide one of these input-strings: [chain, ring, square, hexgon, octagon, global]!')
 
-	return topology
+	return str(topology)
+
+def chooseNumber():																# ask user-input for number of oscis in the network
+	a_true = True
+	while a_true:
+		# get user input on number of oscis in the network
+		N = int(raw_input("\nPlease specify the number of oscillators in the network: "))
+		if int(N) > 1:
+			break
+		else:
+			print('Please provide input as an [integer] in [2, 1000]!')
+
+	return int(N)
+
+def chooseK(mean_int_freq):														# ask user-input for coupling strength
+	a_true = True
+	while a_true:
+		# get user input on number of oscis in the network
+		K = float(raw_input("\nPlease specify the coupling strength [Hz]: "))
+		if np.abs( float(K) ) > 1.0 * mean_int_freq:
+			break
+		else:
+			print('Please provide input as an [float] in [0, f_intrinsic]!')
+
+	return float(K)
+
+def chooseFc():																	# ask user-input for cut-off frequency
+	a_true = True
+	while a_true:
+		# get user input on number of oscis in the network
+		Fc = float(raw_input("\nPlease specify the cut-off frequency Fc [Hz]: "))
+		if Fc >= 0:
+			break
+		else:
+			print('Please provide input as an [float] in (0, 100*f_intrinsic] [Hz]!')
+
+	return float(Fc)
+
+def chooseTransDelay():															# ask user-input for delay
+	a_true = True
+	while a_true:
+		# get user input on number of oscis in the network
+		delay = float(raw_input("\nPlease specify the transmission delay [s]: "))
+		if float(delay)>0:
+			break
+		else:
+			print('Please provide input as an [float] in [0, 5 * T_intrinsic] [s]!')
+
+	return float(delay)
+
+def chooseTwistNumber():														# ask user-input for delay
+	a_true = True
+	while a_true:
+		# get user input on number of oscis in the network
+		k = int(raw_input("\nPlease specify the m-twist number in [0, 1, ..., N-1] [dimless]: "))
+		if k>=0:
+			break
+		else:
+			print('Please provide input as an [integer] in [0, N-1]!')
+
+	return int(k)
+
+def loopUserInputPert(N):														# ask N times for the value of the perturbation of the k-th oscillator
+	count = 0
+	perturb_user_set = []
+	while count < N:
+		c_true = True
+		while c_true:
+			# get user input of the perturbation
+			pert = float(raw_input("\nPlease specify pertubation as [float] in [0, 2pi] of oscillator k=%d: " %(count+1)))
+			if ( float(pert)>=0 or float(pert)<(2.0*np.pi) ):
+				perturb_user_set.append(float(pert))
+				count = count + 1
+				break															# breaks the while loop that catches invalid input
+			else:
+				print('Please provide value as [float] in [0, 2pi]!')
+
+	return perturb_user_set
+
+def setDeltaPertubation(N, case):
+	if case == '1':																# case in which the user provides all pertubations manually
+		a_true = True
+		while a_true:
+			# get user input on whether to input perturbation in rotated or original phase space
+			rot_vs_orig = raw_input("\nPlease specify whether perturbation is provided in rotated [r] or original [o] phase space: ")
+			if rot_vs_orig == 'r':
+				perturbation_vec = loopUserInputPert(N)
+				break
+			elif rot_vs_orig == 'o':
+				phiS = loopUserInputPert(N)
+				perturbation_vec = eva.rotate_phases(phiS, isInverse=True)		# transform perturbations into rotated phase space of phases, as required by case_noisy, case_singleout
+				break
+			else:
+				print('Please provide one of these input-strings: [r] or [o] (small O)!')
+
+	elif case == '2':															# case for which no delta-perturbations are added
+		print('No delta-perturbations, all set to zero!')
+		phiS = np.zeros(N)
+		perturbation_vec = eva.rotate_phases(phiS, isInverse=True)				# transform perturbations into rotated phase space of phases, as required by case_noisy, case_singleout
+
+	elif case == '3':															# case in which only one the the oscillators is perturbed
+
+		perturbation_vec = eva.rotate_phases(phiS, isInverse=True)				# transform perturbations into rotated phase space of phases, as required by case_noisy, case_singleout
+
+	elif case == '4':															# case in which all the oscillators are perturbed randomly from iid dist. in [min_pert, max_pert]
+
+		perturbation_vec = eva.rotate_phases(phiS, isInverse=True)				# transform perturbations into rotated phase space of phases, as required by case_noisy, case_singleout
+
+	return perturbation_vec
 
 def singleRealization(params):
-	a_true = True
-	while a_true:
+	x_true = True
+	while x_true:
 		# get user input to know which parameter should be analyzed
 		user_input = raw_input("\nPlease specify parameter {K in [Hz], Fc in [Hz], delay in [s]} whose dependencies to be analyzed: ")
 		if user_input == 'K':
@@ -80,126 +153,173 @@ def singleRealization(params):
 			user_sweep_discr = float(raw_input("Please specify the discretization steps in [Hz] dK = "))
 			new_K_values	 = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
 
-			Fc    = float(raw_input("for fixed/constant cut-off frequency Fc in (0, inf) [Hz], choose value: "))
-			delay = float(raw_input("for fixed/constant delay-value in [0, 5 * T_omega] [s], choose value: "))
-			new_K_set = []
-			topology = chooseTopology()											# calls function that asks user for input of type of network
+			N 		= chooseNumber()											# calls function that asks user for input of number of oscis
+			k		= chooseTwistNumber()										# choose twist under investigation
+			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
+			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
+			topology = chooseTopology()											# calls function that asks user for input of type of network topology
+			if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
+				h = synctools.Triangle(1.0 / (2.0 * np.pi))
+			elif str(params['DEFAULT']['couplingfct']) == 'cos':
+				h = synctools.Cos(1.0 / (2.0 * np.pi))
+			elif str(params['DEFAULT']['couplingfct']) == 'cos':
+				h = synctools.Sin(1.0 / (2.0 * np.pi))
+			print('params', params)
 
-			TODO: call Daniel's code to get the Omegas and perturbation-decay values for the entire sweep region Fomeg.append... Tsim.append(int(round(-25 / reallambda)))
+			# perform a K sweep
+			sf = synctools.SweepFactory(N, 2.0*np.pi*F, 2.0*np.pi*new_K_values, delay, h, 2.0*np.pi*Fc, k)
+			fsl = sf.sweep()
+			para_mat = fsl.get_parameter_matrix()								# extract variables from the sweep
+			Tau 	 = fsl.get_tau()
+			KK		 = fsl.get_k()												# IMPORTANT... these are returned in rad*Hz
+			Knew	 = [x/(2.0*np.pi) for x in KK]
+			Fcc		 = fsl.get_
+			Fcnew	 = [x/(2.0*np.pi) for x in Fcc]
+			F_Omega  = fsl.get_omega()
+			F_Omeg   = [x/(2.0*np.pi) for x in F_Omega]
+			ReLambda = fsl.get_l()
+			Tsimnew	 = [(round((-20.0 / x)) + 20) for x in ReLambda ]
 
-			for i in range (len(new_K_values)):
-				# new_K_set.append([new_K_values[i], Fc, delay])
-				# print('New K set:', new_K_set)
+			new_sim_values = np.array([Tau, Knew, Fcnew, F_Omeg, Tsimnew])						#
+			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation:', new_sim_values)
 
-				TODO: find solution for N>3 to provide the initial delta-perturbation automatically, user should be asked after supplying N, which initial perturbation he wants!
-						CHECK, wether in the case of singleout and noisy the phase space rotation is eliminated!!!!!!!!!!!!
+			b_true = True
+			while b_true:
+				# get user input on whether to input perturbation in rotated or original phase space
+				choice_history = raw_input("\nPlease specify type delta-perturbation from {[1] manual, [2] all zero, [3] 1 of N perturbed, or [4] all perturbed according to iid distribution around zero}: ")
+				if ( type(choice_history) == str and int(choice_history) > 0):
+					pert = setDeltaPertubation(N, choice_history)				# sets the delta perturbation, ATTENTION: should here be given in rotated phase space
+					break
+				else:
+					print('Please provide integer input in [1, 2, 3,...]!')
 
-				os.system('python case_singleout', str(topology), str(N), str(new_K_values[i]), str(Fc), str(delay), str(Fomeg), str(m), str(Tsim), str(c), '1', Lösung für Störungen... )
-
-			TODO) change output class, such that all data has added the values of the parameters K, Fc, tau, ...?
+			for i in range (len(new_sim_values)):
+				for j in range (len(F_Omega)):
+					# new_K_set.append([new_K_values[i], Fc, delay])
+					# print('New K set:', new_K_set)
+					print('python case_singleout '+str(topology)+''+str(N)+''+str(new_K_values[i])+''+str(Fc)+''+str(Tau[j])+''+str(F_Omega[j])+''+str(m)+''+str(Tsim)+''+str(c)+''+'1'+''+' '.join(map(str, pert)))
+					# os.system('python case_singleout '+str(topology)+''+str(N)+''+str(new_K_values[i])+''+str(Fc)+''+str(delay)+''+str(F_Omeg)+''+str(m)+''+str(Tsim)+''+str(c)+''+'1'+''+' '.join(map(str, pert)))
 
 		elif user_input == 'Fc':
+			pass
 		elif user_input == 'delay':
+			pass
 		else:
 			print('Please provide input from the following options: K, Fc , delay in [s]')
 
 	return None
 
-def noisyStatistics(params):
-	a_true = True
-	while a_true:
-		# run simulations on local machine or on pks-queue
-		queue_or_local = raw_input("\nRun simulations locally or on the PKS queuing system? [l]ocal / [q]ueue-pks: ")
-		if ( queue_or_local == 'l' or queue_or_local == 'q' ):
-			pass
-			break
-		else:
-			print('Please provide input [l] for local or [q] for queue!')
-
-	a_true = True
-	while a_true:
-		# get user input to know which parameter should be analyzed
-		user_input = raw_input("\nPlease specify parameter {K in [Hz], Fc in [Hz], delay in [s]} whose dependencies to be analyzed: ")
-		if user_input == 'K':
-			user_sweep_start = float(raw_input("Please specify the range in which K should be simulated, start K_s in [Hz] = "))
-			user_sweep_end	 = float(raw_input("Please specify the range in which K should be simulated, end K_e in [Hz] = "))
-			user_sweep_discr = float(raw_input("Please specify the discretization steps in [Hz] dK = "))
-			new_K_values	 = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
-
-			Fc    = float(raw_input("for fixed/constant cut-off frequency Fc in (0, inf) [Hz], choose value: "))
-			delay = float(raw_input("for fixed/constant delay-value in [0, 5 * T_omega] [s], choose value: "))
-			new_K_set = []
-			topology = chooseTopology()											# calls function that asks user for input of type of network
-
-			TODO: call Daniel's code to get the Omegas and perturbation-decay values for the entire sweep region Fomeg.append... Tsim.append(int(round(-25 / reallambda)))
-
-			for i in range (len(new_K_values)):
-				# new_K_set.append([new_K_values[i], Fc, delay])
-				# print('New K set:', new_K_set)
-				if queue_or_local == 'l':
-					os.system('python case_noisy', str(topology), str(N), str(new_K_values[i]), str(Fc), str(delay), str(Fomeg), str(m), str(Tsim), str(c), str(Nsim))
-				elif queue_or_local == 'q':
-					# check whether in PKS network, establish connection if away?, browse into right folder, write the configuration, start the program in the queuing-system with qsub,
-					# however, there must be a list with the parameter combinations supplied or so
-					print('Sorry, not yet implemented! Abort!')
-					pass
-
-				TODO) change output class, such that all data has added the values of the parameters K, Fc, tau, ...?
-
-		elif user_input == 'Fc':
-		elif user_input == 'delay':
-		else:
-			print('Please provide input from the following options: K, Fc , delay in [s]')
-
-	return None
-
-def bruteForce(params):
-	a_true = True
-	while a_true:
-		# run simulations on local machine or on pks-queue
-		queue_or_local = raw_input("\nRun simulations locally or on the PKS queuing system? [l]ocal / [q]ueue-pks: ")
-		if queue_or_local == 'l':
-			# start all new combinations locally, after checking which already exist in the csv file
-			pass
-			break
-		elif queue_or_local == 'q':
-			# start all new combinations of parameters on the pks-queue after checking whether logged on to pks network
-			print('\n\nSorry, not yet implemented!')
-			pass
-			break
-		else:
-			print('Please provide input [l] for local or [q] for queue!')
-
-
-	a_true = True
-	while a_true:
-		# get user input to know which parameter should be analyzed
-		user_input = raw_input("\nPlease specify parameter {K, Fc, delay} whose dependencies to be analyzed: ")
-		if user_input == 'K':
-			user_sweep_start = float(raw_input("Please specify the range in which K should be simulated, start K_s = "))
-			user_sweep_end	 = float(raw_input("Please specify the range in which K should be simulated, end K_e = "))
-			user_sweep_discr = float(raw_input("Please specify the discretization steps dK = "))
-			new_K_values	 = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
-
-			Fc    = float(raw_input("for fixed/constant cut-off frequency in (0, inf), choose value: "))
-			delay = float(raw_input("for fixed/constant delay-value in [0, 5 * T_omega], choose value: "))
-			# find all lines with above fixed Parameters and sort them by value
-			K_set  = data.loc[(data['delay']==delay) & (data['Fc']==Fc)].sort('K')
-			# print('existing parameter sets: ', K_set)
-			new_K_set = []
-			for i in range (len(new_K_values)):
-				new_K_set.append([new_K_values[i], Fc, delay])
-
-			print('New K set:', new_K_set)
-			# determine the set of parameter combinations that has not yet been simulated and create a list of those, substract the lines that already exist
-			clean_K_set = np.setdiff1d(K_set, new_K_set)
+# def noisyStatistics(params):
+# 	a_true = True
+# 	while a_true:
+# 		# run simulations on local machine or on pks-queue
+# 		queue_or_local = raw_input("\nRun simulations locally or on the PKS queuing system? [l]ocal / [q]ueue-pks: ")
+# 		if ( queue_or_local == 'l' or queue_or_local == 'q' ):
+# 			pass
+# 			break
+# 		else:
+# 			print('Please provide input [l] for local or [q] for queue!')
+#
+# 	a_true = True
+# 	while a_true:
+# 		# get user input to know which parameter should be analyzed
+# 		user_input = raw_input("\nPlease specify parameter {K in [Hz], Fc in [Hz], delay in [s]} whose dependencies to be analyzed: ")
+# 		if user_input == 'K':
+# 			user_sweep_start = float(raw_input("Please specify the range in which K should be simulated, start K_s in [Hz] = "))
+# 			user_sweep_end	 = float(raw_input("Please specify the range in which K should be simulated, end K_e in [Hz] = "))
+# 			user_sweep_discr = float(raw_input("Please specify the discretization steps in [Hz] dK = "))
+# 			new_K_values	 = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
+#
+# 			Fc    = float(raw_input("for fixed/constant cut-off frequency Fc in (0, inf) [Hz], choose value: "))
+# 			delay = float(raw_input("for fixed/constant delay-value in [0, 5 * T_omega] [s], choose value: "))
+# 			new_K_set = []
+# 			topology = chooseTopology()											# calls function that asks user for input of type of network
+#
+# # TODO: call Daniel's code to get the Omegas and perturbation-decay values for the entire sweep region F_Omeg.append... Tsim.append(int(round(-25 / reallambda)))
+#
+# 			sf = synctools.SweepFactory(N, F, K, delay, h, Fc, k)				# perform a K sweep
+# 			fsl = sf.sweep()
+#
+# 			para_mat = fsl.get_parameter_matrix()								# extract variables from the sweep
+# 			tau2 = fsl.get_tau()
+# 			omega2 = fsl.get_omega()
+# 			l2 = fsl.get_l()
+#
+# 			for i in range (len(new_K_values)):
+# 				# new_K_set.append([new_K_values[i], Fc, delay])
+# 				# print('New K set:', new_K_set)
+#
+# 				# TODO: find solution for N>3 to provide the initial delta-perturbation automatically, user should be asked after supplying N, which initial perturbation he wants!
+#
+# 				# CHECK, wether in the case of singleout and noisy the phase space rotation is eliminated!!!!!!!!!!!!
+# 				# --> BEST OPTION: ask user-input whether to provide perturbations in rotated or original phase space of phases!!!!
+#
+# 			for i in range (len(new_K_values)):
+# 				# new_K_set.append([new_K_values[i], Fc, delay])
+# 				# print('New K set:', new_K_set)
+# 				if queue_or_local == 'l':
+# 					os.system('python case_noisy', str(topology), str(N), str(new_K_values[i]), str(Fc), str(delay), str(F_Omeg), str(m), str(Tsim), str(c), str(Nsim))
+# 				elif queue_or_local == 'q':
+# 					# check whether in PKS network, establish connection if away?, browse into right folder, write the configuration, start the program in the queuing-system with qsub,
+# 					# however, there must be a list with the parameter combinations supplied or so
+# 					print('Sorry, not yet implemented! Abort!')
+# 					pass
+# 		elif user_input == 'Fc':
+# 			pass
+# 		elif user_input == 'delay':
+# 			pass
+# 		else:
+# 			print('Please provide input from the following options: K, Fc , delay in [s]')
+#
+# 	return None
+#
+# def bruteForce(params):
+# 	a_true = True
+# 	while a_true:
+# 		# run simulations on local machine or on pks-queue
+# 		queue_or_local = raw_input("\nRun simulations locally or on the PKS queuing system? [l]ocal / [q]ueue-pks: ")
+# 		if queue_or_local == 'l':
+# 			# start all new combinations locally, after checking which already exist in the csv file
+# 			pass
+# 			break
+# 		elif queue_or_local == 'q':
+# 			# start all new combinations of parameters on the pks-queue after checking whether logged on to pks network
+# 			print('\n\nSorry, not yet implemented!')
+# 			pass
+# 			break
+# 		else:
+# 			print('Please provide input [l] for local or [q] for queue!')
+#
+#
+# 	a_true = True
+# 	while a_true:
+# 		# get user input to know which parameter should be analyzed
+# 		user_input = raw_input("\nPlease specify parameter {K, Fc, delay} whose dependencies to be analyzed: ")
+# 		if user_input == 'K':
+# 			user_sweep_start = float(raw_input("Please specify the range in which K should be simulated, start K_s = "))
+# 			user_sweep_end	 = float(raw_input("Please specify the range in which K should be simulated, end K_e = "))
+# 			user_sweep_discr = float(raw_input("Please specify the discretization steps dK = "))
+# 			new_K_values	 = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
+#
+# 			Fc    = float(raw_input("for fixed/constant cut-off frequency in (0, inf), choose value: "))
+# 			delay = float(raw_input("for fixed/constant delay-value in [0, 5 * T_omega], choose value: "))
+# 			# find all lines with above fixed Parameters and sort them by value
+# 			K_set  = data.loc[(data['delay']==delay) & (data['Fc']==Fc)].sort('K')
+# 			# print('existing parameter sets: ', K_set)
+# 			new_K_set = []
+# 			for i in range (len(new_K_values)):
+# 				new_K_set.append([new_K_values[i], Fc, delay])
+#
+# 			print('New K set:', new_K_set)
+# 			# determine the set of parameter combinations that has not yet been simulated and create a list of those, substract the lines that already exist
+# 			clean_K_set = np.setdiff1d(K_set, new_K_set)
 
 ''' MAIN '''
 if __name__ == '__main__':
 	''' MAIN: organizes the execution of the DPLL simulation modes '''
 
 	# load parameter data from file, specify delimiter and which line contains the colum description
-	data = pd.read_csv('GlobFreq_LinStab/DPLLParameters.csv', delimiter=",", header=2, dtype={'K': np.float, 'Fc': np.float, 'delay': np.float, 'FOmeg': np.float, 'k': np.int, 'Tsim': np.int, 'sim-time-approx': np.float})
+	data = pd.read_csv('GlobFreq_LinStab/DPLLParameters.csv', delimiter=",", header=2, dtype={'K': np.float, 'Fc': np.float, 'delay': np.float, 'F_Omeg': np.float, 'k': np.int, 'Tsim': np.int, 'sim-time-approx': np.float})
 	# load the configuration parameters
 	''' DATA CONTAINER NUMBER ONE '''
 	params = configparser.ConfigParser()										# initiate configparser object to load parts of the system parameters
@@ -291,7 +411,7 @@ if __name__ == '__main__':
 		else:
 			print('Please provide numbers 1 to 3 as an input!')
 
-			# call Daniels program to obtain Fomeg and the lambdas, + stability, etc...
+			# call Daniels program to obtain F_Omeg and the lambdas, + stability, etc...
 			# # Perform a delay sweep
 			# sf = synctools.SweepFactory(n, w, k, tau, h, wc, m)
 			# fsl = sf.sweep()
@@ -323,96 +443,78 @@ if __name__ == '__main__':
 			# 	#oldfilenames =  listdir('../%d/results/'%(int(K_set.loc[index, 'id'])))
 			# 	copyFiles(newfilename1, newfilename2, targetdir, resultsfolder, in_plot_name)
 
-
-			break
-		elif user_input == 'Fc':
-			pass
-			break
-		elif user_input == 'delay':
-			pass
-			break
-		else:
-			print('Please provide on of the following inputs: [K] for coupling strength, [Fc] for cut-off frequency, or [delay] for transmission delay!')
-
-
-
-
-
-
-
-
-	if user_input == "Fc":
-		user_sweep_start = raw_input("Please specify the range in which K should be simulated, start Fc_s = ")
-		user_sweep_end	 = raw_input("Please specify the range in which K should be simulated, end Fc_e = ")
-		user_sweep_discr = raw_input("Please specify the discretization steps dFc = ")
-		new_Fc_values	 = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
-		# list all possible values of Fc {.,.,.,} and delay {.,.,.,}
-		delay_values  = data.delay.unique()
-		delay_values  = delay_values[~np.isnan(delay_values)]
-		delay_values.sort()
-		coupling_strengths = data.K.unique()
-		coupling_strengths = coupling_strengths[~np.isnan(coupling_strengths)]
-		coupling_strengths.sort()
-		print('possible values of K = {', coupling_strengths, '}\n and delays = {', delay_values,'}')
-		print('analyze Fc-dependency of basin-stability for fixed values of K and the delay:')
-		K     = float(raw_input("for constant coupling strength: "))
-		delay = float(raw_input("for constant delay-value: "))
-		# find all lines which above fixed Parameters
-		Fc_set  = data.loc[(data['delay']==delay) & (data['K']==K)].sort('Fc')
-		# create a folder with name given by the constant parameters
-		resultsfolder = 'Fcvar-K%0.2f-delay%0.2f'%(K, delay)
-		try:
-			os.makedirs(resultsfolder)
-			os.makedirs(resultsfolder+'/png/meanR/')
-			os.makedirs(resultsfolder+'/png/lastR/')
-			os.makedirs(resultsfolder+'/pdf_lastR/')
-		except OSError as exception:
-			if exception.errno != errno.EEXIST:
-				raise
-		# loop trough all lines, extract id and use that to collect the data, i.e., copy all picturefiles into the
-		# folder created above and name them by the folder name with 'var' being the variable value from the respective line
-		for index, row in Fc_set.iterrows():
-			targetdir = '../%d/results/'%(int(Fc_set.loc[index, 'id']))
-			newfilename1 = 'Fc_%0.2f_lR_id%d'%(Fc_set.loc[index, 'Fc'], int(Fc_set.loc[index, 'id']))
-			newfilename2 = 'Fc_%0.2f_mR_id_%d'%(Fc_set.loc[index, 'Fc'], int(Fc_set.loc[index, 'id']))
-			in_plot_name = 'Fc=%0.2f Hz, K=%0.2f Hz, delay=%0.2f s'%(Fc_set.loc[index, 'Fc'],Fc_set.loc[index, 'K'],Fc_set.loc[index, 'delay'])
-			#oldfilenames =  listdir('../%d/results/'%(int(K_set.loc[index, 'id'])))
-			copyFiles(newfilename1, newfilename2, targetdir, resultsfolder, in_plot_name)
-
-	if user_input == "delay":
-		user_sweep_start = raw_input("Please specify the range in which K should be simulated, start delay_s = ")
-		user_sweep_end	 = raw_input("Please specify the range in which K should be simulated, end delay_e = ")
-		user_sweep_discr = raw_input("Please specify the discretization steps ddelay = ")
-		new_delay_values = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
-		# list all possible values of Fc {.,.,.,} and delay {.,.,.,}
-		cut_off_freqs = data.Fc.unique()
-		cut_off_freqs = cut_off_freqs[~np.isnan(cut_off_freqs)]
-		cut_off_freqs.sort()
-		coupling_strengths = data.K.unique()
-		coupling_strengths = coupling_strengths[~np.isnan(coupling_strengths)]
-		coupling_strengths.sort()
-		print('possible values of K = {', coupling_strengths, '}\n and Fc = {', cut_off_freqs,'}')
-		print('analyze the delay-dependency of basin-stability for fixed values of K and Fc:')
-		K  = float(raw_input("for constant coupling strength: "))
-		Fc = float(raw_input("for constant cut-off frequency: "))
-		# find all lines which above fixed Parameters
-		delay_set  = data.loc[(data['K']==K) & (data['Fc']==Fc)].sort('delay')
-		# create a folder with name given by the constant parameters
-		resultsfolder = 'delayvar-Fc%0.2f-K%0.2f'%(Fc, K)
-		try:
-			os.makedirs(resultsfolder)
-			os.makedirs(resultsfolder+'/png/meanR/')
-			os.makedirs(resultsfolder+'/png/lastR/')
-			os.makedirs(resultsfolder+'/pdf_lastR/')
-		except OSError as exception:
-			if exception.errno != errno.EEXIST:
-				raise
-		# loop trough all lines, extract id and use that to collect the data, i.e., copy all picturefiles into the
-		# folder created above and name them by the folder name with 'var' being the variable value from the respective line
-		for index, row in delay_set.iterrows():
-			targetdir = '../%d/results/'%(int(delay_set.loc[index, 'id']))
-			newfilename1 = 'delay_%0.2f_lR_id%d'%(delay_set.loc[index, 'delay'], int(delay_set.loc[index, 'id']))
-			newfilename2 = 'delay_%0.2f_mR_id%d'%(delay_set.loc[index, 'delay'], int(delay_set.loc[index, 'id']))
-			in_plot_name = 'delay=%0.2f s, Fc=%0.2f Hz, K=%0.2f Hz'%(delay_set.loc[index, 'delay'],delay_set.loc[index, 'Fc'],delay_set.loc[index, 'K'])
-			#oldfilenames =  listdir('../%d/results/'%(int(K_set.loc[index, 'id'])))
-			copyFiles(newfilename1, newfilename2, targetdir, resultsfolder, in_plot_name)
+	# if user_input == "Fc":
+	# 	user_sweep_start = raw_input("Please specify the range in which K should be simulated, start Fc_s = ")
+	# 	user_sweep_end	 = raw_input("Please specify the range in which K should be simulated, end Fc_e = ")
+	# 	user_sweep_discr = raw_input("Please specify the discretization steps dFc = ")
+	# 	new_Fc_values	 = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
+	# 	# list all possible values of Fc {.,.,.,} and delay {.,.,.,}
+	# 	delay_values  = data.delay.unique()
+	# 	delay_values  = delay_values[~np.isnan(delay_values)]
+	# 	delay_values.sort()
+	# 	coupling_strengths = data.K.unique()
+	# 	coupling_strengths = coupling_strengths[~np.isnan(coupling_strengths)]
+	# 	coupling_strengths.sort()
+	# 	print('possible values of K = {', coupling_strengths, '}\n and delays = {', delay_values,'}')
+	# 	print('analyze Fc-dependency of basin-stability for fixed values of K and the delay:')
+	# 	K     = float(raw_input("for constant coupling strength: "))
+	# 	delay = float(raw_input("for constant delay-value: "))
+	# 	# find all lines which above fixed Parameters
+	# 	Fc_set  = data.loc[(data['delay']==delay) & (data['K']==K)].sort('Fc')
+	# 	# create a folder with name given by the constant parameters
+	# 	resultsfolder = 'Fcvar-K%0.2f-delay%0.2f'%(K, delay)
+	# 	try:
+	# 		os.makedirs(resultsfolder)
+	# 		os.makedirs(resultsfolder+'/png/meanR/')
+	# 		os.makedirs(resultsfolder+'/png/lastR/')
+	# 		os.makedirs(resultsfolder+'/pdf_lastR/')
+	# 	except OSError as exception:
+	# 		if exception.errno != errno.EEXIST:
+	# 			raise
+	# 	# loop trough all lines, extract id and use that to collect the data, i.e., copy all picturefiles into the
+	# 	# folder created above and name them by the folder name with 'var' being the variable value from the respective line
+	# 	for index, row in Fc_set.iterrows():
+	# 		targetdir = '../%d/results/'%(int(Fc_set.loc[index, 'id']))
+	# 		newfilename1 = 'Fc_%0.2f_lR_id%d'%(Fc_set.loc[index, 'Fc'], int(Fc_set.loc[index, 'id']))
+	# 		newfilename2 = 'Fc_%0.2f_mR_id_%d'%(Fc_set.loc[index, 'Fc'], int(Fc_set.loc[index, 'id']))
+	# 		in_plot_name = 'Fc=%0.2f Hz, K=%0.2f Hz, delay=%0.2f s'%(Fc_set.loc[index, 'Fc'],Fc_set.loc[index, 'K'],Fc_set.loc[index, 'delay'])
+	# 		#oldfilenames =  listdir('../%d/results/'%(int(K_set.loc[index, 'id'])))
+	# 		copyFiles(newfilename1, newfilename2, targetdir, resultsfolder, in_plot_name)
+	#
+	# if user_input == "delay":
+	# 	user_sweep_start = raw_input("Please specify the range in which K should be simulated, start delay_s = ")
+	# 	user_sweep_end	 = raw_input("Please specify the range in which K should be simulated, end delay_e = ")
+	# 	user_sweep_discr = raw_input("Please specify the discretization steps ddelay = ")
+	# 	new_delay_values = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
+	# 	# list all possible values of Fc {.,.,.,} and delay {.,.,.,}
+	# 	cut_off_freqs = data.Fc.unique()
+	# 	cut_off_freqs = cut_off_freqs[~np.isnan(cut_off_freqs)]
+	# 	cut_off_freqs.sort()
+	# 	coupling_strengths = data.K.unique()
+	# 	coupling_strengths = coupling_strengths[~np.isnan(coupling_strengths)]
+	# 	coupling_strengths.sort()
+	# 	print('possible values of K = {', coupling_strengths, '}\n and Fc = {', cut_off_freqs,'}')
+	# 	print('analyze the delay-dependency of basin-stability for fixed values of K and Fc:')
+	# 	K  = float(raw_input("for constant coupling strength: "))
+	# 	Fc = float(raw_input("for constant cut-off frequency: "))
+	# 	# find all lines which above fixed Parameters
+	# 	delay_set  = data.loc[(data['K']==K) & (data['Fc']==Fc)].sort('delay')
+	# 	# create a folder with name given by the constant parameters
+	# 	resultsfolder = 'delayvar-Fc%0.2f-K%0.2f'%(Fc, K)
+	# 	try:
+	# 		os.makedirs(resultsfolder)
+	# 		os.makedirs(resultsfolder+'/png/meanR/')
+	# 		os.makedirs(resultsfolder+'/png/lastR/')
+	# 		os.makedirs(resultsfolder+'/pdf_lastR/')
+	# 	except OSError as exception:
+	# 		if exception.errno != errno.EEXIST:
+	# 			raise
+	# 	# loop trough all lines, extract id and use that to collect the data, i.e., copy all picturefiles into the
+	# 	# folder created above and name them by the folder name with 'var' being the variable value from the respective line
+	# 	for index, row in delay_set.iterrows():
+	# 		targetdir = '../%d/results/'%(int(delay_set.loc[index, 'id']))
+	# 		newfilename1 = 'delay_%0.2f_lR_id%d'%(delay_set.loc[index, 'delay'], int(delay_set.loc[index, 'id']))
+	# 		newfilename2 = 'delay_%0.2f_mR_id%d'%(delay_set.loc[index, 'delay'], int(delay_set.loc[index, 'id']))
+	# 		in_plot_name = 'delay=%0.2f s, Fc=%0.2f Hz, K=%0.2f Hz'%(delay_set.loc[index, 'delay'],delay_set.loc[index, 'Fc'],delay_set.loc[index, 'K'])
+	# 		#oldfilenames =  listdir('../%d/results/'%(int(K_set.loc[index, 'id'])))
+	# 		copyFiles(newfilename1, newfilename2, targetdir, resultsfolder, in_plot_name)

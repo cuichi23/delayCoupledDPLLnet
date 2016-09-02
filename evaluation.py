@@ -46,6 +46,9 @@ def rotate_phases(phi0, isInverse=False):
 
 	# Determine rotation angle
 	n = len(phi0)
+	if n <= 1:
+		print('ERROR, 1d value cannot be rotated!')
+		
 	alpha = -np.arccos(1.0 / np.sqrt(n))
 
 	# Construct rotation matrix
