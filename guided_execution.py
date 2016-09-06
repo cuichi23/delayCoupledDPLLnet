@@ -148,6 +148,47 @@ def loopUserInputPert(N):														# ask N times for the value of the pertur
 
 	return perturb_user_set
 
+def chooseCsvSaveOption(param_cases_csv, para_mat, topology, c):
+	# this extracts the existing parameter sets from the data csv file
+	# K_set  = param_cases_csv.loc[(param_cases_csv['delay']==delay) & (param_cases_csv['Fc']==Fc)].sort('K')
+	# search all lines in csv files that are equal to the input here in para-mat
+	exist_K_set=[]; para_mat_new=[];
+	for i in range (len(para_mat[:,1])):
+		temp = []														# reset temp container for every loop
+		temp = param_cases_csv.loc[(param_cases_csv['delay']==para_mat[i,4]) & (param_cases_csv['Fc']==para_mat[i,3]) & (param_cases_csv['K']==para_mat[i,2])].sort('K')
+		exist_K_set.append( temp )
+		if len(temp) == 0:												# if temp is not set/empty,
+			para_mat_new.append(para_mat[i,:])
+	print('exist_K_set:\n', exist_K_set)
+	print('new_set:\n', para_mat_new)
+	b_true = True
+	while b_true:
+		# get user input on whether new parameter sets should be added to an csv file containing already simulated cases
+		decision = raw_input('\nPlease decide whether to save new parameter sets that are simulated to csv-database [yes/no]: ')
+		if decision == 'yes':
+			writeCsvFileNewCases(para_mat_new, topology, c)
+			break
+		elif: decision == 'no':
+			print('New parameter sets will not be saved to csv-database!')
+			break
+		else:
+			print('Please provide [yes/no] input!')
+
+	return para_mat_new
+
+def writeCsvFileNewCases(para_mat_new, topology, c):
+	# find last line in csv-file, ask whether new cases should be added, add if reqiured in the proper format (include id, etc....)
+	lastIDcsv = len(param_cases_csv.sort('id'))+3								# have to add 3 in order to account for the header of the csv file
+	with open('GlobFreq_LinStab/DPLLParametersTest.csv', 'w', newline='') as f:
+		writer = csv.writer(f, delimiter=",") #, header=2, dtype={'K': np.float, 'Fc': np.float, 'delay': np.float, 'F_Omeg': np.float, 'k': np.int, 'Tsim': np.int, 'sim-time-approx': np.float, 'topology': np.str, 'c': np.float})
+		# write row K, Fc, delay, F_Omeg, k, Tsim, sim-time-approx, topology, c
+		for i in range (len(para_mat_new)):
+			temp = str(float(para_mat_new[i,2]))+' '+str(float(para_mat_new[i,3]))+' '+str(float(para_mat_new[i,4]))+' '+str(float(para_mat_new[i,6]))+' '+str(float(para_mat_new[i,5]))+' '+str(int(round(float(-25.0/para_mat_new[i,7]))))+' '+str(lastIDcsv+1+i)+' '+str(para_mat_new[i,7])+' '+str(int(round(float(-25.0/(20*para_mat_new[i,7])))))+' '+str(topology)+' '+str(c)
+			print(temp)
+			writer.writerows()
+
+	return None
+
 def setDeltaPertubation(N, case):
 	a_true = True
 	while a_true:
@@ -250,8 +291,8 @@ def singleRealization(params):
 			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation:', para_mat)
 
 			for i in range (len(para_mat)):
-					print('python case_singleout '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(-25.0/para_mat[i,7]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
-					# os.system('python case_singleout '+str(topology)+''+str(N)+''+str(new_K_values[i])+''+str(Fc)+''+str(delay)+''+str(F_Omeg)+''+str(m)+''+str(Tsim)+''+str(c)+''+'1'+''+' '.join(map(str, pert)))
+					print('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(-25.0/para_mat[i,7]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+					# os.system('python case_singleout.py '+str(topology)+''+str(N)+''+str(new_K_values[i])+''+str(Fc)+''+str(delay)+''+str(F_Omeg)+''+str(m)+''+str(Tsim)+''+str(c)+''+'1'+''+' '.join(map(str, pert)))
 			break
 
 		elif user_input == 'Fc':
@@ -283,8 +324,8 @@ def singleRealization(params):
 			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation:', para_mat)
 
 			for i in range (len(para_mat)):
-					print('python case_singleout '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(-25.0/para_mat[i,7]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
-					# os.system('python case_singleout '+str(topology)+''+str(N)+''+str(new_K_values[i])+''+str(Fc)+''+str(delay)+''+str(F_Omeg)+''+str(m)+''+str(Tsim)+''+str(c)+''+'1'+''+' '.join(map(str, pert)))
+					print('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(-25.0/para_mat[i,7]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+					# os.system('python case_singleout.py '+str(topology)+''+str(N)+''+str(new_K_values[i])+''+str(Fc)+''+str(delay)+''+str(F_Omeg)+''+str(m)+''+str(Tsim)+''+str(c)+''+'1'+''+' '.join(map(str, pert)))
 			break
 
 		elif user_input == 'delay':
@@ -316,8 +357,8 @@ def singleRealization(params):
 			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation:', para_mat)
 
 			for i in range (len(para_mat)):
-					print('python case_singleout '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(-25.0/para_mat[i,7]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
-					# os.system('python case_singleout '+str(topology)+''+str(N)+''+str(new_K_values[i])+''+str(Fc)+''+str(delay)+''+str(F_Omeg)+''+str(m)+''+str(Tsim)+''+str(c)+''+'1'+''+' '.join(map(str, pert)))
+					print('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(-25.0/para_mat[i,7]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+					# os.system('python case_singleout.py '+str(topology)+''+str(N)+''+str(new_K_values[i])+''+str(Fc)+''+str(delay)+''+str(F_Omeg)+''+str(m)+''+str(Tsim)+''+str(c)+''+'1'+''+' '.join(map(str, pert)))
 			break
 
 		else:
@@ -359,8 +400,8 @@ def noisyStatistics(params):
 			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation:', para_mat)
 
 			for i in range (len(para_mat)):
-					print('python case_singleout '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(-25.0/para_mat[i,7]))))+' '+str(c)+' '+str(Nsim)+' '+' '.join(map(str, pert)))
-					# os.system('python case_singleout '+str(topology)+''+str(N)+''+str(new_K_values[i])+''+str(Fc)+''+str(delay)+''+str(F_Omeg)+''+str(m)+''+str(Tsim)+''+str(c)+''+'1'+''+' '.join(map(str, pert)))
+					print('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(-25.0/para_mat[i,7]))))+' '+str(c)+' '+str(Nsim)+' '+' '.join(map(str, pert)))
+					# os.system('python case_noisy.py '+str(topology)+''+str(N)+''+str(new_K_values[i])+''+str(Fc)+''+str(delay)+''+str(F_Omeg)+''+str(m)+''+str(Tsim)+''+str(c)+''+'1'+''+' '.join(map(str, pert)))
 			break
 
 		elif user_input == 'Fc':
@@ -392,8 +433,8 @@ def noisyStatistics(params):
 			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation:', para_mat)
 
 			for i in range (len(para_mat)):
-					print('python case_singleout '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(-25.0/para_mat[i,7]))))+' '+str(c)+' '+str(Nsim)+' '+' '.join(map(str, pert)))
-					# os.system('python case_singleout '+str(topology)+''+str(N)+''+str(new_K_values[i])+''+str(Fc)+''+str(delay)+''+str(F_Omeg)+''+str(m)+''+str(Tsim)+''+str(c)+''+'1'+''+' '.join(map(str, pert)))
+					print('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(-25.0/para_mat[i,7]))))+' '+str(c)+' '+str(Nsim)+' '+' '.join(map(str, pert)))
+					# os.system('python case_noisy.py '+str(topology)+''+str(N)+''+str(new_K_values[i])+''+str(Fc)+''+str(delay)+''+str(F_Omeg)+''+str(m)+''+str(Tsim)+''+str(c)+''+'1'+''+' '.join(map(str, pert)))
 			break
 
 		elif user_input == 'delay':
@@ -425,8 +466,8 @@ def noisyStatistics(params):
 			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation:', para_mat)
 
 			for i in range (len(para_mat)):
-					print('python case_singleout '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(-25.0/para_mat[i,7]))))+' '+str(c)+' '+str(Nsim)+' '+' '.join(map(str, pert)))
-					# os.system('python case_singleout '+str(topology)+''+str(N)+''+str(new_K_values[i])+''+str(Fc)+''+str(delay)+''+str(F_Omeg)+''+str(m)+''+str(Tsim)+''+str(c)+''+'1'+''+' '.join(map(str, pert)))
+					print('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(-25.0/para_mat[i,7]))))+' '+str(c)+' '+str(Nsim)+' '+' '.join(map(str, pert)))
+					# os.system('python case_noisy.py '+str(topology)+''+str(N)+''+str(new_K_values[i])+''+str(Fc)+''+str(delay)+''+str(F_Omeg)+''+str(m)+''+str(Tsim)+''+str(c)+''+'1'+''+' '.join(map(str, pert)))
 			break
 
 		else:
@@ -434,7 +475,7 @@ def noisyStatistics(params):
 
 	return None
 
-def bruteForce(params):
+def bruteForce(params, param_cases_csv):
 	x_true = True
 	while x_true:
 		# get user input to know which parameter should be analyzed
@@ -465,16 +506,13 @@ def bruteForce(params):
 			sf = synctools.SweepFactory(N, 2.0*np.pi*F, 2.0*np.pi*new_K_values, delay, h, 2.0*np.pi*Fc, k)
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
-			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation:', para_mat)
+			print('New parameter combinations with {N, f, K, Fc, delay, m, F_Omeg, ReLamb, ImLamb and Tsim} approximation:\n', para_mat)
 
+			para_mat_new = chooseCsvSaveOption(param_cases_csv, para_mat, topology, c)
 
-			ADD HERE TO COMPARE WHICH CASES ARE ALREADY IN THE CSV FILE :)
-			K_set  = data.loc[(data['delay']==delay) & (data['Fc']==Fc)].sort('K')
-
-
-			for i in range (len(para_mat)):
-					print('python case_singleout '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(-25.0/para_mat[i,7]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
-					# os.system('python case_singleout '+str(topology)+''+str(N)+''+str(new_K_values[i])+''+str(Fc)+''+str(delay)+''+str(F_Omeg)+''+str(m)+''+str(Tsim)+''+str(c)+''+'1'+''+' '.join(map(str, pert)))
+			for i in range (len(para_mat_new)):
+					print('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(-25.0/para_mat[i,7]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+					# os.system('python case_bruteforce.py '+str(topology)+''+str(N)+''+str(new_K_values[i])+''+str(Fc)+''+str(delay)+''+str(F_Omeg)+''+str(m)+''+str(Tsim)+''+str(c)+''+'1'+''+' '.join(map(str, pert)))
 			break
 
 		elif user_input == 'Fc':
@@ -503,14 +541,13 @@ def bruteForce(params):
 			sf = synctools.SweepFactory(N, 2.0*np.pi*F, 2.0*np.pi*K, delay, h, 2.0*np.pi*new_Fc_values, k)
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
-			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation:', para_mat)
+			print('New parameter combinations with {N, f, K, Fc, delay, m, F_Omeg, ReLamb, ImLamb and Tsim} approximation:\n', para_mat)
 
-ADD HERE TO COMPARE WHICH CASES ARE ALREADY IN THE CSV FILE :)
-			Fc_set  = data.loc[(data['delay']==delay) & (data['K']==K)].sort('Fc')
+			para_mat_new = chooseCsvSaveOption(param_cases_csv, para_mat, topology, c)
 
 			for i in range (len(para_mat)):
-					print('python case_singleout '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(-25.0/para_mat[i,7]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
-					# os.system('python case_singleout '+str(topology)+''+str(N)+''+str(new_K_values[i])+''+str(Fc)+''+str(delay)+''+str(F_Omeg)+''+str(m)+''+str(Tsim)+''+str(c)+''+'1'+''+' '.join(map(str, pert)))
+					print('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(-25.0/para_mat[i,7]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+					# os.system('python case_bruteforce.py '+str(topology)+''+str(N)+''+str(new_K_values[i])+''+str(Fc)+''+str(delay)+''+str(F_Omeg)+''+str(m)+''+str(Tsim)+''+str(c)+''+'1'+''+' '.join(map(str, pert)))
 			break
 
 		elif user_input == 'delay':
@@ -539,14 +576,13 @@ ADD HERE TO COMPARE WHICH CASES ARE ALREADY IN THE CSV FILE :)
 			sf = synctools.SweepFactory(N, 2.0*np.pi*F, 2.0*np.pi*K, new_delay_values, h, 2.0*np.pi*Fc, k)
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
-			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation:', para_mat)
+			print('New parameter combinations with {N, f, K, Fc, delay, m, F_Omeg, ReLamb, ImLamb and Tsim} approximation:\n', para_mat)
 
-ADD HERE TO COMPARE WHICH CASES ARE ALREADY IN THE CSV FILE :)
-			delay_set  = data.loc[(data['K']==K) & (data['Fc']==Fc)].sort('delay')
+			para_mat_new = chooseCsvSaveOption(param_cases_csv, para_mat, topology, c)
 
-			for i in range (len(para_mat)):
-					print('python case_singleout '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(-25.0/para_mat[i,7]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
-					# os.system('python case_singleout '+str(topology)+''+str(N)+''+str(new_K_values[i])+''+str(Fc)+''+str(delay)+''+str(F_Omeg)+''+str(m)+''+str(Tsim)+''+str(c)+''+'1'+''+' '.join(map(str, pert)))
+			for i in range (len(para_mat_new)):
+					print('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(-25.0/para_mat[i,7]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+					# os.system('python case_bruteforce.py '+str(topology)+''+str(N)+''+str(new_K_values[i])+''+str(Fc)+''+str(delay)+''+str(F_Omeg)+''+str(m)+''+str(Tsim)+''+str(c)+''+'1'+''+' '.join(map(str, pert)))
 			break
 
 		else:
@@ -558,8 +594,8 @@ ADD HERE TO COMPARE WHICH CASES ARE ALREADY IN THE CSV FILE :)
 if __name__ == '__main__':
 	''' MAIN: organizes the execution of the DPLL simulation modes '''
 
-	# load parameter data from file, specify delimiter and which line contains the colum description
-	data = pd.read_csv('GlobFreq_LinStab/DPLLParameters.csv', delimiter=",", header=2, dtype={'K': np.float, 'Fc': np.float, 'delay': np.float, 'F_Omeg': np.float, 'k': np.int, 'Tsim': np.int, 'sim-time-approx': np.float})
+	# load parameter param_cases_csv from file, specify delimiter and which line contains the colum description
+	param_cases_csv = pd.read_csv('GlobFreq_LinStab/DPLLParameters.csv', delimiter=",", header=2, dtype={'K': np.float, 'Fc': np.float, 'delay': np.float, 'F_Omeg': np.float, 'k': np.int, 'Tsim': np.int, 'sim-time-approx': np.float, 'topology': np.str, 'c': np.float})
 	# load the configuration parameters
 	''' DATA CONTAINER NUMBER ONE '''
 	params = configparser.ConfigParser()										# initiate configparser object to load parts of the system parameters
@@ -646,7 +682,7 @@ if __name__ == '__main__':
 			noisyStatistics(params)
 			break
 		elif decision2 == '3':
-			bruteForce(params)
+			bruteForce(params, param_cases_csv)
 			break
 		else:
 			print('Please provide numbers 1 to 3 as an input!')
