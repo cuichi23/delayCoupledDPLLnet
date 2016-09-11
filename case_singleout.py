@@ -132,7 +132,8 @@ if __name__ == '__main__':
 		phiSValues = np.zeros((Nsim, N), dtype=np.float)						# create vector that will contain the initial perturbation (in the history) for each realizations
 		print('\nNo perturbation set, hence all perturbations have the default value zero (in original phase space of phases)!')
 
-	Tsim 	= Tsim*(1.0/F)				  										# simulation time in multiples of the period of the uncoupled oscillators
+	Tsim 	= 2.0*Tsim*(1.0/F)			  										# simulation time in multiples of the period of the uncoupled oscillators
+	print('NOTE: single realizations will be simulated for 2*Tsim to have enough waveforms after transients have decayed to plot spectral density.')
 	Nsteps 	= int(round(Tsim*Fsim))												# calculate number of iterations -- add output?
 	Nsim 	= 1
 	print('test single evaluation and plot phase and frequency time series, PROVIDE initial condition in ROTATED phase space!')
@@ -163,7 +164,7 @@ if __name__ == '__main__':
 
 	''' PLOT PHASE & FREQUENCY TIME SERIES '''
 	if plot_Phases_Freq:
-		out.plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, couplingfct, Fsim)
+		out.plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, couplingfct, Tsim, Fsim)
 
 	plt.show()
 	''' SAVE RESULTS '''

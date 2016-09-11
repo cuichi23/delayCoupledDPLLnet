@@ -112,7 +112,7 @@ def chooseDiffConst():															# ask user-input for diffusion constant GWN
 	while b_true:
 		# get user input on dynamic frequency noise -- provide diffusion constant for GWN process -> results in Wiener process for the phases (integrated instantaneous freqs)
 		c = raw_input('\nPlease specify the diffusion constant [float] for the GWN process on the frequencies of the DPLLs from the range [0, 10*K]: ')
-		if float(c) >= 0.0:
+		if ( float(c) >= 0.0 ):
 			break
 		else:
 			print('Please provide [float] input from [0, 10*K]!')
@@ -148,44 +148,87 @@ def loopUserInputPert(N):														# ask N times for the value of the pertur
 
 	return perturb_user_set
 
+def simulateOnlyLinStableCases(para_mat_new):
+	if any(decay_rate > 0 for decay_rate in para_mat_new[:,7]):
+		d_true = True
+		while d_true:
+			# get user input: simulate also linearly unstable solutions? if yes, correct Tsim
+			input_sim_unstab = raw_input('\nPlease specify whether also linearly unstable solutions should be simulated, [y]es/[n]o: ')
+			if ( input_sim_unstab == 'y' or input_sim_unstab == 'n' ):
+				if input_sim_unstab == 'y':
+					print('\nUnorrected for negative simulation times:', para_mat_new)
+					para_mat_new[:,9] = np.abs( para_mat_new[:,9] )				# correct for negative simulation times
+					print('\nCorrected for negative simulation times:', para_mat_new)
+					return para_mat_new
+					break														# breaks the while loop that catches invalid input
+				elif input_sim_unstab == 'n':
+					print('IMPLEMENT DELETION OF LINEARLY UNSTABLE PARAMETER SETS FOR THIS OPTION!')
+					return para_mat_new
+					break
+			else:
+				print('Please [y]es/[n]o input!')
+	else:
+		print('\nAll new paramter sets are linearly stable!')
+		return para_mat_new
+
 def chooseCsvSaveOption(param_cases_csv, para_mat, topology, c):
 	# this extracts the existing parameter sets from the data csv file
 	# K_set  = param_cases_csv.loc[(param_cases_csv['delay']==delay) & (param_cases_csv['Fc']==Fc)].sort('K')
 	# search all lines in csv files that are equal to the input here in para-mat
 	exist_K_set=[]; para_mat_new=[];
-	for i in range (len(para_mat[:,1])):
-		temp = []														# reset temp container for every loop
+	for i in range (len(para_mat[:,0])):
+		temp = []																# reset temp container for every loop
 		temp = param_cases_csv.loc[(param_cases_csv['delay']==para_mat[i,4]) & (param_cases_csv['Fc']==para_mat[i,3]) & (param_cases_csv['K']==para_mat[i,2])].sort('K')
 		exist_K_set.append( temp )
-		if len(temp) == 0:												# if temp is not set/empty,
+		if len(temp) == 0:														# if temp is not set/empty,
 			para_mat_new.append(para_mat[i,:])
-	print('exist_K_set:\n', exist_K_set)
-	print('new_set:\n', para_mat_new)
+	print('existing parameter sets:\n', exist_K_set)
+	print('new parameter sets:\n', para_mat_new)
+	para_mat_new = np.array(para_mat_new)
+
+	para_mat_new = simulateOnlyLinStableCases(para_mat_new)     				# this fct. corrects for negative Tsim if user decides to simulate also linearly unstable solutions
+
 	b_true = True
 	while b_true:
 		# get user input on whether new parameter sets should be added to an csv file containing already simulated cases
-		decision = raw_input('\nPlease decide whether to save new parameter sets that are simulated to csv-database [yes/no]: ')
-		if decision == 'yes':
-			writeCsvFileNewCases(para_mat_new, topology, c)
+		decision = raw_input('\nPlease decide whether to save new parameter sets that are simulated to csv-database [y]es/[n]o: ')
+		if decision == 'y':
+			# print('\nreturn para_mat_new, type and shape:', para_mat_new.flatten(), type(para_mat_new), np.shape(para_mat_new), '\nend')
+			c_true = True
+			while c_true:
+				# get user input on whether new parameter sets should be simulated, or JUST added to an csv file
+				decision1 = raw_input('\nSimulate new parameter sets? [y]es/[n]o Otherwise they will just be saved to csv-database! ')
+				print('New parameter sets will be saved to csv-database! {K, Fc, delay, Fomeg, m ,Tsim, id, ReLambda, EstSimseconds, topology, c}')
+				writeCsvFileNewCases(para_mat_new, topology, c)
+				if decision1 == 'y':
+					return para_mat_new											# returned for simulation
+				elif decision1 == 'n':
+					para_mat_new = []											# return empty for simulation - no sim...
+					return para_mat_new
+				else:
+					print('Please provide [y]es/[n]o input!')
 			break
-		elif: decision == 'no':
+		elif decision == 'n':
 			print('New parameter sets will not be saved to csv-database!')
 			break
 		else:
-			print('Please provide [yes/no] input!')
+			print('Please provide [y]es/[n]o input!')
 
-	return para_mat_new
 
 def writeCsvFileNewCases(para_mat_new, topology, c):
 	# find last line in csv-file, ask whether new cases should be added, add if reqiured in the proper format (include id, etc....)
 	lastIDcsv = len(param_cases_csv.sort('id'))+3								# have to add 3 in order to account for the header of the csv file
-	with open('GlobFreq_LinStab/DPLLParametersTest.csv', 'w', newline='') as f:
-		writer = csv.writer(f, delimiter=",") #, header=2, dtype={'K': np.float, 'Fc': np.float, 'delay': np.float, 'F_Omeg': np.float, 'k': np.int, 'Tsim': np.int, 'sim-time-approx': np.float, 'topology': np.str, 'c': np.float})
+	# print('In write function! Here para_mat_new[0,7]: ', para_mat_new[0,7])
+	with open('GlobFreq_LinStab/DPLLParametersTest.csv', 'a') as f:				# 'a' means append to file! other modes: 'w' write only and replace existing file, 'r' readonly...
+		writer = csv.writer(f, delimiter=',') #, header=2, dtype={'K': np.float, 'Fc': np.float, 'delay': np.float, 'F_Omeg': np.float, 'k': np.int, 'Tsim': np.int, 'sim-time-approx': np.float, 'topology': np.str, 'c': np.float})
 		# write row K, Fc, delay, F_Omeg, k, Tsim, sim-time-approx, topology, c
-		for i in range (len(para_mat_new)):
-			temp = str(float(para_mat_new[i,2]))+' '+str(float(para_mat_new[i,3]))+' '+str(float(para_mat_new[i,4]))+' '+str(float(para_mat_new[i,6]))+' '+str(float(para_mat_new[i,5]))+' '+str(int(round(float(-25.0/para_mat_new[i,7]))))+' '+str(lastIDcsv+1+i)+' '+str(para_mat_new[i,7])+' '+str(int(round(float(-25.0/(20*para_mat_new[i,7])))))+' '+str(topology)+' '+str(c)
+		for i in range (len(para_mat_new[:,0])):
+			id_line = lastIDcsv+1+i
+			temp = [ str(float(para_mat_new[i,2])), str(float(para_mat_new[i,3])), str(float(para_mat_new[i,4])), str(float(para_mat_new[i,6])),
+						str(float(para_mat_new[i,5])), str(int(round(float(-25.0/para_mat_new[i,7])))), str(id_line), str(para_mat_new[i,7]),
+						str(int(round(float(-25.0/(20*para_mat_new[i,7]))))), str(topology), str(c) ]
 			print(temp)
-			writer.writerows()
+			writer.writerow(temp)
 
 	return None
 
@@ -503,15 +546,17 @@ def bruteForce(params, param_cases_csv):
 			print('params', params)
 
 			# perform a K sweep
-			sf = synctools.SweepFactory(N, 2.0*np.pi*F, 2.0*np.pi*new_K_values, delay, h, 2.0*np.pi*Fc, k)
+			sf = synctools.SweepFactory(N, F, new_K_values, delay, h, Fc, k, False)
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {N, f, K, Fc, delay, m, F_Omeg, ReLamb, ImLamb and Tsim} approximation:\n', para_mat)
 
 			para_mat_new = chooseCsvSaveOption(param_cases_csv, para_mat, topology, c)
 
-			for i in range (len(para_mat_new)):
-					print('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(-25.0/para_mat[i,7]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+			if len(para_mat_new) > 0:
+				for i in range (len(para_mat_new[:,0])):
+					print('Tsim: ', para_mat_new[i,9])
+					print('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat_new[i,0]))+' '+str(float(para_mat_new[i,2]))+' '+str(float((para_mat_new[i,3])))+' '+str(float(para_mat_new[i,4]))+' '+str(float(para_mat_new[i,6]))+' '+str(int(para_mat_new[i,5]))+' '+str(int(round(float(para_mat_new[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
 					# os.system('python case_bruteforce.py '+str(topology)+''+str(N)+''+str(new_K_values[i])+''+str(Fc)+''+str(delay)+''+str(F_Omeg)+''+str(m)+''+str(Tsim)+''+str(c)+''+'1'+''+' '.join(map(str, pert)))
 			break
 
@@ -545,8 +590,9 @@ def bruteForce(params, param_cases_csv):
 
 			para_mat_new = chooseCsvSaveOption(param_cases_csv, para_mat, topology, c)
 
-			for i in range (len(para_mat)):
-					print('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(-25.0/para_mat[i,7]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+			if len(para_mat_new) > 0:
+				for i in range (len(para_mat_new[:,0])):
+					print('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat_new[i,0]))+' '+str(float(para_mat_new[i,2]))+' '+str(float((para_mat_new[i,3])))+' '+str(float(para_mat_new[i,4]))+' '+str(float(para_mat_new[i,6]))+' '+str(int(para_mat_new[i,5]))+' '+str(int(round(float(para_mat_new[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
 					# os.system('python case_bruteforce.py '+str(topology)+''+str(N)+''+str(new_K_values[i])+''+str(Fc)+''+str(delay)+''+str(F_Omeg)+''+str(m)+''+str(Tsim)+''+str(c)+''+'1'+''+' '.join(map(str, pert)))
 			break
 
@@ -580,8 +626,9 @@ def bruteForce(params, param_cases_csv):
 
 			para_mat_new = chooseCsvSaveOption(param_cases_csv, para_mat, topology, c)
 
-			for i in range (len(para_mat_new)):
-					print('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(-25.0/para_mat[i,7]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+			if len(para_mat_new) > 0:
+				for i in range (len(para_mat_new[:,0])):
+					print('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat_new[i,0]))+' '+str(float(para_mat_new[i,2]))+' '+str(float((para_mat_new[i,3])))+' '+str(float(para_mat_new[i,4]))+' '+str(float(para_mat_new[i,6]))+' '+str(int(para_mat_new[i,5]))+' '+str(int(round(float(para_mat_new[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
 					# os.system('python case_bruteforce.py '+str(topology)+''+str(N)+''+str(new_K_values[i])+''+str(Fc)+''+str(delay)+''+str(F_Omeg)+''+str(m)+''+str(Tsim)+''+str(c)+''+'1'+''+' '.join(map(str, pert)))
 			break
 
@@ -614,19 +661,19 @@ if __name__ == '__main__':
 	a_true = True
 	while a_true:
 		# option to reset the configuration
-		decision1 = raw_input('\nWould you like to reset the following system parameters: {enable multiprocessing, number of availibe cores to use, parameter discretization for brute force method, type of coupling fct, intrinsic frequency, sample frequency, standard deviation intrinsic frequency, standard deviation coupling strength} [y/N]: ')
+		decision1 = raw_input('\nWould you like to reset the following system parameters: {enable multiprocessing, number of availibe cores to use, parameter discretization for brute force method, type of coupling fct, intrinsic frequency, sample frequency, standard deviation intrinsic frequency, standard deviation coupling strength} [y]es/[n]o: ')
 		if decision1 == 'y':
 			multiproc 			= raw_input('Multiprocessing choose True/False [string]: ')
 			if multiproc == 'True':
-				numberCores = raw_input('How many cores are maximally availible? [int]: ')
+				numberCores = raw_input('How many cores are maximally available? [int]: ')
 			else:
 				numberCores = 1
-			paramDiscretization = raw_input('Number of samples points along each dimension in (0,2pi], provide [int]: ')
+			paramDiscretization = raw_input('Number of samples points (for brute force basin stability) along each dimension in (0,2pi], provide [int]: ')
 			couplingfct 		= raw_input('Choose coupling function from {sin, cos, triang} [string]: ')
 			F 					= raw_input('Choose mean intrinsic frequency [float]: ')
 			Fsim 				= raw_input('Choose sample frequency for the signal [float]: ')
-			domega     			= raw_input('Choose diffusion-constant for distribution of intrinsic frequencies, zero implies identical frequencies [float]: ')
-			diffconstK 			= raw_input('Choose diffusion-constant for distribution of coupling strengths, zero implies identical coupling strength [float]: ')
+			domega     			= raw_input('Choose diffusion-constant for (static) distribution of intrinsic frequencies, zero implies identical frequencies [float]: ')
+			diffconstK 			= raw_input('Choose diffusion-constant for (static) distribution of coupling strengths, zero implies identical coupling strength [float]: ')
 			Tsim				= raw_input('Choose simulation time Tsim [float]: ')
 			# write the new values to the file 1params.txt
 			config = configparser.ConfigParser(allow_no_value = True)
@@ -664,7 +711,7 @@ if __name__ == '__main__':
 
 			params.read('1params.txt')											# reload the 1params.txt file with the newly set values to set params-container
 			break
-		elif decision1 == 'N':
+		elif decision1 == 'n':
 			params.read('1params.txt')											# reload the 1params.txt file with the newly set values to set params-container
 			break
 		else:

@@ -40,17 +40,20 @@ annotationfont = {
         }
 
 ''' EVALUATION SINGLE REALIZATION '''
-def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, coupFct, Fsim=None):
+def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, coupFct, Tsim, Fsim=None):
 
 	phi = phi[:,:,:]; orderparam = orderparam[0,:]								# there is only one realization of interest -reduces dimensionof phi array
+	afterTransients = int( round( 0.5*Tsim / dt ) )
+	phiSpect = phi[:,-afterTransients:,:]
 	if coupFct == 'triang':
 		print('Calculate spectrum for square wave signals. Fsim=%d' %Fsim)
-		f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'square')					# calculate spectrum of signals, i.e., of this state
+		f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'square')				# calculate spectrum of signals, i.e., of this state
 	elif coupFct == 'sin':
 		print('check that... sine coupFct only if cos and sin signal input')
-		f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'sin')						# calculate spectrum of signals, i.e., of this state
+		f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'sin')					# calculate spectrum of signals, i.e., of this state
 	elif coupFct == 'cos':
-		f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'sin')						# calculate spectrum of signals, i.e., of this state
+		print('Calculate spectrum for cosinusoidal signals. Fsim=%d' %Fsim)
+		f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'sin')					# calculate spectrum of signals, i.e., of this state
 
 	now = datetime.datetime.now()
 
