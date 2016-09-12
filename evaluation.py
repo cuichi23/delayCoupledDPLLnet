@@ -48,7 +48,7 @@ def rotate_phases(phi0, isInverse=False):
 	n = len(phi0)
 	if n <= 1:
 		print('ERROR, 1d value cannot be rotated!')
-		
+
 	alpha = -np.arccos(1.0 / np.sqrt(n))
 
 	# Construct rotation matrix
@@ -169,14 +169,14 @@ def oracle_mTwistOrderParameter(phi, k):
 ''' CALCULATE SPECTRUM '''
 def calcSpectrum(phi,Fsample,waveform=None):
 	Pxx_db=[]; f=[];
-	windowset='hamming'
+	windowset='boxcar' #'hamming'
 	print('current window option is', windowset, 'for waveform', waveform)
 	window = scipy.signal.get_window(windowset, Fsample, fftbins=True)			# choose window from: boxcar, triang, blackman, hamming, hann, bartlett, flattop, parzen, bohman, blackmanharris, nuttall,
 																				# barthann, kaiser (needs beta), gaussian (needs std), general_gaussian (needs power, width), slepian (needs width), chebwin (needs attenuation)
 	print('calculate spectrum for signals with waveform:', waveform)
 	for i in range ( len(phi[0,0,:]) ):
 		tsdata = generateOscillationSignal(phi[0,:,i],waveform=waveform)
-		ftemp, Pxx = scipy.signal.periodogram(tsdata, Fsample, return_onesided=True, window='boxcar', axis=0)
+		ftemp, Pxx = scipy.signal.periodogram(tsdata, Fsample, return_onesided=True, window=windowset, axis=0)
 		Pxx_db.append( 10*np.log10(Pxx) )
 		f.append( ftemp )
 

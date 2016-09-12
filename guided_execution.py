@@ -184,9 +184,8 @@ def chooseCsvSaveOption(param_cases_csv, para_mat, topology, c):
 			para_mat_new.append(para_mat[i,:])
 	print('existing parameter sets:\n', exist_K_set)
 	print('new parameter sets:\n', para_mat_new)
-	para_mat_new = np.array(para_mat_new)
-
-	para_mat_new = simulateOnlyLinStableCases(para_mat_new)     				# this fct. corrects for negative Tsim if user decides to simulate also linearly unstable solutions
+	para_mat_tmp = np.array(para_mat_new)
+	para_mat_new = simulateOnlyLinStableCases(para_mat_tmp)     				# this fct. corrects for negative Tsim if user decides to simulate also linearly unstable solutions
 
 	b_true = True
 	while b_true:
