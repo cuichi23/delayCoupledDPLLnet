@@ -336,7 +336,8 @@ def singleRealization(params):
 			print('params', params)
 
 			# perform a K sweep
-			sf = synctools.SweepFactory(N, 2.0*np.pi*F, 2.0*np.pi*new_K_values, delay, h, 2.0*np.pi*Fc, k, isRadian=False)
+			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
+			sf = synctools.SweepFactory(N, F, new_K_values, delay, h, Fc, k, isRadian)
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation:', para_mat)
@@ -382,7 +383,8 @@ def singleRealization(params):
 			print('params', params)
 
 			# perform a Fc sweep
-			sf = synctools.SweepFactory(N, 2.0*np.pi*F, 2.0*np.pi*K, delay, h, 2.0*np.pi*new_Fc_values, k, isRadian=False)
+			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
+			sf = synctools.SweepFactory(N, F, K, delay, h, new_Fc_values, k, isRadian)
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation:', para_mat)
@@ -428,7 +430,8 @@ def singleRealization(params):
 			print('params', params)
 
 			# perform a delay sweep
-			sf = synctools.SweepFactory(N, 2.0*np.pi*F, 2.0*np.pi*K, new_delay_values, h, 2.0*np.pi*Fc, k, isRadian=False)
+			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
+			sf = synctools.SweepFactory(N, F, K, new_delay_values, h, Fc, k, isRadian)
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation:', para_mat)
@@ -484,7 +487,8 @@ def noisyStatistics(params):
 			print('params', params)
 
 			# perform a K sweep
-			sf = synctools.SweepFactory(N, 2.0*np.pi*F, 2.0*np.pi*new_K_values, delay, h, 2.0*np.pi*Fc, k, isRadian=False)
+			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
+			sf = synctools.SweepFactory(N, F, new_K_values, delay, h, Fc, k, isRadian)
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation:', para_mat)
@@ -503,7 +507,7 @@ def noisyStatistics(params):
 												+str(c)+' '+str(Nsim)+' '+' '.join(map(str, pert)))
 					# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
-					cnoise.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
+					cnois.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
 									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(Nsim), pert, plot_out)
 			break
 
@@ -530,7 +534,8 @@ def noisyStatistics(params):
 			print('params', params)
 
 			# perform a Fc sweep
-			sf = synctools.SweepFactory(N, 2.0*np.pi*F, 2.0*np.pi*K, delay, h, 2.0*np.pi*new_Fc_values, k, isRadian=False)
+			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
+			sf = synctools.SweepFactory(N, F, K, delay, h, new_Fc_values, k, isRadian)
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation:', para_mat)
@@ -549,7 +554,7 @@ def noisyStatistics(params):
 												+str(c)+' '+str(Nsim)+' '+' '.join(map(str, pert)))
 					# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
-					cnoise.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
+					cnois.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
 									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(Nsim), pert, plot_out)
 			break
 
@@ -576,7 +581,8 @@ def noisyStatistics(params):
 			print('params', params)
 
 			# perform a delay sweep
-			sf = synctools.SweepFactory(N, 2.0*np.pi*F, 2.0*np.pi*K, new_delay_values, h, 2.0*np.pi*Fc, k, isRadian=False)
+			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
+			sf = synctools.SweepFactory(N, F, K, new_delay_values, h, Fc, k, isRadian)
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation:', para_mat)
@@ -595,7 +601,7 @@ def noisyStatistics(params):
 												+str(c)+' '+str(Nsim)+' '+' '.join(map(str, pert)))
 					# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
-					cnoise.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
+					cnois.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
 									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(Nsim), pert, plot_out)
 			break
 
@@ -634,7 +640,8 @@ def bruteForce(params, param_cases_csv):
 			print('params', params)
 
 			# perform a K sweep
-			sf = synctools.SweepFactory(N, F, new_K_values, delay, h, Fc, k, isRadian=True)
+			isRadian=False
+			sf = synctools.SweepFactory(N, F, new_K_values, delay, h, Fc, k, isRadian)
 			fsl = sf.sweep()
 			para_mat_temp = fsl.get_parameter_matrix(isRadians=False)			# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {N, f, K, Fc, delay, m, F_Omeg, ReLamb, ImLamb and Tsim} approximation:\n', para_mat_temp)
@@ -682,7 +689,8 @@ def bruteForce(params, param_cases_csv):
 			print('params', params)
 
 			# perform a Fc sweep
-			sf = synctools.SweepFactory(N, 2.0*np.pi*F, 2.0*np.pi*K, delay, h, 2.0*np.pi*new_Fc_values, k, isRadian=True)
+			isRadian=False
+			sf = synctools.SweepFactory(N, F, K, delay, h, new_Fc_values, k, isRadian)
 			fsl = sf.sweep()
 			para_mat_temp = fsl.get_parameter_matrix(isRadians=False)			# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {N, f, K, Fc, delay, m, F_Omeg, ReLamb, ImLamb and Tsim} approximation:\n', para_mat_temp)
@@ -730,7 +738,8 @@ def bruteForce(params, param_cases_csv):
 			print('params', params)
 
 			# perform a delay sweep
-			sf = synctools.SweepFactory(N, 2.0*np.pi*F, 2.0*np.pi*K, new_delay_values, h, 2.0*np.pi*Fc, k, isRadian=True)
+			isRadian=False
+			sf = synctools.SweepFactory(N, F, K, new_delay_values, h, Fc, k, isRadian)
 			fsl = sf.sweep()
 			para_mat_temp = fsl.get_parameter_matrix(isRadians=False)			# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {N, f, K, Fc, delay, m, F_Omeg, ReLamb, ImLamb and Tsim} approximation:\n', para_mat_temp)
@@ -764,7 +773,8 @@ if __name__ == '__main__':
 	''' MAIN: organizes the execution of the DPLL simulation modes '''
 
 	# load parameter param_cases_csv from file, specify delimiter and which line contains the colum description
-	param_cases_csv = pd.read_csv('GlobFreq_LinStab/DPLLParameters.csv', delimiter=",", header=2, dtype={'K': np.float, 'Fc': np.float, 'delay': np.float, 'F_Omeg': np.float, 'k': np.int, 'Tsim': np.int, 'sim-time-approx': np.float, 'topology': np.str, 'c': np.float})
+	param_cases_csv = pd.read_csv('GlobFreq_LinStab/DPLLParameters.csv', delimiter=",", header=2, dtype={'K': np.float, 'Fc': np.float, 'delay': np.float, 'F_Omeg': np.float,
+	 								'k': np.int, 'Tsim': np.int, 'sim-time-approx': np.float, 'topology': np.str, 'c': np.float})
 	# load the configuration parameters
 	''' DATA CONTAINER NUMBER ONE '''
 	params = configparser.ConfigParser()										# initiate configparser object to load parts of the system parameters
@@ -783,7 +793,7 @@ if __name__ == '__main__':
 	a_true = True
 	while a_true:
 		# option to reset the configuration
-		decision1 = raw_input('\nWould you like to reset the following system parameters: {enable multiprocessing, number of availibe cores to use, parameter discretization for brute force method, type of coupling fct, intrinsic frequency, sample frequency, standard deviation intrinsic frequency, standard deviation coupling strength} [y]es/[n]o: ')
+		decision1 = raw_input('\nWould you like to reset one of the following system parameters: \n{\nenable multiprocessing, \nnumber of availibe cores to use, \nparameter discretization for brute force method, \ntype of coupling fct, \nintrinsic frequencies, \nsample frequency time series, \nstandard deviation intrinsic frequency, \nstandard deviation coupling strength\n} \n\n[y]es/[n]o: ')
 		if decision1 == 'y':
 			multiproc 			= raw_input('Multiprocessing choose True/False [string]: ')
 			if multiproc == 'True':

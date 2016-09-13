@@ -514,7 +514,7 @@ class SweepFactory(object):
        tsim : float
               simulation time
     '''
-    def __init__(self, n, w, k, tau, h, wc, m, tsim=0.0, isRadians=True):
+    def __init__(self, n, w, k, tau, h, wc, m, isRadians=True, tsim=0.0):
         if isRadians:                                                           # if parameters provided in rad*Hz
             self.n = n
             self.w = w
