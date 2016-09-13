@@ -40,7 +40,7 @@ def simulatePllNetwork(mode,topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg,
 	''' RETURN '''																# return value of mean order parameter, last order parameter, and the variance of r during the last 2T_{\omega}
 	return {'mean_order':np.mean(r), 'last_orderP':r[len(r)-1], 'stdev_orderP':np.var(r), 'phases': phi, 'intrinfreq': omega_0, 'coupling_strength': K_0, 'transdelays': delays_0}
 
-def multihelper(phiSr, initPhiPrime0, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiM, domega, diffconstK, plot_Phases_Freq):
+def multihelper(phiSr, initPhiPrime0, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiM, domega, diffconstK, plot_Phases_Freq, mode):
 	if N > 2:
 		phiSr = np.insert(phiSr, 0, initPhiPrime0)								# insert the first variable in the rotated space, constant initPhiPrime0
 	phiS = eva.rotate_phases(phiSr, isInverse=False)							# rotate back into physical phase space
@@ -50,41 +50,7 @@ def multihelper(phiSr, initPhiPrime0, topology, couplingfct, F, Nsteps, dt, c, F
 def multihelper_star(dynparam_fixparam):
 	return multihelper(*dynparam_fixparam)
 
-''' MAIN '''
-if __name__ == '__main__':
-	''' MAIN:
-
-	N		  : integer
-				number of oscillators
-
-	topology  : string
-		global: fully connected network
-		ring  : a 1D-ring (closed boundary conditions)
-		chain :	a 1D-chain (open boundary conditions)
-
-		!sqrt(N) needs to be an integer
-		square:
-		hexagon:
-		octagon:
-	Fc		   : cut-off frequency of the low-pass LF
-	F_Omeg     : frequency of state of initial history
-	K          : sensetivity of the PLLs
-
-	k		   : integer 0 <= k <= N-1
-				 k-Twist
-
-	delay	   : float
-
-	phiS	   : np.array
-				 real-valued 2d matrix or 1d vector of phases
-				 in the 2d case the columns of the matrix represent the individual oscillators
-
-	Returns
-	-------
-	0 		   :  phi0 is not stable for specified k-Twist
-	1		   :  phi0 is stable for specified k-Twist	'''
-
-	''' SIMULATION PARAMETER'''
+def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, phiSr=[], show_plot=True):
 	mode = int(3);																# mode=0 -> algorithm usage mode, mode=1 -> single realization mode,
 																				# mode=2 -> brute force scanning mode for parameter interval scans
 																				# mode=3 -> calculate many noisy realization for the same parameter set
@@ -105,24 +71,13 @@ if __name__ == '__main__':
 
 	now = datetime.datetime.now()
 	print('many noisy realizations mode with evaluation -- ATTENTION TO SCALING OF NOISE WITH RESPECT TO INTRINSIC FREQUENCIES')
-	# process arguments -- provided on program call, e.g. python oracle.py [arg0] [arg1] ... [argN]
-	topology	= str(sys.argv[1])												# topology: {global, chain, ring, square lattice, hexagonal lattice, osctagon}
-	N 		 	= int(sys.argv[2])												# number of oscillators
-	K 			= float(sys.argv[3])											# coupling strength
-	Fc 			= float(sys.argv[4])											# cut-off frequency of the loop filter
-	delay 		= float(sys.argv[5])											# signal transmission delay
-	F_Omeg 		= float(sys.argv[6])											# frequency of the synchronized state under investigation - has to be obtained before
-	k 			= int(sys.argv[7])												# twist-number, specifies solutions of interest, important for setting initial conditions
-	Tsim 		= float(sys.argv[8])											# provide the multiples of the intrinsic frequencies for which the simulations runs
-	c 			= float(sys.argv[9])											# provide diffusion constant for GWN process, bzw. sigma^2 = 2*c  --> c = 0.5 variance
-	Nsim 		= int(sys.argv[10])												# number of realizations for parameterset -- should be one here
-	phiSr 		= np.asarray([float(phi) for phi in sys.argv[11:(11+N)]])		# this input allows to simulate specific points in !rotated phase space plane
 
 	initPhiPrime0 = 0															# here, this is just set to be handed over to the next modules
 	if len(phiSr)==N:
 		print('Parameters set, perturbations provided manually in rotated phase space of phases.')
 		phiSr[0] = initPhiPrime0
 		phiS 	 = eva.rotate_phases(phiSr, isInverse=False)					# rotate back into physical phase space
+		phiSValues = []
 		for i in range (Nsim):
 			phiSValues.append(phiS)												# create vector that will contain the initial perturbation (in the history) for each realizations
 	else:
@@ -156,7 +111,7 @@ if __name__ == '__main__':
 		pool_data.append( pool.map(multihelper_star, itertools.izip( 		# this makes a map of all parameter combinations that have to be simulated, itertools.repeat() names the constants
 							phiSValues, itertools.repeat(initPhiPrime0), itertools.repeat(topology), itertools.repeat(couplingfct), itertools.repeat(F), itertools.repeat(Nsteps), itertools.repeat(dt),
 							itertools.repeat(c),itertools.repeat(Fc), itertools.repeat(F_Omeg), itertools.repeat(K), itertools.repeat(N), itertools.repeat(k), itertools.repeat(delay),
-							itertools.repeat(phiM), itertools.repeat(domega), itertools.repeat(diffconstK), itertools.repeat(plot_Phases_Freq) ) ) )
+							itertools.repeat(phiM), itertools.repeat(domega), itertools.repeat(diffconstK), itertools.repeat(plot_Phases_Freq), itertools.repeat(mode) ) ) )
 		# print('pool_data:', pool_data, 'type(pool_data):', type(pool_data) )
 		results=[]; phi=[]; omega_0=[]; K_0=[]; delays_0=[];
 		for i in range(Nsim):
@@ -215,3 +170,56 @@ if __name__ == '__main__':
 	now = datetime.datetime.now()
 	np.savez('results/orderparam_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), results=results)
 	np.savez('results/allInitPerturbPoints_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), allPoints=allPoints)
+
+	return None
+
+''' MAIN '''
+if __name__ == '__main__':
+	''' MAIN:
+
+	N		  : integer
+				number of oscillators
+
+	topology  : string
+		global: fully connected network
+		ring  : a 1D-ring (closed boundary conditions)
+		chain :	a 1D-chain (open boundary conditions)
+
+		!sqrt(N) needs to be an integer
+		square:
+		hexagon:
+		octagon:
+	Fc		   : cut-off frequency of the low-pass LF
+	F_Omeg     : frequency of state of initial history
+	K          : sensetivity of the PLLs
+
+	k		   : integer 0 <= k <= N-1
+				 k-Twist
+
+	delay	   : float
+
+	phiS	   : np.array
+				 real-valued 2d matrix or 1d vector of phases
+				 in the 2d case the columns of the matrix represent the individual oscillators
+
+	Returns
+	-------
+	0 		   :  phi0 is not stable for specified k-Twist
+	1		   :  phi0 is stable for specified k-Twist	'''
+
+	''' SIMULATION PARAMETER'''
+
+	# process arguments -- provided on program call, e.g. python oracle.py [arg0] [arg1] ... [argN]
+	topology	= str(sys.argv[1])												# topology: {global, chain, ring, square lattice, hexagonal lattice, osctagon}
+	N 		 	= int(sys.argv[2])												# number of oscillators
+	K 			= float(sys.argv[3])											# coupling strength
+	Fc 			= float(sys.argv[4])											# cut-off frequency of the loop filter
+	delay 		= float(sys.argv[5])											# signal transmission delay
+	F_Omeg 		= float(sys.argv[6])											# frequency of the synchronized state under investigation - has to be obtained before
+	k 			= int(sys.argv[7])												# twist-number, specifies solutions of interest, important for setting initial conditions
+	Tsim 		= float(sys.argv[8])											# provide the multiples of the intrinsic frequencies for which the simulations runs
+	c 			= float(sys.argv[9])											# provide diffusion constant for GWN process, bzw. sigma^2 = 2*c  --> c = 0.5 variance
+	Nsim 		= int(sys.argv[10])												# number of realizations for parameterset -- should be one here
+	phiSr 		= np.asarray([float(phi) for phi in sys.argv[11:(11+N)]])		# this input allows to simulate specific points in !rotated phase space plane
+
+	noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, phiSr, True)

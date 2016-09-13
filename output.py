@@ -40,7 +40,7 @@ annotationfont = {
         }
 
 ''' EVALUATION SINGLE REALIZATION '''
-def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, coupFct, Tsim, Fsim=None):
+def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, coupFct, Tsim, Fsim=None, show_plot=True):
 
 	phi = phi[:,:,:]; orderparam = orderparam[0,:]								# there is only one realization of interest -reduces dimensionof phi array
 	afterTransients = int( round( 0.5*Tsim / dt ) )
@@ -122,6 +122,8 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, coupFct, Tsi
 	#print('\nlast entries order parameter: R = ', orderparam[-25:])
 
 	plt.draw()
+	if show_plot:
+		plt.show()
 
 ''' EVALUATION BRUTE-FORCE BASIN OF ATTRACTION '''
 def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints, initPhiPrime0, paramDiscretization, delays_0):

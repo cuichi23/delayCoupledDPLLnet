@@ -132,23 +132,6 @@ def chooseNsim():																# ask user-input for number of realizations for
 
 	return Nsim
 
-def loopUserInputPert(N):														# ask N times for the value of the perturbation of the k-th oscillator
-	count = 0
-	perturb_user_set = []
-	while count < N:
-		c_true = True
-		while c_true:
-			# get user input of the perturbation
-			pert = float(raw_input('\nPlease specify pertubation as [float] in [0, 2pi] of oscillator k=%d: ' %(count+1)))
-			if ( float(pert)>=0 or float(pert)<(2.0*np.pi) ):
-				perturb_user_set.append(float(pert))
-				count = count + 1
-				break															# breaks the while loop that catches invalid input
-			else:
-				print('Please provide value as [float] in [0, 2pi]!')
-
-	return perturb_user_set
-
 def simulateOnlyLinStableCases(para_mat_new):
 	if any(decay_rate > 0 for decay_rate in para_mat_new[:,7]):
 		d_true = True
@@ -163,8 +146,15 @@ def simulateOnlyLinStableCases(para_mat_new):
 					return para_mat_new
 					break														# breaks the while loop that catches invalid input
 				elif input_sim_unstab == 'n':
-					print('IMPLEMENT DELETION OF LINEARLY UNSTABLE PARAMETER SETS FOR THIS OPTION!')
-					return para_mat_new
+					print('\nUncorrected for negative simulation times:', para_mat_new)
+					para_mat_linStab = []
+					for i in range (len(para_mat_new[:,7])):
+						if para_mat_new[i,7] < 0:								# if perturbations decay...
+						 	para_mat_linStab.append(para_mat_new[i,:])
+
+					para_mat_linStab = np.array(para_mat_linStab)
+					print('\nDeleted linearly unstable parameter sets:', para_mat_linStab)
+					return para_mat_linStab
 					break
 			else:
 				print('Please [y]es/[n]o input!')
@@ -231,6 +221,23 @@ def writeCsvFileNewCases(para_mat_new, topology, c):
 			writer.writerow(temp)
 
 	return None
+
+def loopUserInputPert(N):														# ask N times for the value of the perturbation of the k-th oscillator
+	count = 0
+	perturb_user_set = []
+	while count < N:
+		c_true = True
+		while c_true:
+			# get user input of the perturbation
+			pert = float(raw_input('\nPlease specify pertubation as [float] in [0, 2pi] of oscillator k=%d: ' %(count+1)))
+			if ( float(pert)>=0 or float(pert)<(2.0*np.pi) ):
+				perturb_user_set.append(float(pert))
+				count = count + 1
+				break															# breaks the while loop that catches invalid input
+			else:
+				print('Please provide value as [float] in [0, 2pi]!')
+
+	return perturb_user_set
 
 def setDeltaPertubation(N, case):
 	a_true = True
@@ -335,9 +342,20 @@ def singleRealization(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
-			for i in range (len(para_mat)):
-					print('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
-					os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+			if len(para_mat[:,0]) > 0:
+				if len(para_mat[:,0]) > 1:
+					plot_out = False
+				elif len(para_mat[:,0]) == 1:
+					plot_out = True
+
+				for i in range (len(para_mat[:,0])):
+					print('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
+													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
+													+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+					# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
+					csing.singleout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(1), pert, plot_out)
 			break
 
 		elif user_input == 'Fc':
@@ -370,10 +388,20 @@ def singleRealization(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
-			for i in range (len(para_mat)):
-					print('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
-					os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+			if len(para_mat[:,0]) > 0:
+				if len(para_mat[:,0]) > 1:
+					plot_out = False
+				elif len(para_mat[:,0]) == 1:
+					plot_out = True
 
+				for i in range (len(para_mat[:,0])):
+					print('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
+													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
+													+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+					# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
+					csing.singleout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(1), pert, plot_out)
 			break
 
 		elif user_input == 'delay':
@@ -406,15 +434,25 @@ def singleRealization(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
-			for i in range (len(para_mat)):
-					print('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
-					os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+			if len(para_mat[:,0]) > 0:
+				if len(para_mat[:,0]) > 1:
+					plot_out = False
+				elif len(para_mat[:,0]) == 1:
+					plot_out = True
+
+				for i in range (len(para_mat[:,0])):
+					print('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
+													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
+													+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+					# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
+					csing.singleout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(1), pert, plot_out)
 			break
 
 		else:
-			print('Please provide input from the following options: K, Fc , delay in [s]')
+			print('Please provide input from the following options: [K, Fc , delay]: ')
 
-	plt.show()
 	return None
 
 def noisyStatistics(params):
@@ -452,9 +490,20 @@ def noisyStatistics(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
-			for i in range (len(para_mat)):
-					print('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)+' '+' '.join(map(str, pert)))
-					os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)+' '+' '.join(map(str, pert)))
+			if len(para_mat[:,0]) > 0:
+				if len(para_mat[:,0]) > 1:
+					plot_out = False
+				elif len(para_mat[:,0]) == 1:
+					plot_out = True
+
+				for i in range (len(para_mat[:,0])):
+					print('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
+												+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
+												+str(c)+' '+str(Nsim)+' '+' '.join(map(str, pert)))
+					# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)+' '+' '.join(map(str, pert)))
+					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
+					cnoise.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(Nsim), pert, plot_out)
 			break
 
 		elif user_input == 'Fc':
@@ -487,9 +536,20 @@ def noisyStatistics(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
-			for i in range (len(para_mat)):
-					print('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)+' '+' '.join(map(str, pert)))
-					os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)+' '+' '.join(map(str, pert)))
+			if len(para_mat[:,0]) > 0:
+				if len(para_mat[:,0]) > 1:
+					plot_out = False
+				elif len(para_mat[:,0]) == 1:
+					plot_out = True
+
+				for i in range (len(para_mat[:,0])):
+					print('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
+												+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
+												+str(c)+' '+str(Nsim)+' '+' '.join(map(str, pert)))
+					# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)+' '+' '.join(map(str, pert)))
+					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
+					cnoise.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(Nsim), pert, plot_out)
 			break
 
 		elif user_input == 'delay':
@@ -522,9 +582,20 @@ def noisyStatistics(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
-			for i in range (len(para_mat)):
-					print('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)+' '+' '.join(map(str, pert)))
-					os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)+' '+' '.join(map(str, pert)))
+			if len(para_mat[:,0]) > 0:
+				if len(para_mat[:,0]) > 1:
+					plot_out = False
+				elif len(para_mat[:,0]) == 1:
+					plot_out = True
+
+				for i in range (len(para_mat[:,0])):
+					print('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
+												+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
+												+str(c)+' '+str(Nsim)+' '+' '.join(map(str, pert)))
+					# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)+' '+' '.join(map(str, pert)))
+					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
+					cnoise.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(Nsim), pert, plot_out)
 			break
 
 		else:
