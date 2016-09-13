@@ -136,8 +136,8 @@ if __name__ == '__main__':
 	print('NOTE: single realizations will be simulated for 2*Tsim to have enough waveforms after transients have decayed to plot spectral density.')
 	Nsteps 	= int(round(Tsim*Fsim))												# calculate number of iterations -- add output?
 	Nsim 	= 1
-	print('test single evaluation and plot phase and frequency time series, PROVIDE initial condition in ROTATED phase space!')
-	print('total simulation time in multiples of the eigentfrequency:', int(Tsim*F),'\n')
+	print('Test single evaluation and plot phase and frequency time series, PROVIDE initial condition in ROTATED phase space!')
+	print('Total simulation time in multiples of the eigentfrequency:', int(Tsim*F),'\n')
 
 	twistdelta = ( 2.0 * np.pi * k / ( float( N ) ) )							# phase difference between neighboring oscillators in a stable m-twist state
 	# print('phase differences of',k,'-twist:', twistdelta, '\n')
@@ -166,7 +166,6 @@ if __name__ == '__main__':
 	if plot_Phases_Freq:
 		out.plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, couplingfct, Tsim, Fsim)
 
-	plt.show()
 	''' SAVE RESULTS '''
 	np.savez('results/orderparam_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), results=results)
 	np.savez('results/initialperturb_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), phiS=phiS)

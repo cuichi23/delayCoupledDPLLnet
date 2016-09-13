@@ -156,7 +156,7 @@ def simulateOnlyLinStableCases(para_mat_new):
 			input_sim_unstab = raw_input('\nPlease specify whether also linearly unstable solutions should be simulated, [y]es/[n]o: ')
 			if ( input_sim_unstab == 'y' or input_sim_unstab == 'n' ):
 				if input_sim_unstab == 'y':
-					print('\nUnorrected for negative simulation times:', para_mat_new)
+					print('\nUncorrected for negative simulation times:', para_mat_new)
 					para_mat_new[:,9] = np.abs( para_mat_new[:,9] )				# correct for negative simulation times
 					print('\nCorrected for negative simulation times:', para_mat_new)
 					return para_mat_new
@@ -372,6 +372,7 @@ def singleRealization(params):
 			for i in range (len(para_mat)):
 					print('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(-25.0/para_mat[i,7]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
 					os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(-25.0/para_mat[i,7]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+
 			break
 
 		elif user_input == 'delay':
@@ -412,6 +413,8 @@ def singleRealization(params):
 		else:
 			print('Please provide input from the following options: K, Fc , delay in [s]')
 
+	plt.draw()
+	plt.show()
 	return None
 
 def noisyStatistics(params):

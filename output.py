@@ -108,7 +108,6 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, coupFct, Tsi
 	plt.savefig('results/freq-vs-time_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day))
 	plt.savefig('results/freq-vs-time_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), dpi=300)
 
-
 	plt.figure('order parameter over time')										# plot the order parameter in dependence of time
 	plt.clf()
 	plt.plot((t*dt), orderparam)
@@ -122,7 +121,7 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, coupFct, Tsi
 	#print('\nlast entry order parameter: R-1 = %.3e' % (orderparam[-1]-1) )
 	#print('\nlast entries order parameter: R = ', orderparam[-25:])
 
-	plt.draw()
+	# plt.draw()
 
 ''' EVALUATION BRUTE-FORCE BASIN OF ATTRACTION '''
 def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints, initPhiPrime0, paramDiscretization, delays_0):

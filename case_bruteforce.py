@@ -169,6 +169,7 @@ if __name__ == '__main__':
 		_allPoints = itertools.product(*scanValues)
 		allPoints = list(_allPoints)											# scanValues is a list of lists: create a new list that gives all the possible combinations of items between the lists
 		allPoints = np.array(allPoints) 										# convert the list to an array
+		
 	#print( 'all points in rotated phase space:\n', allPoints, '\n type:', type(allPoints), '\n')
 	#print(_allPoints, '\n')
 	#print(itertools.product(*scanValues))
