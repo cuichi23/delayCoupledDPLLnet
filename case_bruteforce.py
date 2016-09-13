@@ -129,52 +129,52 @@ if __name__ == '__main__':
 	Nsteps 	= int(round(Tsim*Fsim))												# calculate number of iterations -- add output?
 	print('total simulation time in multiples of the eigentfrequency:', int(Tsim*F),'\n')
 
-	plot_Phases_Freq = False												# whether or not the phases and frequencies are being plotted
+	plot_Phases_Freq = False													# whether or not the phases and frequencies are being plotted
 	# choose the value of phi'_0, i.e., where the plane, rectangular to the axis phi'_0 in the rotated phase space, is placed
 	# this direction corresponds to the case where all phi_k in the original phase space are equal phi_0==phi_1==...==phi_N-1 or (all) have constant phase differences
 	initPhiPrime0 = ( 0.0 * np.pi )
 	if N > 2:
 		print('shift along the first axis in rotated phase space, equivalent to phase kick of all oscillators before simulation starts: phi`_0=', initPhiPrime0)
 
-	twistdelta = ( 2.0 * np.pi * k / float(N) )								# phase difference between neighboring oscillators in a stable m-twist state
+	twistdelta = ( 2.0 * np.pi * k / float(N) )									# phase difference between neighboring oscillators in a stable m-twist state
 	#print('phase differences of',k,'-twist:', twistdelta, '\n')
 	if k == 0:
-		phiM = np.zeros(N)													# vector mit N entries from 0 increasing by twistdelta for every element, i.e., the initial phase-configuration
-	else:																	# in the original phase space
+		phiM = np.zeros(N)														# vector mit N entries from 0 increasing by twistdelta for every element, i.e., the initial phase-configuration
+	else:																		# in the original phase space
 		phiM = np.arange(0.0, N*twistdelta, twistdelta)
 		#print('phiM = ', phiM, '\n')
 	phiMr = eva.rotate_phases(phiM, isInverse=True)								# calculate phiM in terms of rotated phase space
 	# print('phiR =', phiR, '\n')
 
 	if N > 2:
-		phiMr[0] = initPhiPrime0											# set first dimension in rotated phase space constant for systems of more than 2 oscillators
+		phiMr[0] = initPhiPrime0												# set first dimension in rotated phase space constant for systems of more than 2 oscillators
 		#print('phiMr =', phiMr, '\n')
 	# the space about each twist solution is scanned in [phiM-pi, phiM+pi] where phiM are the initial phases of the m-twist under investigation
 	if N==2:
-		scanValues = np.zeros((N,paramDiscretization), dtype=np.float)		# create container for all points in the discretized rotated phase space, +/- pi around each dimension (unit area)
-		for i in range (0, N):												# the different coordinates of the solution, discretize an interval +/- pi around each variable
+		scanValues = np.zeros((N,paramDiscretization), dtype=np.float)			# create container for all points in the discretized rotated phase space, +/- pi around each dimension (unit area)
+		for i in range (0, N):													# the different coordinates of the solution, discretize an interval +/- pi around each variable
 			scanValues[i,:] = np.linspace(phiMr[i]-np.pi, phiMr[i]+np.pi, paramDiscretization) # all entries are in rotated, and reduced phase space
 			#print('row', i,'of matrix with all intervals of the rotated phase space:\n', scanValues[i,:], '\n')
 
 		_allPoints = itertools.product(*scanValues)
-		allPoints = list(_allPoints)										# scanValues is a list of lists: create a new list that gives all the possible combinations of items between the lists
-		allPoints = np.array(allPoints) 									# convert the list to an array
+		allPoints = list(_allPoints)											# scanValues is a list of lists: create a new list that gives all the possible combinations of items between the lists
+		allPoints = np.array(allPoints) 										# convert the list to an array
 	else:
 		# setup a matrix for all N-1 variables but the first, which is set later
-		scanValues = np.zeros((N-1,paramDiscretization), dtype=np.float)	# create container for all points in the discretized rotated phase space, +/- pi around each dimension (unit area)
-		for i in range (0, N-1):											# the different coordinates of the solution, discretize an interval plus/minus pi around each variable
+		scanValues = np.zeros((N-1,paramDiscretization), dtype=np.float)		# create container for all points in the discretized rotated phase space, +/- pi around each dimension (unit area)
+		for i in range (0, N-1):												# the different coordinates of the solution, discretize an interval plus/minus pi around each variable
 			scanValues[i,:] = np.linspace(phiMr[i+1]-np.pi, phiMr[i+1]+np.pi, paramDiscretization) # all entries are in rotated, and reduced phase space
 			#print('row', i,'of matrix with all intervals of the rotated phase space:\n', scanValues[i,:], '\n')
 
 		_allPoints = itertools.product(*scanValues)
-		allPoints = list(_allPoints)										# scanValues is a list of lists: create a new list that gives all the possible combinations of items between the lists
-		allPoints = np.array(allPoints) 									# convert the list to an array
+		allPoints = list(_allPoints)											# scanValues is a list of lists: create a new list that gives all the possible combinations of items between the lists
+		allPoints = np.array(allPoints) 										# convert the list to an array
 	#print( 'all points in rotated phase space:\n', allPoints, '\n type:', type(allPoints), '\n')
 	#print(_allPoints, '\n')
 	#print(itertools.product(*scanValues))
 
 	t0 = time.time()
-	if multiproc:															# multiprocessing option for parameter sweep calulcations
+	if multiproc:																# multiprocessing option for parameter sweep calulcations
 		if N == 2:
 			Nsim = paramDiscretization**N
 			print('multiprocessing', paramDiscretization**N, 'realizations')
@@ -183,7 +183,7 @@ if __name__ == '__main__':
 			print('multiprocessing', paramDiscretization**(N-1), 'realizations')
 		pool_data=[]; data=[]
 		freeze_support()
-		pool = Pool(processes=numberCores)									# create a Pool object
+		pool = Pool(processes=numberCores)										# create a Pool object
 		pool_data.append( pool.map(multihelper_star, itertools.izip( 			# this makes a map of all parameter combinations that have to be simulated, itertools.repeat() names the constants
 							itertools.product(*scanValues), itertools.repeat(initPhiPrime0), itertools.repeat(topology), itertools.repeat(couplingfct), itertools.repeat(F), itertools.repeat(Nsteps),
 							itertools.repeat(dt), itertools.repeat(c),itertools.repeat(Fc), itertools.repeat(F_Omeg), itertools.repeat(K), itertools.repeat(N), itertools.repeat(k), itertools.repeat(delay),
@@ -200,22 +200,22 @@ if __name__ == '__main__':
 		phi=np.array(phi); omega_0=np.array(omega_0); K_0=np.array(K_0);
 		# delays_0=np.array(delays_0);
 		results=np.array(results);
-		#print( list( pool.map(multihelper_star, itertools.izip( 			# this makes a map of all parameter combinations that have to be simulated, itertools.repeat() names the constants
+		#print( list( pool.map(multihelper_star, itertools.izip( 				# this makes a map of all parameter combinations that have to be simulated, itertools.repeat() names the constants
 		#					itertools.product(*scanValues), itertools.repeat(initPhiPrime0), itertools.repeat(topology), itertools.repeat(F), itertools.repeat(Nsteps), itertools.repeat(dt),
 		#					itertools.repeat(c),itertools.repeat(Fc), itertools.repeat(F_Omeg), itertools.repeat(K), itertools.repeat(N), itertools.repeat(k), itertools.repeat(delay),
 		#					itertools.repeat(phiM), itertools.repeat(plot_Phases_Freq) ) ) ) )
 		#print('results:', results)
 		print('time needed for execution of simulations in multiproc mode: ', (time.time()-t0), ' seconds')
 	else:
-		results=[]															# prepare container for results of simulatePllNetwork
-		for i in range (allPoints.shape[0]):								# iterate through all points in the N-1 dimensional rotated phase space
+		results=[]																# prepare container for results of simulatePllNetwork
+		for i in range (allPoints.shape[0]):									# iterate through all points in the N-1 dimensional rotated phase space
 			print('calculation #:', i+1, 'of', allPoints.shape[0])
 			#print( allPoints[i], '\n')
 			#print( 'type of allPoints[i]', type(allPoints[i]))
 			#print( 'allPoints[i] =', allPoints[i], '\n')
-			phiSr = allPoints[i,:]											# go through all combinations of points in the discretized rotated phase space
+			phiSr = allPoints[i,:]												# go through all combinations of points in the discretized rotated phase space
 			if N > 2:
-				phiSr = np.insert(phiSr, 0, initPhiPrime0)					# insert the first variable in the rotated space, constant initPhiPrime0
+				phiSr = np.insert(phiSr, 0, initPhiPrime0)						# insert the first variable in the rotated space, constant initPhiPrime0
 			print( 'phiSr =', phiSr, '\n')
 			phiS = eva.rotate_phases(phiSr, isInverse=False)					# rotate back into physical phase space
 			#print( 'type of phiS', type(phiS))
