@@ -11,7 +11,7 @@ numberCores = 8
 #4: type of coupling function -- choose from {triang(ular), cos(ine), sin(e)}
 couplingfct = triang
 #
-#5: free-running frequency of the PLLs
+#5: free-running frequency of the PLLs in Hz
 F = 1.0																			
 #
 #6: sample phases with Fsim multiples of the intrinsic frequency -> goal: about 100 samples per period

@@ -87,7 +87,7 @@ def chooseTwistNumber(N):														# ask user-input for delay
 	a_true = True
 	while a_true:
 		# get user input on number of oscis in the network
-		k = raw_input('\nPlease specify the m-twist number [integer] in [0, 1, ..., %d] [dimless]: ' %(N-1))
+		k = raw_input('\nPlease specify the m-twist number [integer] in [0, ..., %d] [dimless]: ' %(N-1))
 		if ( int(k)>=0 ):
 			break
 		else:
@@ -200,6 +200,7 @@ def chooseCsvSaveOption(param_cases_csv, para_mat, topology, c):
 			break
 		elif decision == 'n':
 			print('New parameter sets will not be saved to csv-database!')
+			return para_mat_new
 			break
 		else:
 			print('Please provide [y]es/[n]o input!')
@@ -335,7 +336,7 @@ def singleRealization(params):
 			print('params', params)
 
 			# perform a K sweep
-			sf = synctools.SweepFactory(N, 2.0*np.pi*F, 2.0*np.pi*new_K_values, delay, h, 2.0*np.pi*Fc, k)
+			sf = synctools.SweepFactory(N, 2.0*np.pi*F, 2.0*np.pi*new_K_values, delay, h, 2.0*np.pi*Fc, k, isRadian=False)
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation:', para_mat)
@@ -381,7 +382,7 @@ def singleRealization(params):
 			print('params', params)
 
 			# perform a Fc sweep
-			sf = synctools.SweepFactory(N, 2.0*np.pi*F, 2.0*np.pi*K, delay, h, 2.0*np.pi*new_Fc_values, k)
+			sf = synctools.SweepFactory(N, 2.0*np.pi*F, 2.0*np.pi*K, delay, h, 2.0*np.pi*new_Fc_values, k, isRadian=False)
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation:', para_mat)
@@ -427,7 +428,7 @@ def singleRealization(params):
 			print('params', params)
 
 			# perform a delay sweep
-			sf = synctools.SweepFactory(N, 2.0*np.pi*F, 2.0*np.pi*K, new_delay_values, h, 2.0*np.pi*Fc, k)
+			sf = synctools.SweepFactory(N, 2.0*np.pi*F, 2.0*np.pi*K, new_delay_values, h, 2.0*np.pi*Fc, k, isRadian=False)
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation:', para_mat)
@@ -483,7 +484,7 @@ def noisyStatistics(params):
 			print('params', params)
 
 			# perform a K sweep
-			sf = synctools.SweepFactory(N, 2.0*np.pi*F, 2.0*np.pi*new_K_values, delay, h, 2.0*np.pi*Fc, k)
+			sf = synctools.SweepFactory(N, 2.0*np.pi*F, 2.0*np.pi*new_K_values, delay, h, 2.0*np.pi*Fc, k, isRadian=False)
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation:', para_mat)
@@ -529,7 +530,7 @@ def noisyStatistics(params):
 			print('params', params)
 
 			# perform a Fc sweep
-			sf = synctools.SweepFactory(N, 2.0*np.pi*F, 2.0*np.pi*K, delay, h, 2.0*np.pi*new_Fc_values, k)
+			sf = synctools.SweepFactory(N, 2.0*np.pi*F, 2.0*np.pi*K, delay, h, 2.0*np.pi*new_Fc_values, k, isRadian=False)
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation:', para_mat)
@@ -575,7 +576,7 @@ def noisyStatistics(params):
 			print('params', params)
 
 			# perform a delay sweep
-			sf = synctools.SweepFactory(N, 2.0*np.pi*F, 2.0*np.pi*K, new_delay_values, h, 2.0*np.pi*Fc, k)
+			sf = synctools.SweepFactory(N, 2.0*np.pi*F, 2.0*np.pi*K, new_delay_values, h, 2.0*np.pi*Fc, k, isRadian=False)
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation:', para_mat)
@@ -613,6 +614,7 @@ def bruteForce(params, param_cases_csv):
 			user_sweep_end	 = float(raw_input('\nPlease specify the range in which K should be simulated, end K_e in [Hz] = '))
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz] dK = '))
 			new_K_values	 = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
+			print('new K-values: ', new_K_values)
 
 			N 		= chooseNumber()											# calls function that asks user for input of number of oscis
 			k		= chooseTwistNumber(N)										# choose twist under investigation
@@ -620,7 +622,8 @@ def bruteForce(params, param_cases_csv):
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
-			pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
+			# pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
+			pert = []
 			# Nsim    = chooseNsim()												# calls function that asks user for input for number of realizations
 			if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
 				h = synctools.Triangle(1.0 / (2.0 * np.pi))
@@ -631,18 +634,28 @@ def bruteForce(params, param_cases_csv):
 			print('params', params)
 
 			# perform a K sweep
-			sf = synctools.SweepFactory(N, F, new_K_values, delay, h, Fc, k, False)
+			sf = synctools.SweepFactory(N, F, new_K_values, delay, h, Fc, k, isRadian=True)
 			fsl = sf.sweep()
-			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
-			print('New parameter combinations with {N, f, K, Fc, delay, m, F_Omeg, ReLamb, ImLamb and Tsim} approximation:\n', para_mat)
+			para_mat_temp = fsl.get_parameter_matrix(isRadians=False)			# extract variables from the sweep, this matrix contains all cases
+			print('New parameter combinations with {N, f, K, Fc, delay, m, F_Omeg, ReLamb, ImLamb and Tsim} approximation:\n', para_mat_temp)
 
-			para_mat_new = chooseCsvSaveOption(param_cases_csv, para_mat, topology, c)
+			para_mat = chooseCsvSaveOption(param_cases_csv, para_mat_temp, topology, c)
 
-			if len(para_mat_new) > 0:
-				for i in range (len(para_mat_new[:,0])):
-					print('Tsim: ', para_mat_new[i,9])
-					print('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat_new[i,0]))+' '+str(float(para_mat_new[i,2]))+' '+str(float((para_mat_new[i,3])))+' '+str(float(para_mat_new[i,4]))+' '+str(float(para_mat_new[i,6]))+' '+str(int(para_mat_new[i,5]))+' '+str(int(round(float(para_mat_new[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
-					os.system('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat_new[i,0]))+' '+str(float(para_mat_new[i,2]))+' '+str(float((para_mat_new[i,3])))+' '+str(float(para_mat_new[i,4]))+' '+str(float(para_mat_new[i,6]))+' '+str(int(para_mat_new[i,5]))+' '+str(int(round(float(para_mat_new[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+			if len(para_mat[:,0]) > 0:
+				if len(para_mat[:,0]) > 1:
+					plot_out = False
+				elif len(para_mat[:,0]) == 1:
+					plot_out = True
+
+				for i in range (len(para_mat[:,0])):
+					print('Tsim: ', para_mat[i,9])
+					print('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
+													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '
+													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+					# os.system('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
+					cbrut.bruteforceout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(1), pert, plot_out)
 			break
 
 		elif user_input == 'Fc':
@@ -657,7 +670,8 @@ def bruteForce(params, param_cases_csv):
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
-			pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
+			# pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
+			pert = []
 			# Nsim    = chooseNsim()												# calls function that asks user for input for number of realizations
 			if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
 				h = synctools.Triangle(1.0 / (2.0 * np.pi))
@@ -668,17 +682,28 @@ def bruteForce(params, param_cases_csv):
 			print('params', params)
 
 			# perform a Fc sweep
-			sf = synctools.SweepFactory(N, 2.0*np.pi*F, 2.0*np.pi*K, delay, h, 2.0*np.pi*new_Fc_values, k)
+			sf = synctools.SweepFactory(N, 2.0*np.pi*F, 2.0*np.pi*K, delay, h, 2.0*np.pi*new_Fc_values, k, isRadian=True)
 			fsl = sf.sweep()
-			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
-			print('New parameter combinations with {N, f, K, Fc, delay, m, F_Omeg, ReLamb, ImLamb and Tsim} approximation:\n', para_mat)
+			para_mat_temp = fsl.get_parameter_matrix(isRadians=False)			# extract variables from the sweep, this matrix contains all cases
+			print('New parameter combinations with {N, f, K, Fc, delay, m, F_Omeg, ReLamb, ImLamb and Tsim} approximation:\n', para_mat_temp)
 
-			para_mat_new = chooseCsvSaveOption(param_cases_csv, para_mat, topology, c)
+			para_mat = chooseCsvSaveOption(param_cases_csv, para_mat_temp, topology, c)
 
-			if len(para_mat_new) > 0:
-				for i in range (len(para_mat_new[:,0])):
-					print('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat_new[i,0]))+' '+str(float(para_mat_new[i,2]))+' '+str(float((para_mat_new[i,3])))+' '+str(float(para_mat_new[i,4]))+' '+str(float(para_mat_new[i,6]))+' '+str(int(para_mat_new[i,5]))+' '+str(int(round(float(para_mat_new[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
-					os.system('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat_new[i,0]))+' '+str(float(para_mat_new[i,2]))+' '+str(float((para_mat_new[i,3])))+' '+str(float(para_mat_new[i,4]))+' '+str(float(para_mat_new[i,6]))+' '+str(int(para_mat_new[i,5]))+' '+str(int(round(float(para_mat_new[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+			if len(para_mat[:,0]) > 0:
+				if len(para_mat[:,0]) > 1:
+					plot_out = False
+				elif len(para_mat[:,0]) == 1:
+					plot_out = True
+
+				for i in range (len(para_mat[:,0])):
+					print('Tsim: ', para_mat[i,9])
+					print('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
+													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '
+													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+					# os.system('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
+					cbrut.bruteforceout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(1), pert, plot_out)
 			break
 
 		elif user_input == 'delay':
@@ -693,7 +718,8 @@ def bruteForce(params, param_cases_csv):
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
-			pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
+			# pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
+			pert = []
 			# Nsim    = chooseNsim()												# calls function that asks user for input for number of realizations
 			if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
 				h = synctools.Triangle(1.0 / (2.0 * np.pi))
@@ -704,17 +730,28 @@ def bruteForce(params, param_cases_csv):
 			print('params', params)
 
 			# perform a delay sweep
-			sf = synctools.SweepFactory(N, 2.0*np.pi*F, 2.0*np.pi*K, new_delay_values, h, 2.0*np.pi*Fc, k)
+			sf = synctools.SweepFactory(N, 2.0*np.pi*F, 2.0*np.pi*K, new_delay_values, h, 2.0*np.pi*Fc, k, isRadian=True)
 			fsl = sf.sweep()
-			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
-			print('New parameter combinations with {N, f, K, Fc, delay, m, F_Omeg, ReLamb, ImLamb and Tsim} approximation:\n', para_mat)
+			para_mat_temp = fsl.get_parameter_matrix(isRadians=False)			# extract variables from the sweep, this matrix contains all cases
+			print('New parameter combinations with {N, f, K, Fc, delay, m, F_Omeg, ReLamb, ImLamb and Tsim} approximation:\n', para_mat_temp)
 
-			para_mat_new = chooseCsvSaveOption(param_cases_csv, para_mat, topology, c)
+			para_mat = chooseCsvSaveOption(param_cases_csv, para_mat_temp, topology, c)
 
-			if len(para_mat_new) > 0:
-				for i in range (len(para_mat_new[:,0])):
-					print('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat_new[i,0]))+' '+str(float(para_mat_new[i,2]))+' '+str(float((para_mat_new[i,3])))+' '+str(float(para_mat_new[i,4]))+' '+str(float(para_mat_new[i,6]))+' '+str(int(para_mat_new[i,5]))+' '+str(int(round(float(para_mat_new[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
-					os.system('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat_new[i,0]))+' '+str(float(para_mat_new[i,2]))+' '+str(float((para_mat_new[i,3])))+' '+str(float(para_mat_new[i,4]))+' '+str(float(para_mat_new[i,6]))+' '+str(int(para_mat_new[i,5]))+' '+str(int(round(float(para_mat_new[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+			if len(para_mat[:,0]) > 0:
+				if len(para_mat[:,0]) > 1:
+					plot_out = False
+				elif len(para_mat[:,0]) == 1:
+					plot_out = True
+
+				for i in range (len(para_mat[:,0])):
+					print('Tsim: ', para_mat[i,9])
+					print('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
+													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '
+													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+					# os.system('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
+					cbrut.bruteforceout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(1), pert, plot_out)
 			break
 
 		else:
