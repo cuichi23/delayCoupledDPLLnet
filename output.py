@@ -121,7 +121,7 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, coupFct, Tsi
 	#print('\nlast entry order parameter: R-1 = %.3e' % (orderparam[-1]-1) )
 	#print('\nlast entries order parameter: R = ', orderparam[-25:])
 
-	# plt.draw()
+	plt.draw()
 
 ''' EVALUATION BRUTE-FORCE BASIN OF ATTRACTION '''
 def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints, initPhiPrime0, paramDiscretization, delays_0):
