@@ -1,0 +1,81 @@
+synctools module
+================
+
+General
+-------
+
+
+
+The synctools module contains functions and class to compute the frequency and stability of globally synchronized states in a system of coupled PLLs. Three types of functions and classes are containd in the module.
+
+1) Functions containing the math with a non-class interface
+
+.. currentmodule:: synctools
+
+.. autosummary::
+   
+   synctools.get_sign_changes
+   synctools.get_parametric_omega_curve
+   synctools.get_omega_implicit
+   synctools.get_stability
+
+   
+2) Classes that define a single PLL system and a single m-twist state
+   
+.. autosummary::
+   
+   synctools.Triangle
+   synctools.Square
+   synctools.PllSystem
+   synctools.TwistState
+
+
+3) Classes to perform a sweep over system parameters and to store a list of states
+   
+.. autosummary::
+   
+   synctools.SweepFactory
+   synctools.FlatStateList
+
+Example
+-------
+
+::
+
+    # System parameters
+    n = 3
+    w = 2 * np.pi
+    k = 1.57
+    wc = 1 * w
+    m = 1
+    tau = np.linspace(0, 2, 250)
+    h = synctools.Triangle(1.0 / (2 * np.pi))
+    tsim = 0.1234
+
+
+    # Create a pll system and determine the possible m-twist states
+    pll = synctools.PllSystem(n, w, k, tau[0], h, wc)
+    s = pll.get_twist_state(m)
+
+    # Perform a delay sweep
+    sf = synctools.SweepFactory(n, w, k, tau, h, wc, m, tsim=tsim)
+    fsl = sf.sweep()
+
+    # Perform a delay sweep
+    sf = synctools.SweepFactory(n, w, k, tau, h, wc, m)
+    fsl = sf.sweep()
+
+    # Extract variables from the sweep
+    para_mat = fsl.get_parameter_matrix()
+    tau2 = fsl.get_tau()
+    omega2 = fsl.get_omega()
+    l2 = fsl.get_l()
+
+   
+
+
+
+API
+---
+.. automodule:: synctools
+   :members:

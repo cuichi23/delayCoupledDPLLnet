@@ -1,0 +1,610 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>synctools module &mdash; Coupled PLLs 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Coupled PLLs 0.1 documentation" href="index.html" />
+    <link rel="prev" title="Coupled PLLs" href="index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Coupled PLLs"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Coupled PLLs 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="synctools-module">
+<h1>synctools module<a class="headerlink" href="#synctools-module" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="general">
+<h2>General<a class="headerlink" href="#general" title="Permalink to this headline">¶</a></h2>
+<p>The synctools module contains functions and class to compute the frequency and stability of globally synchronized states in a system of coupled PLLs. Three types of functions and classes are containd in the module.</p>
+<ol class="arabic simple">
+<li>Functions containing the math with a non-class interface</li>
+</ol>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#synctools.get_sign_changes" title="synctools.get_sign_changes"><code class="xref py py-obj docutils literal"><span class="pre">synctools.get_sign_changes</span></code></a>(x)</td>
+<td>Returns an integer array with the indices of the element in x before a sign change.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#synctools.get_parametric_omega_curve" title="synctools.get_parametric_omega_curve"><code class="xref py py-obj docutils literal"><span class="pre">synctools.get_parametric_omega_curve</span></code></a>(n,&nbsp;w,&nbsp;...)</td>
+<td>Compute a parametric curve of the global synchronization frequency as a function of the delay.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#synctools.get_omega_implicit" title="synctools.get_omega_implicit"><code class="xref py py-obj docutils literal"><span class="pre">synctools.get_omega_implicit</span></code></a>(n,&nbsp;w,&nbsp;k,&nbsp;tau,&nbsp;h,&nbsp;m)</td>
+<td>Computes the global synchronization frequency for a given delay.</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#synctools.get_stability" title="synctools.get_stability"><code class="xref py py-obj docutils literal"><span class="pre">synctools.get_stability</span></code></a>(n,&nbsp;w,&nbsp;k,&nbsp;h,&nbsp;m,&nbsp;tau,&nbsp;...)</td>
+<td>Linear stability analysis of globally synchronized state.</td>
+</tr>
+</tbody>
+</table>
+<ol class="arabic simple" start="2">
+<li>Classes that define a single PLL system and a single m-twist state</li>
+</ol>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#synctools.Triangle" title="synctools.Triangle"><code class="xref py py-obj docutils literal"><span class="pre">synctools.Triangle</span></code></a>(freq)</td>
+<td>Periodic triangle signal vertically centered around 0</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#synctools.Square" title="synctools.Square"><code class="xref py py-obj docutils literal"><span class="pre">synctools.Square</span></code></a>(freq,&nbsp;amp)</td>
+<td>Periodic square wave vertically centered around 0</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#synctools.PllSystem" title="synctools.PllSystem"><code class="xref py py-obj docutils literal"><span class="pre">synctools.PllSystem</span></code></a>(n,&nbsp;w,&nbsp;k,&nbsp;tau,&nbsp;h,&nbsp;wc)</td>
+<td>System of coupled PLLs</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#synctools.TwistState" title="synctools.TwistState"><code class="xref py py-obj docutils literal"><span class="pre">synctools.TwistState</span></code></a>(system,&nbsp;m,&nbsp;omega,&nbsp;l)</td>
+<td>Globally synchronized twist states</td>
+</tr>
+</tbody>
+</table>
+<ol class="arabic simple" start="3">
+<li>Classes to perform a sweep over system parameters and to store a list of states</li>
+</ol>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="#synctools.SweepFactory" title="synctools.SweepFactory"><code class="xref py py-obj docutils literal"><span class="pre">synctools.SweepFactory</span></code></a>(n,&nbsp;w,&nbsp;k,&nbsp;tau,&nbsp;h,&nbsp;wc,&nbsp;m)</td>
+<td>Sweeps a system parameters of a coupled PLL system</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="#synctools.FlatStateList" title="synctools.FlatStateList"><code class="xref py py-obj docutils literal"><span class="pre">synctools.FlatStateList</span></code></a>([tsim])</td>
+<td>Flat list of TwistStates</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="example">
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1"># System parameters</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">w</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+<span class="n">k</span> <span class="o">=</span> <span class="mf">1.57</span>
+<span class="n">wc</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">*</span> <span class="n">w</span>
+<span class="n">m</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">tau</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">250</span><span class="p">)</span>
+<span class="n">h</span> <span class="o">=</span> <span class="n">synctools</span><span class="o">.</span><span class="n">Triangle</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">))</span>
+<span class="n">tsim</span> <span class="o">=</span> <span class="mf">0.1234</span>
+
+
+<span class="c1"># Create a pll system and determine the possible m-twist states</span>
+<span class="n">pll</span> <span class="o">=</span> <span class="n">synctools</span><span class="o">.</span><span class="n">PllSystem</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">tau</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">h</span><span class="p">,</span> <span class="n">wc</span><span class="p">)</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">pll</span><span class="o">.</span><span class="n">get_twist_state</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+
+<span class="c1"># Perform a delay sweep</span>
+<span class="n">sf</span> <span class="o">=</span> <span class="n">synctools</span><span class="o">.</span><span class="n">SweepFactory</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">tau</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">wc</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">tsim</span><span class="o">=</span><span class="n">tsim</span><span class="p">)</span>
+<span class="n">fsl</span> <span class="o">=</span> <span class="n">sf</span><span class="o">.</span><span class="n">sweep</span><span class="p">()</span>
+
+<span class="c1"># Perform a delay sweep</span>
+<span class="n">sf</span> <span class="o">=</span> <span class="n">synctools</span><span class="o">.</span><span class="n">SweepFactory</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">tau</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">wc</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span>
+<span class="n">fsl</span> <span class="o">=</span> <span class="n">sf</span><span class="o">.</span><span class="n">sweep</span><span class="p">()</span>
+
+<span class="c1"># Extract variables from the sweep</span>
+<span class="n">para_mat</span> <span class="o">=</span> <span class="n">fsl</span><span class="o">.</span><span class="n">get_parameter_matrix</span><span class="p">()</span>
+<span class="n">tau2</span> <span class="o">=</span> <span class="n">fsl</span><span class="o">.</span><span class="n">get_tau</span><span class="p">()</span>
+<span class="n">omega2</span> <span class="o">=</span> <span class="n">fsl</span><span class="o">.</span><span class="n">get_omega</span><span class="p">()</span>
+<span class="n">l2</span> <span class="o">=</span> <span class="n">fsl</span><span class="o">.</span><span class="n">get_l</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="module-synctools">
+<span id="api"></span><h2>API<a class="headerlink" href="#module-synctools" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="synctools.FlatStateList">
+<em class="property">class </em><code class="descclassname">synctools.</code><code class="descname">FlatStateList</code><span class="sig-paren">(</span><em>tsim=0.0</em><span class="sig-paren">)</span><a class="headerlink" href="#synctools.FlatStateList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flat list of TwistStates</p>
+<dl class="method">
+<dt id="synctools.FlatStateList.add_states">
+<code class="descname">add_states</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="headerlink" href="#synctools.FlatStateList.add_states" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a single or a list of twist states to the list</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>s</strong> (<em>TwistState or list of TwistStates</em>) &#8211; state or list of states that should be added</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="synctools.FlatStateList.get_h">
+<code class="descname">get_h</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synctools.FlatStateList.get_h" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of the coupling functions of the states in the list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="synctools.FlatStateList.get_k">
+<code class="descname">get_k</code><span class="sig-paren">(</span><em>isRadians=True</em><span class="sig-paren">)</span><a class="headerlink" href="#synctools.FlatStateList.get_k" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an array of the coupling constants of the states in the list</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>isRadians</strong> (<em>bool</em>) &#8211; frequency is given in radians if True, otherwise in Hertz</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="synctools.FlatStateList.get_l">
+<code class="descname">get_l</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synctools.FlatStateList.get_l" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an array of the complex linear stability exponent of the states in the list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="synctools.FlatStateList.get_m">
+<code class="descname">get_m</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synctools.FlatStateList.get_m" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an array of the twist numbers of the states in the list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="synctools.FlatStateList.get_n">
+<code class="descname">get_n</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synctools.FlatStateList.get_n" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an array of the number of oscillators of the states in the list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="synctools.FlatStateList.get_omega">
+<code class="descname">get_omega</code><span class="sig-paren">(</span><em>isRadians=True</em><span class="sig-paren">)</span><a class="headerlink" href="#synctools.FlatStateList.get_omega" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an array of the global synchronization frequencies of the states in the list</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>isRadians</strong> (<em>bool</em>) &#8211; frequency is given in radians if True, otherwise in Hertz</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="synctools.FlatStateList.get_parameter_matrix">
+<code class="descname">get_parameter_matrix</code><span class="sig-paren">(</span><em>isRadians=True</em><span class="sig-paren">)</span><a class="headerlink" href="#synctools.FlatStateList.get_parameter_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a matrix of the numeric parameters the states in the list</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>isRadians</strong> (<em>bool</em>) &#8211; frequency is given in radians if True, otherwise in Hertz</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="synctools.FlatStateList.get_tau">
+<code class="descname">get_tau</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synctools.FlatStateList.get_tau" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an array of the delay times of the states in the list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="synctools.FlatStateList.get_tsim">
+<code class="descname">get_tsim</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synctools.FlatStateList.get_tsim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an array of simulation time</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="synctools.FlatStateList.get_w">
+<code class="descname">get_w</code><span class="sig-paren">(</span><em>isRadians=True</em><span class="sig-paren">)</span><a class="headerlink" href="#synctools.FlatStateList.get_w" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an array of the intrinsic frequencies of oscillators of the states in the list</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>isRadians</strong> (<em>bool</em>) &#8211; frequency is given in radians if True, otherwise in Hertz</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="synctools.FlatStateList.get_wc">
+<code class="descname">get_wc</code><span class="sig-paren">(</span><em>isRadians=True</em><span class="sig-paren">)</span><a class="headerlink" href="#synctools.FlatStateList.get_wc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the low-pass filter cut-off frequency of the states in the list</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>isRadians</strong> (<em>bool</em>) &#8211; frequency is given in radians if True, otherwise in Hertz</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="synctools.PllSystem">
+<em class="property">class </em><code class="descclassname">synctools.</code><code class="descname">PllSystem</code><span class="sig-paren">(</span><em>n</em>, <em>w</em>, <em>k</em>, <em>tau</em>, <em>h</em>, <em>wc</em><span class="sig-paren">)</span><a class="headerlink" href="#synctools.PllSystem" title="Permalink to this definition">¶</a></dt>
+<dd><p>System of coupled PLLs</p>
+<dl class="attribute">
+<dt id="synctools.PllSystem.n">
+<code class="descname">n</code><a class="headerlink" href="#synctools.PllSystem.n" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int</em></p>
+<p>number of oscillators</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="synctools.PllSystem.w">
+<code class="descname">w</code><a class="headerlink" href="#synctools.PllSystem.w" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em></p>
+<p>intrinsic angular frequency of the oscillators</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="synctools.PllSystem.k">
+<code class="descname">k</code><a class="headerlink" href="#synctools.PllSystem.k" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em></p>
+<p>coupling constant</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="synctools.PllSystem.tau">
+<code class="descname">tau</code><a class="headerlink" href="#synctools.PllSystem.tau" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em></p>
+<p>delay time</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="synctools.PllSystem.h">
+<code class="descname">h</code><a class="headerlink" href="#synctools.PllSystem.h" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>callable</em></p>
+<p>coupling function</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="synctools.PllSystem.wc">
+<code class="descname">wc</code><a class="headerlink" href="#synctools.PllSystem.wc" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em></p>
+<p>low-pass filter (angular) cut-off frequency</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="synctools.PllSystem.get_twist_state">
+<code class="descname">get_twist_state</code><span class="sig-paren">(</span><em>m</em><span class="sig-paren">)</span><a class="headerlink" href="#synctools.PllSystem.get_twist_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine the possible states of global synchronization for a specific m twist</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>m</strong> (<em>int</em>) &#8211; twist numer</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>s</strong></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">list of twist states or None</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="synctools.Square">
+<em class="property">class </em><code class="descclassname">synctools.</code><code class="descname">Square</code><span class="sig-paren">(</span><em>freq</em>, <em>amp</em><span class="sig-paren">)</span><a class="headerlink" href="#synctools.Square" title="Permalink to this definition">¶</a></dt>
+<dd><p>Periodic square wave vertically centered around 0</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="synctools.SweepFactory">
+<em class="property">class </em><code class="descclassname">synctools.</code><code class="descname">SweepFactory</code><span class="sig-paren">(</span><em>n</em>, <em>w</em>, <em>k</em>, <em>tau</em>, <em>h</em>, <em>wc</em>, <em>m</em>, <em>tsim=0.0</em><span class="sig-paren">)</span><a class="headerlink" href="#synctools.SweepFactory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sweeps a system parameters of a coupled PLL system</p>
+<p>One of the class attributes should be given as a np.ndarray. This will be the swept parameter</p>
+<dl class="attribute">
+<dt id="synctools.SweepFactory.n">
+<code class="descname">n</code><a class="headerlink" href="#synctools.SweepFactory.n" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int/np.ndarray</em></p>
+<p>number of oscillators^</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="synctools.SweepFactory.w">
+<code class="descname">w</code><a class="headerlink" href="#synctools.SweepFactory.w" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float/np.ndarray</em></p>
+<p>intrinsic angular frequency</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="synctools.SweepFactory.k">
+<code class="descname">k</code><a class="headerlink" href="#synctools.SweepFactory.k" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float/np.ndarray</em></p>
+<p>coupling constant</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="synctools.SweepFactory.tau">
+<code class="descname">tau</code><a class="headerlink" href="#synctools.SweepFactory.tau" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float/np.ndarray</em></p>
+<p>delay</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="synctools.SweepFactory.h">
+<code class="descname">h</code><a class="headerlink" href="#synctools.SweepFactory.h" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>callable/list of callables</em></p>
+<p>coupling function</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="synctools.SweepFactory.wc">
+<code class="descname">wc</code><a class="headerlink" href="#synctools.SweepFactory.wc" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float/np.ndarray</em></p>
+<p>(angular) cut-off frequency of low-pass filter</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="synctools.SweepFactory.m">
+<code class="descname">m</code><a class="headerlink" href="#synctools.SweepFactory.m" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int</em></p>
+<p>twist number</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="synctools.SweepFactory.tsim">
+<code class="descname">tsim</code><a class="headerlink" href="#synctools.SweepFactory.tsim" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em></p>
+<p>simulation time</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="synctools.SweepFactory.sweep">
+<code class="descname">sweep</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#synctools.SweepFactory.sweep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs sweep</p>
+<p>Determines the possible globally synchronized states, their angular frequencies and their linear stability</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>fsl</strong> &#8211;
+flat list of the possible states</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#synctools.FlatStateList" title="synctools.FlatStateList">FlatStateList</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="synctools.Triangle">
+<em class="property">class </em><code class="descclassname">synctools.</code><code class="descname">Triangle</code><span class="sig-paren">(</span><em>freq</em><span class="sig-paren">)</span><a class="headerlink" href="#synctools.Triangle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Periodic triangle signal vertically centered around 0</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="synctools.TwistState">
+<em class="property">class </em><code class="descclassname">synctools.</code><code class="descname">TwistState</code><span class="sig-paren">(</span><em>system</em>, <em>m</em>, <em>omega</em>, <em>l</em><span class="sig-paren">)</span><a class="headerlink" href="#synctools.TwistState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Globally synchronized twist states</p>
+<dl class="attribute">
+<dt id="synctools.TwistState.system">
+<code class="descname">system</code><a class="headerlink" href="#synctools.TwistState.system" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>PllSystem</em></p>
+<p>underlying coupled pll system</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="synctools.TwistState.m">
+<code class="descname">m</code><a class="headerlink" href="#synctools.TwistState.m" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int</em></p>
+<p>twist number</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="synctools.TwistState.omega">
+<code class="descname">omega</code><a class="headerlink" href="#synctools.TwistState.omega" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em></p>
+<p>global (angular) frequency</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="synctools.TwistState.l">
+<code class="descname">l</code><a class="headerlink" href="#synctools.TwistState.l" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>complex</em></p>
+<p>complex linear stability analysis exponent</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="synctools.get_omega_implicit">
+<code class="descclassname">synctools.</code><code class="descname">get_omega_implicit</code><span class="sig-paren">(</span><em>n</em>, <em>w</em>, <em>k</em>, <em>tau</em>, <em>h</em>, <em>m</em><span class="sig-paren">)</span><a class="headerlink" href="#synctools.get_omega_implicit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the global synchronization frequency for a given delay.</p>
+<p>Based in nonlinear implicit equation of global synchronization frequency</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>n</strong> (<em>int</em>) &#8211; number of oscillators</li>
+<li><strong>w</strong> (<em>float</em>) &#8211; intrinsic angular frequency of the oscillators</li>
+<li><strong>k</strong> (<em>float</em>) &#8211; coupling constant</li>
+<li><strong>tau</strong> (<em>float</em>) &#8211; delay</li>
+<li><strong>h</strong> (<em>callable</em>) &#8211; coupling function</li>
+<li><strong>m</strong> (<em>int</em>) &#8211; twist number</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>omega</strong> &#8211;
+list of possible gloabally synchronized states for given parameters. None if there is no possible state</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list/None</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="synctools.get_parametric_omega_curve">
+<code class="descclassname">synctools.</code><code class="descname">get_parametric_omega_curve</code><span class="sig-paren">(</span><em>n</em>, <em>w</em>, <em>k</em>, <em>h</em>, <em>m</em>, <em>s_min</em>, <em>s_max</em>, <em>ds</em><span class="sig-paren">)</span><a class="headerlink" href="#synctools.get_parametric_omega_curve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute a parametric curve of the global synchronization frequency as a function of the delay.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>n</strong> (<em>int</em>) &#8211; number of oscillators</li>
+<li><strong>w</strong> (<em>float</em>) &#8211; intrinsic angular frequency of the oscillators</li>
+<li><strong>k</strong> (<em>float</em>) &#8211; coupling constant</li>
+<li><strong>h</strong> (<em>callable</em>) &#8211; coupling function</li>
+<li><strong>m</strong> (<em>int</em>) &#8211; twist number</li>
+<li><strong>s_min</strong> (<em>float</em>) &#8211; minimum value of the curve parameter</li>
+<li><strong>s_max</strong> (<em>float</em>) &#8211; minimum value of the curve parameter</li>
+<li><strong>ds</strong> (<em>float</em>) &#8211; discritization step of the curve parameter</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><strong>tau</strong> (<em>np.ndarray</em>) &#8211;
+delay</li>
+<li><strong>omega</strong> (<em>np.ndarray</em>) &#8211;
+global angular frequency of the synchronized system</li>
+<li><strong>s</strong> (<em>np.ndarray</em>) &#8211;
+used curve parameter values</li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="synctools.get_sign_changes">
+<code class="descclassname">synctools.</code><code class="descname">get_sign_changes</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="headerlink" href="#synctools.get_sign_changes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an integer array with the indices of the element in x before a
+sign change.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="synctools.get_stability">
+<code class="descclassname">synctools.</code><code class="descname">get_stability</code><span class="sig-paren">(</span><em>n</em>, <em>w</em>, <em>k</em>, <em>h</em>, <em>m</em>, <em>tau</em>, <em>omega</em>, <em>wc</em><span class="sig-paren">)</span><a class="headerlink" href="#synctools.get_stability" title="Permalink to this definition">¶</a></dt>
+<dd><p>Linear stability analysis of globally synchronized state.</p>
+<blockquote>
+<div>The computation is based on finding the roots of the two-dimensional characteristic equation.
+For each eigenvalue of the coupling matrix there is a different characteristic equation. Here, only
+the complex exponent with the largest real value of all characteristic equations is returned. Moreover,
+the characteristic equation associated with the eigenvector (a, a, a, ...) is excluded since it
+corresponds to a global phase shift of all oscillators and does not affect synchronization.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>n</strong> (<em>int</em>) &#8211; number of oscillators</li>
+<li><strong>w</strong> (<em>float</em>) &#8211; intrinsic angular frequency of the oscillators</li>
+<li><strong>k</strong> (<em>float</em>) &#8211; coupling constant</li>
+<li><strong>tau</strong> (<em>float</em>) &#8211; delay</li>
+<li><strong>h</strong> (<em>callable</em>) &#8211; coupling function</li>
+<li><strong>m</strong> (<em>int</em>) &#8211; twist number</li>
+<li><strong>wc</strong> (<em>float</em>) &#8211; angular cut-off frequency of the low-pass filter</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>lambda_nu</strong> &#8211;
+the complex linear stability analysis exponent with the biggest real value</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">complex</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Coupled PLLs"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Coupled PLLs 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Daniel Platz.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.5.
+    </div>
+  </body>
+</html>

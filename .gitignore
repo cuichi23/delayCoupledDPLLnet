@@ -1,5 +1,9 @@
 results
-GlobFreq_LinStab
 evaluation.pyc
 simulation.pyc
 output.pyc
+case_singleout.pyc
+case_bruteforce.pyc
+case_oracle.pyc
+case_noisy.pyc
+synctools.pyc
