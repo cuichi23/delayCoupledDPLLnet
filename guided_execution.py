@@ -140,20 +140,20 @@ def simulateOnlyLinStableCases(para_mat_new):
 			input_sim_unstab = raw_input('\nPlease specify whether also linearly unstable solutions should be simulated, [y]es/[n]o: ')
 			if ( input_sim_unstab == 'y' or input_sim_unstab == 'n' ):
 				if input_sim_unstab == 'y':
-					print('\nUncorrected for negative simulation times:', para_mat_new)
+					# print('\nUncorrected for negative simulation times:\n', para_mat_new)
 					para_mat_new[:,9] = np.abs( para_mat_new[:,9] )				# correct for negative simulation times
-					print('\nCorrected for negative simulation times:', para_mat_new)
+					# print('\nCorrected for negative simulation times:', para_mat_new)
 					return para_mat_new
 					break														# breaks the while loop that catches invalid input
 				elif input_sim_unstab == 'n':
-					print('\nUncorrected for negative simulation times:', para_mat_new)
+					# print('\nUncorrected for negative simulation times:\n', para_mat_new)
 					para_mat_linStab = []
 					for i in range (len(para_mat_new[:,7])):
 						if para_mat_new[i,7] < 0:								# if perturbations decay...
 						 	para_mat_linStab.append(para_mat_new[i,:])
 
 					para_mat_linStab = np.array(para_mat_linStab)
-					print('\nDeleted linearly unstable parameter sets:', para_mat_linStab)
+					# print('\nDeleted linearly unstable parameter sets:\n', para_mat_linStab)
 					return para_mat_linStab
 					break
 			else:
@@ -173,8 +173,11 @@ def chooseCsvSaveOption(param_cases_csv, para_mat, topology, c):
 		exist_K_set.append( temp )
 		if len(temp) == 0:														# if temp is not set/empty,
 			para_mat_new.append(para_mat[i,:])
-	print('existing parameter sets:\n', exist_K_set)
-	print('new parameter sets:\n', para_mat_new)
+	if exist_K_set=[]:
+		print('So far these parameter sets do not exist!')
+	else:
+		print('existing parameter sets:\n', exist_K_set)
+	# print('new parameter sets:\n', para_mat_new)
 	para_mat_tmp = np.array(para_mat_new)
 	para_mat_new = simulateOnlyLinStableCases(para_mat_tmp)     				# this fct. corrects for negative Tsim if user decides to simulate also linearly unstable solutions
 
@@ -218,7 +221,7 @@ def writeCsvFileNewCases(para_mat_new, topology, c):
 			temp = [ str(float(para_mat_new[i,2])), str(float(para_mat_new[i,3])), str(float(para_mat_new[i,4])), str(float(para_mat_new[i,6])),
 						str(float(para_mat_new[i,5])), str(int(round(float(para_mat_new[i,9])))), str(id_line), str(para_mat_new[i,7]),
 						str(int(round(float(para_mat_new[i,9]/20.0)))), str(topology), str(c) ]
-			print(temp)
+			print('\n', temp, '\n')
 			writer.writerow(temp)
 
 	return None
@@ -340,7 +343,7 @@ def singleRealization(params):
 			sf = synctools.SweepFactory(N, F, new_K_values, delay, h, Fc, k, isRadian)
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
-			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation:', para_mat)
+			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation: \n', para_mat)
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
@@ -387,7 +390,7 @@ def singleRealization(params):
 			sf = synctools.SweepFactory(N, F, K, delay, h, new_Fc_values, k, isRadian)
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
-			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation:', para_mat)
+			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation: \n', para_mat)
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
@@ -434,7 +437,7 @@ def singleRealization(params):
 			sf = synctools.SweepFactory(N, F, K, new_delay_values, h, Fc, k, isRadian)
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
-			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation:', para_mat)
+			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation: \n', para_mat)
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
@@ -491,7 +494,7 @@ def noisyStatistics(params):
 			sf = synctools.SweepFactory(N, F, new_K_values, delay, h, Fc, k, isRadian)
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
-			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation:', para_mat)
+			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation: \n', para_mat)
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
@@ -538,7 +541,7 @@ def noisyStatistics(params):
 			sf = synctools.SweepFactory(N, F, K, delay, h, new_Fc_values, k, isRadian)
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
-			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation:', para_mat)
+			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation: \n', para_mat)
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
@@ -585,7 +588,7 @@ def noisyStatistics(params):
 			sf = synctools.SweepFactory(N, F, K, new_delay_values, h, Fc, k, isRadian)
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
-			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation:', para_mat)
+			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation: \n', para_mat)
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
@@ -620,7 +623,7 @@ def bruteForce(params, param_cases_csv):
 			user_sweep_end	 = float(raw_input('\nPlease specify the range in which K should be simulated, end K_e in [Hz] = '))
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz] dK = '))
 			new_K_values	 = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
-			print('new K-values: ', new_K_values)
+			# print('new K-values: ', new_K_values)
 
 			N 		= chooseNumber()											# calls function that asks user for input of number of oscis
 			k		= chooseTwistNumber(N)										# choose twist under investigation
@@ -853,7 +856,7 @@ if __name__ == '__main__':
 	# sim_mode = raw_input...
 	a_true = True
 	while a_true:
-		decision2 = raw_input('\nPlease specify simulation mode: [1] single realization, [2] statistics on noisy realizations, [3] brute-force basin of attraction scan. Choice: ')
+		decision2 = raw_input('\nPlease specify simulation mode: \n\n[1] single realization, \n[2] statistics on noisy realizations, \n[3] brute-force basin of attraction scan. \n\nChoice: ')
 		if decision2 == '1':
 			singleRealization(params)
 			break
