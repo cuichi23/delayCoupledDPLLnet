@@ -75,7 +75,7 @@ def chooseTransDelay():															# ask user-input for delay
 	a_true = True
 	while a_true:
 		# get user input on number of oscis in the network
-		delay = float(raw_input('\nPlease specify as [float] the transmission delay [s]: '))
+		delay = raw_input('\nPlease specify as [float] the transmission delay [s]: ')
 		if float(delay)>0:
 			break
 		else:
@@ -118,7 +118,7 @@ def chooseDiffConst():															# ask user-input for diffusion constant GWN
 		else:
 			print('Please provide [float] input from [0, 10*K]!')
 
-	return c
+	return float(c)
 
 def chooseNsim():																# ask user-input for number of realizations for the noisy statistics
 	b_true = True
@@ -130,7 +130,7 @@ def chooseNsim():																# ask user-input for number of realizations for
 		else:
 			print('Please provide [integer] input from [1, 1E5]!')
 
-	return Nsim
+	return int(Nsim)
 
 def simulateOnlyLinStableCases(para_mat_new):
 	if any(decay_rate > 0 for decay_rate in para_mat_new[:,7]):
@@ -798,15 +798,15 @@ if __name__ == '__main__':
 		# option to reset the configuration
 		decision1 = raw_input('\nWould you like to reset one of the following system parameters: \n{\nenable multiprocessing, \nnumber of availibe cores to use, \nparameter discretization for brute force method, \ntype of coupling fct, \nintrinsic frequencies, \nsample frequency time series, \nstandard deviation intrinsic frequency, \nstandard deviation coupling strength\n} \n\n[y]es/[n]o: ')
 		if decision1 == 'y':
-			multiproc 			= raw_input('Multiprocessing choose True/False [string]: ')
+			multiproc 			= raw_input('Multiprocessing choose [True] / [False] (string): ')
 			if multiproc == 'True':
-				numberCores = raw_input('How many cores are maximally available? [int]: ')
+				numberCores = raw_input('How many cores are maximally available? [integer]: ')
 			else:
 				numberCores = 1
 			paramDiscretization = raw_input('Number of samples points (for brute force basin stability) along each dimension in (0,2pi], provide [int]: ')
 			couplingfct 		= raw_input('Choose coupling function from {sin, cos, triang} [string]: ')
 			F 					= raw_input('Choose mean intrinsic frequency [float]: ')
-			Fsim 				= raw_input('Choose sample frequency for the signal [float]: ')
+			Fsim 				= raw_input('Choose sample frequency for the signal in multiples of the intrinsic frequency [float]: ')
 			domega     			= raw_input('Choose diffusion-constant for (static) distribution of intrinsic frequencies, zero implies identical frequencies [float]: ')
 			diffconstK 			= raw_input('Choose diffusion-constant for (static) distribution of coupling strengths, zero implies identical coupling strength [float]: ')
 			Tsim				= raw_input('Choose simulation time Tsim [float]: ')
@@ -845,9 +845,27 @@ if __name__ == '__main__':
 				config.write(configfile)
 
 			params.read('1params.txt')											# reload the 1params.txt file with the newly set values to set params-container
+			multiproc 			= str(params['DEFAULT']['multiproc'])			# 1 for multiprocessing set to True (brute-force mode 2)
+			paramDiscretization = int(params['DEFAULT']['paramDiscretization'])	# 2 discretization for brute force scan in rotated phase space with phi'_k
+			numberCores 		= int(params['DEFAULT']['numberCores'])			# 3 number of child processes in multiproc mode
+			couplingfct 		= str(params['DEFAULT']['couplingfct'])			# 4 coupling function for FokkerPlanckEq mode 3: {sin, cos, triang}
+			F 					= float(params['DEFAULT']['F'])					# 5 free-running frequency of the PLLs
+			Fsim 				= float(params['DEFAULT']['Fsim'])				# 6 simulate phase model with given sample frequency -- goal: about 100 samples per period
+			domega     			= float(params['DEFAULT']['domega'])			# 7 the diffusion constant [variance=2*diffconst] of the gaussian distribution for the intrinsic frequencies
+			diffconstK 			= float(params['DEFAULT']['diffconstK'])		# 8 the diffusion constant [variance=2*diffconst] of the gaussian distribution for the coupling strength
+			# Tsim				= float(params['DEFAULT']['Tsim'])				# 9 the simulation time for each realization -- load above from csv
 			break
 		elif decision1 == 'n':
 			params.read('1params.txt')											# reload the 1params.txt file with the newly set values to set params-container
+			multiproc 			= str(params['DEFAULT']['multiproc'])			# 1 for multiprocessing set to True (brute-force mode 2)
+			paramDiscretization = int(params['DEFAULT']['paramDiscretization'])	# 2 discretization for brute force scan in rotated phase space with phi'_k
+			numberCores 		= int(params['DEFAULT']['numberCores'])			# 3 number of child processes in multiproc mode
+			couplingfct 		= str(params['DEFAULT']['couplingfct'])			# 4 coupling function for FokkerPlanckEq mode 3: {sin, cos, triang}
+			F 					= float(params['DEFAULT']['F'])					# 5 free-running frequency of the PLLs
+			Fsim 				= float(params['DEFAULT']['Fsim'])				# 6 simulate phase model with given sample frequency -- goal: about 100 samples per period
+			domega     			= float(params['DEFAULT']['domega'])			# 7 the diffusion constant [variance=2*diffconst] of the gaussian distribution for the intrinsic frequencies
+			diffconstK 			= float(params['DEFAULT']['diffconstK'])		# 8 the diffusion constant [variance=2*diffconst] of the gaussian distribution for the coupling strength
+			# Tsim				= float(params['DEFAULT']['Tsim'])				# 9 the simulation time for each realization -- load above from csv
 			break
 		else:
 			print('Please provide either [y]es or [N]o!')

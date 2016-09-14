@@ -1,27 +1,21 @@
 [DEFAULT]
-#1: for multiprocessing set to True
+#1: for multiprocessing set to true
 multiproc = True
 #
-#2: discretization for brute force scan in rotated phase space with phi'_k (for each dimension)
-paramDiscretization = 5
-#
-#3: number of processors that can be used --> with INTEL HT: 2*number of cores of proc.
-numberCores = 8
-#
+#2: discretization for brute force scan in rotated phase space with phi_k_prime (for each dimension)
+paramdiscretization = 100
+#3: number of processors that can be used --> with intel ht: 2*number of cores of proc.
+numbercores = 6
 #4: type of coupling function -- choose from {triang(ular), cos(ine), sin(e)}
 couplingfct = triang
-#
-#5: free-running frequency of the PLLs in Hz
-F = 1.0																			
-#
-#6: sample phases with Fsim multiples of the intrinsic frequency -> goal: about 100 samples per period
-Fsim = 100.0															
-#
+#5: free-running frequency of the plls [hz]
+f = 1
+#6: sample phases with fsim [hz] multiples of the intrinsic frequency -> goal: about 100 samples per period
+fsim = 100
 #7: diffusion constant [variance=2*diffconst] of the gaussian distribution for the intrinsic frequencies
 domega = 0
-#
 #8: diffusion constant [variance=2*diffconst] of the gaussian distribution for the coupling strength
-diffconstK = 0
-#
+diffconstk = 0
 #9: multiples of the period of the uncoupled oscillators to set simulation time -- usually set with argument on startup
-#Tsim = 150  														
+tsim = 125
+
