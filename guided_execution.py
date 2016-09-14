@@ -164,19 +164,19 @@ def simulateOnlyLinStableCases(para_mat_new):
 
 def chooseCsvSaveOption(param_cases_csv, para_mat, topology, c):
 	# this extracts the existing parameter sets from the data csv file
-	# K_set  = param_cases_csv.loc[(param_cases_csv['delay']==delay) & (param_cases_csv['Fc']==Fc)].sort('K')
 	# search all lines in csv files that are equal to the input here in para-mat
-	exist_K_set=[]; para_mat_new=[];
+	exist_set=[]; para_mat_new=[];
 	for i in range (len(para_mat[:,0])):
 		temp = []																# reset temp container for every loop
-		temp = param_cases_csv.loc[(param_cases_csv['delay']==para_mat[i,4]) & (param_cases_csv['Fc']==para_mat[i,3]) & (param_cases_csv['K']==para_mat[i,2])].sort('K')
-		exist_K_set.append( temp )
+		temp = param_cases_csv.loc[(param_cases_csv['delay']==para_mat[i,4]) & (param_cases_csv['Fc']==para_mat[i,3]) & (param_cases_csv['K']==para_mat[i,2])
+									& (param_cases_csv['N']==para_mat[i,0]) & (param_cases_csv['c']==c) & (param_cases_csv['topology']==str(topology))].sort('K')
+		exist_set.append( temp )
 		if len(temp) == 0:														# if temp is not set/empty,
 			para_mat_new.append(para_mat[i,:])
-	if exist_K_set==[]:
+	if exist_set==[]:
 		print('So far these parameter sets do not exist!')
 	else:
-		print('existing parameter sets:\n', exist_K_set)
+		print('existing parameter sets:\n', exist_set)
 	# print('new parameter sets:\n', para_mat_new)
 	para_mat_tmp = np.array(para_mat_new)
 	para_mat_new = simulateOnlyLinStableCases(para_mat_tmp)     				# this fct. corrects for negative Tsim if user decides to simulate also linearly unstable solutions
@@ -220,7 +220,7 @@ def writeCsvFileNewCases(para_mat_new, topology, c):
 			id_line = lastIDcsv+1+i
 			temp = [ str(float(para_mat_new[i,2])), str(float(para_mat_new[i,3])), str(float(para_mat_new[i,4])), str(float(para_mat_new[i,6])),
 						str(float(para_mat_new[i,5])), str(int(round(float(para_mat_new[i,9])))), str(id_line), str(para_mat_new[i,7]),
-						str(int(round(float(para_mat_new[i,9]/20.0)))), str(topology), str(c) ]
+						str(float(para_mat_new[i,9]/20.0)), str(topology), str(c), str(int(para_mat_new[i,0]))]
 			print('\n', temp, '\n')
 			writer.writerow(temp)
 
@@ -777,7 +777,7 @@ if __name__ == '__main__':
 
 	# load parameter param_cases_csv from file, specify delimiter and which line contains the colum description
 	param_cases_csv = pd.read_csv('GlobFreq_LinStab/DPLLParameters.csv', delimiter=",", header=2, dtype={'K': np.float, 'Fc': np.float, 'delay': np.float, 'F_Omeg': np.float,
-	 								'k': np.int, 'Tsim': np.int, 'sim-time-approx': np.float, 'topology': np.str, 'c': np.float})
+	 								'k': np.int, 'Tsim': np.int, 'id': np.int, 'SimSeconds': np.float, 'topology': np.str, 'c': np.float, 'N': np.int})
 	# load the configuration parameters
 	''' DATA CONTAINER NUMBER ONE '''
 	params = configparser.ConfigParser()										# initiate configparser object to load parts of the system parameters
@@ -796,7 +796,9 @@ if __name__ == '__main__':
 	a_true = True
 	while a_true:
 		# option to reset the configuration
-		decision1 = raw_input('\nWould you like to reset one of the following system parameters: \n{\nenable multiprocessing, \nnumber of availibe cores to use, \nparameter discretization for brute force method, \ntype of coupling fct, \nintrinsic frequencies, \nsample frequency time series, \nstandard deviation intrinsic frequency, \nstandard deviation coupling strength\n} \n\n[y]es/[n]o: ')
+		# inputstr = ('\nWould you like to reset one of the following system parameters: \n{\nenable multiprocessing [%s], \nnumber of available cores to use [%d], \nparameter discretization for brute force method [%d], \ntype of coupling fct [%0.2f], \nmean intrinsic frequencies in Hz [%0.2f], \nsample frequency time series in Hz  [%0.2f], \nstandard deviation intrinsic frequency [%0.2f], \nstandard deviation coupling strength [%0.5f]\n} \n\n[y]es/[n]o: '%(str(multiproc), int(numberCores), int(paramDiscretization), str(couplingfct), float(F), float(Fsim), float(domega), float(diffconstK))
+		# print(inputstr)
+		decision1 = raw_input('\nWould you like to reset one of the following system parameters: \n{\nenable multiprocessing, \nnumber of available cores to use, \nparameter discretization for brute force method, \ntype of coupling fct, \nintrinsic frequencies, \nsample frequency time series, \nstandard deviation intrinsic frequency, \nstandard deviation coupling strength\n} \n\n[y]es/[n]o: ')
 		if decision1 == 'y':
 			multiproc 			= raw_input('Multiprocessing choose [True] / [False] (string): ')
 			if multiproc == 'True':

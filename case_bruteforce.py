@@ -106,9 +106,10 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, phiSr=[],
 	# the space about each twist solution is scanned in [phiM-pi, phiM+pi] where phiM are the initial phases of the m-twist under investigation
 	if N==2:
 		scanValues = np.zeros((N,paramDiscretization), dtype=np.float)			# create container for all points in the discretized rotated phase space, +/- pi around each dimension (unit area)
-		for i in range (0, N):													# the different coordinates of the solution, discretize an interval +/- pi around each variable
-			scanValues[i,:] = np.linspace(phiMr[i]-np.pi, phiMr[i]+np.pi, paramDiscretization) # all entries are in rotated, and reduced phase space
-			#print('row', i,'of matrix with all intervals of the rotated phase space:\n', scanValues[i,:], '\n')
+		factor_rot = np.sqrt(N)
+		scanValues[0,:] = np.linspace(phiMr[0]-(np.pi * factor_rot), phiMr[0]+(np.pi * factor_rot), paramDiscretization) # all entries are in rotated, and reduced phase space
+		scanValues[1,:] = np.linspace(phiMr[1]-(np.pi / factor_rot), phiMr[1]+(np.pi / factor_rot), paramDiscretization) # all entries are in rotated, and reduced phase space
+		#print('row', i,'of matrix with all intervals of the rotated phase space:\n', scanValues[i,:], '\n')
 
 		_allPoints = itertools.product(*scanValues)
 		allPoints = list(_allPoints)											# scanValues is a list of lists: create a new list that gives all the possible combinations of items between the lists
@@ -132,7 +133,7 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, phiSr=[],
 	if multiproc:																# multiprocessing option for parameter sweep calulcations
 		if N == 2:
 			Nsim = paramDiscretization**N
-			print('multiprocessing', paramDiscretization**N, 'realizations')
+			print('multiprocessing', Nsim, 'realizations')
 		else:
 			Nsim = paramDiscretization**(N-1)
 			print('multiprocessing', paramDiscretization**(N-1), 'realizations')
