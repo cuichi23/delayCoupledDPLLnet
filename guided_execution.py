@@ -173,7 +173,7 @@ def chooseCsvSaveOption(param_cases_csv, para_mat, topology, c):
 		exist_K_set.append( temp )
 		if len(temp) == 0:														# if temp is not set/empty,
 			para_mat_new.append(para_mat[i,:])
-	if exist_K_set=[]:
+	if exist_K_set==[]:
 		print('So far these parameter sets do not exist!')
 	else:
 		print('existing parameter sets:\n', exist_K_set)
@@ -213,7 +213,7 @@ def writeCsvFileNewCases(para_mat_new, topology, c):
 	# find last line in csv-file, ask whether new cases should be added, add if reqiured in the proper format (include id, etc....)
 	lastIDcsv = len(param_cases_csv.sort('id'))+3								# have to add 3 in order to account for the header of the csv file
 	# print('In write function! Here para_mat_new[0,7]: ', para_mat_new[0,7])
-	with open('GlobFreq_LinStab/DPLLParametersTest.csv', 'a') as f:				# 'a' means append to file! other modes: 'w' write only and replace existing file, 'r' readonly...
+	with open('GlobFreq_LinStab/DPLLParameters.csv', 'a') as f:				# 'a' means append to file! other modes: 'w' write only and replace existing file, 'r' readonly...
 		writer = csv.writer(f, delimiter=',') #, header=2, dtype={'K': np.float, 'Fc': np.float, 'delay': np.float, 'F_Omeg': np.float, 'k': np.int, 'Tsim': np.int, 'sim-time-approx': np.float, 'topology': np.str, 'c': np.float})
 		# write row K, Fc, delay, F_Omeg, k, Tsim, sim-time-approx, topology, c
 		for i in range (len(para_mat_new[:,0])):
@@ -841,7 +841,7 @@ if __name__ == '__main__':
 			config.set('DEFAULT', 'Tsim', Tsim)
 			config.set('DEFAULT', '#')
 
-			with open('1paramsTEST.txt', 'w') as configfile:					# rewrite the 1params.txt file with the newly set values
+			with open('1params.txt', 'w') as configfile:						# rewrite the 1params.txt file with the newly set values
 				config.write(configfile)
 
 			params.read('1params.txt')											# reload the 1params.txt file with the newly set values to set params-container
