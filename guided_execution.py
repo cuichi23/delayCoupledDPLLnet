@@ -347,7 +347,7 @@ def singleRealization(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
-			if len(para_mat[:,0]) > 0:
+			if not para_mat == []:
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:
@@ -394,7 +394,7 @@ def singleRealization(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
-			if len(para_mat[:,0]) > 0:
+			if not para_mat == []:
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:
@@ -441,7 +441,7 @@ def singleRealization(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
-			if len(para_mat[:,0]) > 0:
+			if not para_mat == []:
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:
@@ -498,7 +498,7 @@ def noisyStatistics(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
-			if len(para_mat[:,0]) > 0:
+			if not para_mat == []:
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:
@@ -545,7 +545,7 @@ def noisyStatistics(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
-			if len(para_mat[:,0]) > 0:
+			if not para_mat == []:
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:
@@ -592,7 +592,7 @@ def noisyStatistics(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
-			if len(para_mat[:,0]) > 0:
+			if not para_mat == []:
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:
@@ -651,7 +651,7 @@ def bruteForce(params, param_cases_csv):
 
 			para_mat = chooseCsvSaveOption(param_cases_csv, para_mat_temp, topology, c)
 
-			if len(para_mat[:,0]) > 0:
+			if not para_mat == []:
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:
@@ -700,7 +700,7 @@ def bruteForce(params, param_cases_csv):
 
 			para_mat = chooseCsvSaveOption(param_cases_csv, para_mat_temp, topology, c)
 
-			if len(para_mat[:,0]) > 0:
+			if not para_mat == []:
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:
@@ -749,7 +749,7 @@ def bruteForce(params, param_cases_csv):
 
 			para_mat = chooseCsvSaveOption(param_cases_csv, para_mat_temp, topology, c)
 
-			if len(para_mat[:,0]) > 0:
+			if not para_mat == []:
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:

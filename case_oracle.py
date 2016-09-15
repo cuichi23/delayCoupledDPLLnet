@@ -108,10 +108,9 @@ if __name__ == '__main__':
 	Nsim 		= int(sys.argv[10])												# number of realizations for parameterset -- should be one here
 	phiSr 		= np.asarray([float(phi) for phi in sys.argv[11:(11+N)]])		# this input allows to simulate specific points in !rotated phase space plane
 
-	Tsim 				= Tsim*(1.0/F)  										# simulation time in multiples of the period of the uncoupled oscillators
-	Nsteps 				= int(round(Tsim*Fsim))									# calculate number of iterations -- add output?
+	Tsim 		= Tsim*(1.0/F)  												# simulation time in multiples of the period of the uncoupled oscillators
+	Nsteps 		= int(round(Tsim*Fsim))											# calculate number of iterations -- add output?
 	Nsim=1;
-	# c=0;
 
 	# choose the value of phi'_0, i.e., where the plane, rectangular to the axis phi'_0 in the rotated phase space, is placed; this direction corresponds to the case where all phi_k
 	# in the original phase space are equal phi_0==phi_1==...==phi_N-1 or (all) have constant phase differences; if unequal from zero, that causes a global phase shift in the history
@@ -119,7 +118,6 @@ if __name__ == '__main__':
 	# we rotated the original phase space such that along the (new) phi'_0 axis all phase differences remain equal and keep the associated phase constant,
 	# considering only the perpendicular plane spanned by phi'_1, phi'_2, ..., phi'_N; if non-zero however, it introduces a global phase shift into the history, implying a different history
 	phiSr[0] = initPhiPrime0
-	Nsteps = int(round(Tsim*Fsim)) 											# calculate number of iterations -- add output?
 	# if looking for m-twists, this variable holds the phase difference between neighboring oscillators in a stable m-twist state
 	twistdelta = ( 2.0 * np.pi * k / (1.0*N) )
 	if k == 0:
