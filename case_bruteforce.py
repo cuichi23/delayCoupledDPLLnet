@@ -106,10 +106,20 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, phiSr=[],
 	# the space about each twist solution is scanned in [phiM-pi, phiM+pi] where phiM are the initial phases of the m-twist under investigation
 	if N==2:
 		scanValues = np.zeros((N,paramDiscretization), dtype=np.float)			# create container for all points in the discretized rotated phase space, +/- pi around each dimension (unit area)
-		factor_rot = np.sqrt(N)
-		scanValues[0,:] = np.linspace(phiMr[0]-(np.pi * factor_rot), phiMr[0]+(np.pi * factor_rot), paramDiscretization) # all entries are in rotated, and reduced phase space
-		scanValues[1,:] = np.linspace(phiMr[1]-(np.pi / factor_rot), phiMr[1]+(np.pi / factor_rot), paramDiscretization) # all entries are in rotated, and reduced phase space
+		scanValues[0,:] = np.linspace(phiMr[0]-(np.pi), phiMr[0]+(np.pi), paramDiscretization) # all entries are in rotated, and reduced phase space
+		scanValues[1,:] = np.linspace(phiMr[1]-(np.pi), phiMr[1]+(np.pi), paramDiscretization) # all entries are in rotated, and reduced phase space
 		#print('row', i,'of matrix with all intervals of the rotated phase space:\n', scanValues[i,:], '\n')
+
+		max_scanValuesRotated_1 = eva.rotate_phases([0., phiMr[1]+np.pi],     isInverse=False) # get the largest length in the direction of the first dimension
+		min_scanValuesRotated_1 = eva.rotate_phases([0., phiMr[1]-np.pi],     isInverse=False)
+		max_scanValuesRotated_0 = eva.rotate_phases([0., phiMr[0]+2.0*np.pi], isInverse=False) # get the largest length in the direction of the 2nd dimension
+		min_scanValuesRotated_0 = eva.rotate_phases([0., 0.],                 isInverse=False)
+		delta1 = max_scanValuesRotated_1[0,1] - min_scanValuesRotated_1[0,1]; delta0 = max_scanValuesRotated_0[0,1] - min_scanValuesRotated_0[0,1];
+
+		if ( delta0 > 2.0*np.pi or delta0 < 1.9*np.pi or delta1 > 2.0*np.pi or delta1 < 1.9*np.pi):	 # if the borders of the reduced manifold in rotated phase space exceed the 2pi^N cube, adjust scanValues
+			scanValues = np.zeros((N,paramDiscretization), dtype=np.float)		# create container for all points in the discretized rotated phase space, +/- pi around each dimension (unit area)
+			scanValues[0,:] = np.linspace(phiMr[0], phiMr[0]+delta0, paramDiscretization) # all entries are in rotated, and reduced phase space
+			scanValues[1,:] = np.linspace(phiMr[1]-delta1*0.5, phiMr[1]+delta1*0.5, paramDiscretization) # all entries are in rotated, and reduced phase space
 
 		_allPoints = itertools.product(*scanValues)
 		allPoints = list(_allPoints)											# scanValues is a list of lists: create a new list that gives all the possible combinations of items between the lists
@@ -120,6 +130,15 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, phiSr=[],
 		for i in range (0, N-1):												# the different coordinates of the solution, discretize an interval plus/minus pi around each variable
 			scanValues[i,:] = np.linspace(phiMr[i+1]-np.pi, phiMr[i+1]+np.pi, paramDiscretization) # all entries are in rotated, and reduced phase space
 			#print('row', i,'of matrix with all intervals of the rotated phase space:\n', scanValues[i,:], '\n')
+
+		# max_scanValuesRotated = []; min_scanValuesRotated = [];
+		# for i in range (0, N-1):												# the different coordinates of the solution, discretize an interval plus/minus pi around each variable
+		# 	print('max_scanValuesRotated: ', max_scanValuesRotated)
+		# 	max_scanValuesRotated = eva.rotate_phases(scanValues[i,-1], isInverse=True) # get the largest length in the direction of each dimension
+		# 	min_scanValuesRotated = eva.rotate_phases(scanValues[i, 0], isInverse=True) # get the largest length in the direction of each dimension
+		# 	delta[i] = max_scanValuesRotated[i] - min_scanValuesRotated[i]
+		# 	if ( delta[i] > 2.0*np.pi or delta[i] < 1.9*np.pi ):
+		# 		scanValues[i,:] = np.linspace(phiMr[i+1]-delta[i]*0.5, phiMr[i+1]+delta[i]*0.5, paramDiscretization) # all entries are in rotated, and reduced phase space
 
 		_allPoints = itertools.product(*scanValues)
 		allPoints = list(_allPoints)											# scanValues is a list of lists: create a new list that gives all the possible combinations of items between the lists
@@ -201,7 +220,7 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, phiSr=[],
 	np.savez('results/allInitPerturbPoints_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), allPoints=allPoints)
 
 	''' EXTRA EVALUATION '''
-	out.doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints, initPhiPrime0, paramDiscretization,delays_0, show_plot)
+	out.doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints, initPhiPrime0, paramDiscretization, delays_0, show_plot)
 
 	return None
 
@@ -253,4 +272,4 @@ if __name__ == '__main__':
 	c 			= float(sys.argv[9])											# provide diffusion constant for GWN process, bzw. sigma^2 = 2*c  --> c = 0.5 variance
 	Nsim 		= int(sys.argv[10])												# number of realizations for parameterset -- should be one here
 
-	bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, [], True)
+	bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, [], False)

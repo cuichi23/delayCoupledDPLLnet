@@ -162,7 +162,7 @@ def simulateOnlyLinStableCases(para_mat_new):
 		print('\nAll new paramter sets are linearly stable!')
 		return para_mat_new
 
-def chooseCsvSaveOption(param_cases_csv, para_mat, topology, c):
+def chooseCsvSaveOption(param_cases_csv, para_mat, topology, couplingfct, c):
 	# this extracts the existing parameter sets from the data csv file
 	# search all lines in csv files that are equal to the input here in para-mat
 	exist_set=[]; para_mat_new=[];
@@ -192,7 +192,7 @@ def chooseCsvSaveOption(param_cases_csv, para_mat, topology, c):
 				# get user input on whether new parameter sets should be simulated, or JUST added to an csv file
 				decision1 = raw_input('\nSimulate new parameter sets? [y]es/[n]o Otherwise they will just be saved to csv-database! ')
 				print('New parameter sets will be saved to csv-database! {K, Fc, delay, Fomeg, m ,Tsim, id, ReLambda, EstSimseconds, topology, c}')
-				writeCsvFileNewCases(para_mat_new, topology, c)
+				writeCsvFileNewCases(para_mat_new, topology, couplingfct, c)
 				if decision1 == 'y':
 					return para_mat_new											# returned for simulation
 				elif decision1 == 'n':
@@ -209,7 +209,7 @@ def chooseCsvSaveOption(param_cases_csv, para_mat, topology, c):
 			print('Please provide [y]es/[n]o input!')
 
 
-def writeCsvFileNewCases(para_mat_new, topology, c):
+def writeCsvFileNewCases(para_mat_new, topology, couplingfct, c):
 	# find last line in csv-file, ask whether new cases should be added, add if reqiured in the proper format (include id, etc....)
 	lastIDcsv = len(param_cases_csv.sort('id'))+3								# have to add 3 in order to account for the header of the csv file
 	# print('In write function! Here para_mat_new[0,7]: ', para_mat_new[0,7])
@@ -220,7 +220,7 @@ def writeCsvFileNewCases(para_mat_new, topology, c):
 			id_line = lastIDcsv+1+i
 			temp = [ str(float(para_mat_new[i,2])), str(float(para_mat_new[i,3])), str(float(para_mat_new[i,4])), str(float(para_mat_new[i,6])),
 						str(float(para_mat_new[i,5])), str(int(round(float(para_mat_new[i,9])))), str(id_line), str(para_mat_new[i,7]),
-						str(float(para_mat_new[i,9]/20.0)), str(topology), str(c), str(int(para_mat_new[i,0]))]
+						str(float(para_mat_new[i,9]/20.0)), str(topology), str(c), str(int(para_mat_new[i,0])), str(couplingfct)]
 			print('\n', temp, '\n')
 			writer.writerow(temp)
 
@@ -649,7 +649,7 @@ def bruteForce(params, param_cases_csv):
 			para_mat_temp = fsl.get_parameter_matrix(isRadians=False)			# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {N, f, K, Fc, delay, m, F_Omeg, ReLamb, ImLamb and Tsim} approximation:\n', para_mat_temp)
 
-			para_mat = chooseCsvSaveOption(param_cases_csv, para_mat_temp, topology, c)
+			para_mat = chooseCsvSaveOption(param_cases_csv, para_mat_temp, topology, str(params['DEFAULT']['couplingfct']), c)
 
 			if not para_mat == []:
 				if len(para_mat[:,0]) > 1:
@@ -698,7 +698,7 @@ def bruteForce(params, param_cases_csv):
 			para_mat_temp = fsl.get_parameter_matrix(isRadians=False)			# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {N, f, K, Fc, delay, m, F_Omeg, ReLamb, ImLamb and Tsim} approximation:\n', para_mat_temp)
 
-			para_mat = chooseCsvSaveOption(param_cases_csv, para_mat_temp, topology, c)
+			para_mat = chooseCsvSaveOption(param_cases_csv, para_mat_temp, topology, str(params['DEFAULT']['couplingfct']), c)
 
 			if not para_mat == []:
 				if len(para_mat[:,0]) > 1:
@@ -747,7 +747,7 @@ def bruteForce(params, param_cases_csv):
 			para_mat_temp = fsl.get_parameter_matrix(isRadians=False)			# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {N, f, K, Fc, delay, m, F_Omeg, ReLamb, ImLamb and Tsim} approximation:\n', para_mat_temp)
 
-			para_mat = chooseCsvSaveOption(param_cases_csv, para_mat_temp, topology, c)
+			para_mat = chooseCsvSaveOption(param_cases_csv, para_mat_temp, topology, str(params['DEFAULT']['couplingfct']), c)
 
 			if not para_mat == []:
 				if len(para_mat[:,0]) > 1:

@@ -5,6 +5,8 @@ from __future__ import print_function
 
 import evaluation as eva
 import numpy as np
+import matplotlib
+matplotlib.use('Agg') #'%pylab inline'
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes
@@ -153,7 +155,12 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 		# print('alltwistP rotated (alltwistPR):\n', alltwistPR, '\n')
 
 	''' PLOTS '''
-	plt.figure(1)																#
+
+	# "export DISPLAY=:99.0"
+	# "sh -e /etc/init.d/xvfb start"
+	# sleep 3 # give xvfb some time to start
+
+	plt.figure(1)																# plot the mean of the order parameter over a period 2T
 	plt.clf()
 	plt.scatter(allPoints[:,0], allPoints[:,1], c=results[:,0], alpha=0.5, edgecolor='')
 	plt.title(r'mean $R(t,m=%d )$, constant dim: $\phi_0^{\prime}=%.2f$' %(k ,initPhiPrime0) )
@@ -195,7 +202,7 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 		plt.xlim([1.05*allPoints[:,0].min(), 1.05*allPoints[:,0].max()])
 		plt.ylim([1.05*allPoints[:,1].min(), 1.05*allPoints[:,1].max()])
 	plt.savefig('results/imsh_PhSpac_meanR_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day))
-	plt.savefig('results/imsh_PhSpac_meanR_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), dpi=1000)
+	plt.savefig('results/imsh_PhSpac_meanR_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), dpi=300)
 
 	plt.figure(4)
 	plt.clf()
@@ -212,7 +219,7 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 		plt.xlim([1.05*allPoints[:,0].min(), 1.05*allPoints[:,0].max()])
 		plt.ylim([1.05*allPoints[:,1].min(), 1.05*allPoints[:,1].max()])
 	plt.savefig('results/imsh_PhSpac_lastR_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day))
-	plt.savefig('results/imsh_PhSpac_lastR_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), dpi=1000)
+	plt.savefig('results/imsh_PhSpac_lastR_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), dpi=300)
 
 	plt.draw()
 	if show_plot:
