@@ -8,7 +8,7 @@ from scipy.signal import sawtooth
 
 ''' CLASSES
 
-authors: Alexandros Pollakis, Lucas Wetzel [emails]
+authors: Alexandros Pollakis, Lucas Wetzel [emails: lwetzel@pks.mpg.de]
 '''
 
 # PLL
@@ -108,7 +108,7 @@ class VoltageControlledOscillator:
 		return self.phi, self.d_phi
 
 	def delta_perturbation(self, phi, phiS, x_ctrl):							# sets a delta-like perturbation 0-dt, the last time-step of the history
-		self.d_phi = phiS + ( self.omega + self.K * x_ctrl ) * self.dt
+		self.d_phi = phiS + ( self.omega + self.K * x_ctrl ) * self.dt			# ADDITIVE DELTA PERTURBATION!
 		self.phi = self.phi + self.d_phi
 		return self.phi, self.d_phi
 
