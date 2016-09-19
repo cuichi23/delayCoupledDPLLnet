@@ -13,6 +13,8 @@ from PIL import ImageDraw
 import configparser
 from configparser import ConfigParser
 
+import matplotlib
+matplotlib.use('Agg') #'%pylab inline'
 import matplotlib.pyplot as plt
 import evaluation as eva
 
@@ -99,7 +101,7 @@ def chooseDeltaPert(N):															# ask user-input for delta-perturbation
 	b_true = True
 	while b_true:
 		# get user input on delta-perturbation type
-		choice_history = raw_input('\nPlease specify type delta-perturbation from {[1] manual, [2] all zero, [3] 1 of N perturbed, or [4] all perturbed according to iid distribution around zero}: ')
+		choice_history = raw_input('\nPlease specify type delta-perturbation from {[1] manual, [2] all zero, [3] 1 of N perturbed, or [4] all perturbed according to a distribution}: ')
 		if ( type(choice_history) == str and int(choice_history) > 0):
 			pert = setDeltaPertubation(N, choice_history)				# sets the delta perturbation, ATTENTION: should here be given in rotated phase space
 			break
@@ -131,6 +133,67 @@ def chooseNsim():																# ask user-input for number of realizations for
 			print('Please provide [integer] input from [1, 1E5]!')
 
 	return int(Nsim)
+
+def chooseDeltaPertDistAndBounds(N, isRotatedPhaseSpace):
+	b_true = True
+	while b_true:
+		# get user input on type of distributed perturbations
+		distrib  = raw_input('\nPlease specify whether perturbations are uniformly [iid], [normal] or [gamma]-distributed: ')
+		if distrib == 'iid':
+			c_true = True
+			while c_true:
+				# get user input on interval of iid dist. perturbations
+				min_pert = raw_input('\nPlease provide LOWER bound of interval from which iid dist. perturbations are drawn as [float] from interval [-pi, pi): ')
+				max_pert = raw_input('Please provide UPPER bound of interval from which iid dist. perturbations are drawn as [float] from interval [min_pert, pi): ')
+				if ( float(min_pert) <= float(max_pert) and float(max_pert) < np.pi and float(min_pert) >= -np.pi ):
+					print('Draw pseudo random numbers, iid-distributed for the the delta-perturbations at t=-dt in from the interval: [%0.3f, %0.3f]' %(float(min_pert), float(max_pert)) )
+					iid_delta_pert = np.random.uniform(float(min_pert), float(max_pert), size=N)
+					perturbation_vec = iid_delta_pert
+					if isRotatedPhaseSpace == False:
+						perturbation_vec = eva.rotate_phases(perturbation_vec, isInverse=True)	# transform perturbations into rotated phase space of phases, as required by case_noisy, case_singleout
+					print('iid-dist. perturbation vector: ', perturbation_vec)
+					break
+				else:
+					print('Please provide inputs as [floats] from the interval [-pi, pi)!')
+			break
+		elif distrib == 'normal':
+			c_true = True
+			while c_true:
+				# get user input on shape and scale of the gamma-dist. perturbations
+				meanvaluePert = raw_input('\nPlease provide the mean-value of the gaussian distribution as [float] from (-infty, infty): ')
+				diffconstPert = raw_input('Please provide the standard-deviation of the gaussian distribution as [float] from (0, infty): ')
+				if ( float(diffconstPert) > 0 ):
+					print('Draw pseudo random numbers, normal-distributed for the the delta-perturbations at t=-dt with mean and diffusion constant: [%0.2f, %0.4g]' %(float(meanvaluePert), float(diffconstPert)) )
+					normal_delta_pert = np.random.normal(float(meanvaluePert), float(diffconstPert), size=N)
+					perturbation_vec = normal_delta_pert
+					if isRotatedPhaseSpace == False:
+						perturbation_vec = eva.rotate_phases(perturbation_vec, isInverse=True)	# transform perturbations into rotated phase space of phases, as required by case_noisy, case_singleout
+					print('normal-dist. perturbation vector: ', perturbation_vec)
+					break
+				else:
+					print('Please provide inputs as [floats] with a standard-deviation larger than zero!')
+			break
+		elif distrib == 'gamma':
+			c_true = True
+			while c_true:
+				# get user input on shape and scale of the gamma-dist. perturbations
+				shape = raw_input('\nPlease provide the SHAPE parameter of the gamma-dist. as [integer] in [1, infty): ')
+				scale = raw_input('Please provide the SCALE parameter of the gamma-dist. as [float] in (0, infty): ')
+				if ( int(shape) >= 1 and float(scale) > 0 ):
+					print('Draw pseudo random numbers, gamma-distributed for the the delta-perturbations at t=-dt with shape and scale parameter: [%d, %0.4g]' %(int(shape), float(scale)) )
+					gamma_delta_pert = np.random.gamma(int(shape), float(scale), size=N)
+					perturbation_vec = gamma_delta_pert
+					if isRotatedPhaseSpace == False:
+						perturbation_vec = eva.rotate_phases(perturbation_vec, isInverse=True)	# transform perturbations into rotated phase space of phases, as required by case_noisy, case_singleout
+					print('gamma-dist. perturbation vector: ', perturbation_vec)
+					break
+				else:
+					print('Please provide inputs as follows, shape-parameter: [integer] and scale-parameter: [float]!')
+			break
+		else:
+			print('Please provide as input-string either [iid], [normal] or [gamma] as the distribution from which the delta-perturbations at t = -dt are drawn!')
+
+	return perturbation_vec
 
 def simulateOnlyLinStableCases(para_mat_new):
 	if any(decay_rate > 0 for decay_rate in para_mat_new[:,7]):
@@ -247,7 +310,7 @@ def setDeltaPertubation(N, case):
 	a_true = True
 	while a_true:
 		# get user input on whether to input perturbation in rotated or original phase space
-		rot_vs_orig = raw_input('\nPlease specify whether perturbation is provided in rotated [r] or original [o] phase space: ')
+		rot_vs_orig = raw_input('\nPlease specify whether perturbation is provided in original [o] or rotated [r] phase space: ')
 		if rot_vs_orig == 'r':													# perturbation provided in rotated phase space
 
 			if case == '1':														# case in which the user provides all pertubations manually
@@ -258,7 +321,7 @@ def setDeltaPertubation(N, case):
 				phiS = np.zeros(N)
 				perturbation_vec = phiS											# transform perturbations into rotated phase space of phases, as required by case_noisy, case_singleout
 				break
-			elif case == '3':													# case in which only one the the oscillators is perturbed
+			elif case == '3':													# case in which only one of the oscillators is perturbed
 				phiS = np.zeros(N);
 				b_true = True
 				while b_true:
@@ -270,10 +333,11 @@ def setDeltaPertubation(N, case):
 						break
 					else:
 						print('Please provide id as an [integer] in [1, %d] and the perturbation as a [float] in (0,2pi]!' %(N-1) )
-				perturbation_vec = phiS											# no transformation necessary, since the modules expect to get the values in rotated phae space
+				perturbation_vec = phiS											# no transformation necessary, since the modules expect to get the values in rotated phase space
 				break
-			elif case == '4':													# case in which all the oscillators are perturbed randomly from iid dist. in [min_pert, max_pert]
-				# perturbation_vec =
+			elif case == '4':													# case in which all the oscillators are perturbed randomly from either iid dist. in
+																				# [min_pert, max_pert] or a gamma-distribution with shape and scale parameter
+				perturbation_vec = chooseDeltaPertDistAndBounds(N, True)
 				break
 
 		elif rot_vs_orig == 'o':												# perturbation provided in original phase space
@@ -301,13 +365,13 @@ def setDeltaPertubation(N, case):
 						print('Please provide id as an [integer] in [1, %d] and the perturbation as a [float] in (0,2pi]!' %(N-1) )
 				perturbation_vec = eva.rotate_phases(phiS, isInverse=True)		# transform perturbations into rotated phase space of phases, as required by case_noisy, case_singleout
 				break
-			elif case == '4':													# case in which all the oscillators are perturbed randomly from iid dist. in [min_pert, max_pert]
-
-				perturbation_vec = eva.rotate_phases(phiS, isInverse=True)		# transform perturbations into rotated phase space of phases, as required by case_noisy, case_singleout
+			elif case == '4':													# case in which all the oscillators are perturbed randomly from either iid dist. in
+																				# [min_pert, max_pert] or a gamma-distribution with shape and scale parameter
+				perturbation_vec = chooseDeltaPertDistAndBounds(N, False)		# call with 'False' flag in order to get perturbations returned in rotated phase space as needed
 				break
 
 		else:
-			print('Please provide one of these input-strings: [r] or [o] (small O)!')
+			print('Please provide one of these input-strings: [o]riginal (small letter \"O\") or [r]otated!')
 
 	return perturbation_vec
 

@@ -36,7 +36,7 @@ def rotate_phases(phi0, isInverse=False):
 	phi  :  np.array
 			array of phases
 	isInverse  :  bool
-				  if True rotates back the rotated phase space back to the physical phase space
+				  if True: rotates back the rotated phase space back to the physical phase space
 				  (implies that isInverse=True gives you the coordinates in the rotated system)
 
 	Returns

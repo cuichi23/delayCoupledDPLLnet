@@ -75,8 +75,8 @@ def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, phiSr=[], show
 	initPhiPrime0 = 0															# here, this is just set to be handed over to the next modules
 	if len(phiSr)==N:
 		print('Parameters set, perturbations provided manually in rotated phase space of phases.')
-		phiSr[0] = initPhiPrime0
-		phiS 	 = eva.rotate_phases(phiSr, isInverse=False)					# rotate back into physical phase space
+		# phiSr[0] = initPhiPrime0												# should not be set to zero in this case, since we do not intend to exclude this perturbation
+		phiS 	   = eva.rotate_phases(phiSr, isInverse=False)					# rotate back into physical phase space
 		phiSValues = []
 		for i in range (Nsim):
 			phiSValues.append(phiS)												# create vector that will contain the initial perturbation (in the history) for each realizations

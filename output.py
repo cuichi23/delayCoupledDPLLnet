@@ -44,6 +44,7 @@ annotationfont = {
 ''' EVALUATION SINGLE REALIZATION '''
 def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, coupFct, Tsim, Fsim=None, show_plot=True):
 
+	print('\n\nUncomment \"matplotlib.use(\'Agg\')\" in ouput.py to enable plotting figures to the desktop, DISABLE for queue-jobs!')
 	phi = phi[:,:,:]; orderparam = orderparam[0,:]								# there is only one realization of interest -reduces dimensionof phi array
 	afterTransients = int( round( 0.5*Tsim / dt ) )
 	phiSpect = phi[:,-afterTransients:,:]
@@ -156,6 +157,7 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 
 	''' PLOTS '''
 
+	print('\n\nUncomment \"matplotlib.use(\'Agg\')\" in ouput.py to enable plotting figures to the desktop, DISABLE for queue-jobs!')
 	# "export DISPLAY=:99.0"
 	# "sh -e /etc/init.d/xvfb start"
 	# sleep 3 # give xvfb some time to start
@@ -251,12 +253,12 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, domega, twistdelta, results, 
 	dpi_value  = 300
 	histo_bins = 75
 	t = np.arange(phi.shape[1])													# plot the phases of the oscillators over time, create "time vector"
-
-	print('plot data:\n')
+	print('\n\nplot data:')
+	print('Uncomment \"matplotlib.use(\'Agg\')\" in ouput.py to enable plotting figures to the desktop, DISABLE for queue-jobs!\n')
 	''' HISTOGRAMS PHASES AND FREQUENCIES '''
 
 	if np.std(delays_0.flatten()) > 1E-15:
-		plt.figure('histo: static distributed transmission delays')				 # plot the distribution of instantaneous frequencies of the history
+		plt.figure('histo: static distributed transmission delays')				# plot the distribution of instantaneous frequencies of the history
 		plt.clf()
 		plt.hist(delays_0.flatten(),
 						bins=np.linspace(np.mean(delays_0.flatten())-4.0*np.std(delays_0.flatten()), np.mean(delays_0.flatten())+4.0*np.std(delays_0.flatten()), num=histo_bins),
