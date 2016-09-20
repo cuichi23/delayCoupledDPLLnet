@@ -11,7 +11,6 @@ import output as out
 import evaluation as eva
 import numpy as np
 import multiprocessing as mp
-import matplotlib.pyplot as plt
 from multiprocessing import Pool, freeze_support
 import itertools
 from itertools import permutations as permu

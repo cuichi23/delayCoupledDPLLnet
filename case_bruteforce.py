@@ -110,16 +110,16 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, phiSr=[],
 		scanValues[1,:] = np.linspace(phiMr[1]-(np.pi), phiMr[1]+(np.pi), paramDiscretization) # all entries are in rotated, and reduced phase space
 		#print('row', i,'of matrix with all intervals of the rotated phase space:\n', scanValues[i,:], '\n')
 
-		# max_scanValuesRotated_1 = eva.rotate_phases([0., phiMr[1]+np.pi],     isInverse=False) # get the largest length in the direction of the first dimension
-		# min_scanValuesRotated_1 = eva.rotate_phases([0., phiMr[1]-np.pi],     isInverse=False)
-		# max_scanValuesRotated_0 = eva.rotate_phases([0., phiMr[0]+2.0*np.pi], isInverse=False) # get the largest length in the direction of the 2nd dimension
-		# min_scanValuesRotated_0 = eva.rotate_phases([0., 0.],                 isInverse=False)
-		# delta1 = max_scanValuesRotated_1[0,1] - min_scanValuesRotated_1[0,1]; delta0 = max_scanValuesRotated_0[0,1] - min_scanValuesRotated_0[0,1];
-		#
-		# if ( delta0 > 2.0*np.pi or delta0 < 1.9*np.pi or delta1 > 2.0*np.pi or delta1 < 1.9*np.pi):	 # if the borders of the reduced manifold in rotated phase space exceed the 2pi^N cube, adjust scanValues
-		# 	scanValues = np.zeros((N,paramDiscretization), dtype=np.float)		# create container for all points in the discretized rotated phase space, +/- pi around each dimension (unit area)
-		# 	scanValues[0,:] = np.linspace(phiMr[0], phiMr[0]+delta0, paramDiscretization) # all entries are in rotated, and reduced phase space
-		# 	scanValues[1,:] = np.linspace(phiMr[1]-delta1*0.5, phiMr[1]+delta1*0.5, paramDiscretization) # all entries are in rotated, and reduced phase space
+		max_scanValuesRotated_1 = eva.rotate_phases([0., phiMr[1]+np.pi],     isInverse=False) # get the largest length in the direction of the first dimension
+		min_scanValuesRotated_1 = eva.rotate_phases([0., phiMr[1]-np.pi],     isInverse=False)
+		max_scanValuesRotated_0 = eva.rotate_phases([0., phiMr[0]+2.0*np.pi], isInverse=False) # get the largest length in the direction of the 2nd dimension
+		min_scanValuesRotated_0 = eva.rotate_phases([0., 0.],                 isInverse=False)
+		delta1 = max_scanValuesRotated_1[0,1] - min_scanValuesRotated_1[0,1]; delta0 = max_scanValuesRotated_0[0,1] - min_scanValuesRotated_0[0,1];
+
+		if ( delta0 > 2.0*np.pi or delta0 < 1.9*np.pi or delta1 > 2.0*np.pi or delta1 < 1.9*np.pi):	 # if the borders of the reduced manifold in rotated phase space exceed the 2pi^N cube, adjust scanValues
+			scanValues = np.zeros((N,paramDiscretization), dtype=np.float)		# create container for all points in the discretized rotated phase space, +/- pi around each dimension (unit area)
+			scanValues[0,:] = np.linspace(phiMr[0], phiMr[0]+delta0, paramDiscretization) # all entries are in rotated, and reduced phase space
+			scanValues[1,:] = np.linspace(phiMr[1]-delta1*0.5, phiMr[1]+delta1*0.5, paramDiscretization) # all entries are in rotated, and reduced phase space
 
 		_allPoints = itertools.product(*scanValues)
 		allPoints = list(_allPoints)											# scanValues is a list of lists: create a new list that gives all the possible combinations of items between the lists
@@ -172,9 +172,12 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, phiSr=[],
 			K_0.append( pool_data[0][i]['coupling_strength'] )
 			# delays_0.append( pool_data[0][i]['transdelays'] )
 
-		phi=np.array(phi); omega_0=np.array(omega_0); K_0=np.array(K_0);
+		print( 'size phi, omega_0, K_0, results:', sys.getsizeof(np.array(phi)), '\t', sys.getsizeof(np.array(omega_0)), '\t', sys.getsizeof(np.array(K_0)), '\t', sys.getsizeof(np.array(results)) )
+		phi=np.array(phi)
+		omega_0=np.array(omega_0)
+		K_0=np.array(K_0)
 		# delays_0=np.array(delays_0);
-		results=np.array(results);
+		results=np.array(results)
 		#print( list( pool.map(multihelper_star, itertools.izip( 				# this makes a map of all parameter combinations that have to be simulated, itertools.repeat() names the constants
 		#					itertools.product(*scanValues), itertools.repeat(initPhiPrime0), itertools.repeat(topology), itertools.repeat(F), itertools.repeat(Nsteps), itertools.repeat(dt),
 		#					itertools.repeat(c),itertools.repeat(Fc), itertools.repeat(F_Omeg), itertools.repeat(K), itertools.repeat(N), itertools.repeat(k), itertools.repeat(delay),

@@ -14,7 +14,8 @@ import configparser
 from configparser import ConfigParser
 
 import matplotlib
-matplotlib.use('Agg') #'%pylab inline'
+if not os.environ.get('SGE_ROOT') == None:										# this environment variable is set within the queue network, i.e., if it exists, 'Agg' mode to supress output
+	matplotlib.use('Agg') #'%pylab inline'
 import matplotlib.pyplot as plt
 import evaluation as eva
 

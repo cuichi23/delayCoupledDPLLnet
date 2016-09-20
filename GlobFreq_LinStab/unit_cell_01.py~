@@ -89,7 +89,7 @@ for iy in range(n_points):
 
 
 # Points in rotated coordinates
-x_rot = rotate_phases(x.transpose(), True)
+x_rot = rotate_phases(x.transpose())
 x_rot = x_rot.transpose()
 
 

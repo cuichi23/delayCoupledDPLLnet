@@ -11,6 +11,10 @@ from multiprocessing import Pool, freeze_support
 import itertools
 from itertools import permutations as permu
 from itertools import combinations as combi
+import matplotlib
+import os
+if not os.environ.get('SGE_ROOT') == None:										# this environment variable is set within the queue network, i.e., if it exists, 'Agg' mode to supress output
+	matplotlib.use('Agg') #'%pylab inline'
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from matplotlib import rc
@@ -36,7 +40,7 @@ def rotate_phases(phi0, isInverse=False):
 	phi  :  np.array
 			array of phases
 	isInverse  :  bool
-				  if True: rotates back the rotated phase space back to the physical phase space
+				  if True: returns coordinates of physical phase space in terms of the rotated coordinate system
 				  (implies that isInverse=True gives you the coordinates in the rotated system)
 
 	Returns
@@ -68,10 +72,10 @@ def rotate_phases(phi0, isInverse=False):
 	# print(r)
 
 	# Apply rotation matrix
-	if not isInverse:
-		return np.dot(r, phi0)
+	if not isInverse:															# if isInverse==False, this condition is True
+		return np.dot(r, phi0)													# transform input into rotated phase space
 	else:
-		return np.dot(np.transpose(r), phi0)
+		return np.dot(np.transpose(r), phi0)									# transform back into physical phase space
 
 ''' CALCULATE KURAMOTO ORDER PARAMETER '''
 def calcKuramotoOrderParameter(phi):

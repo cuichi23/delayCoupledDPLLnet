@@ -6,7 +6,9 @@ from __future__ import print_function
 import evaluation as eva
 import numpy as np
 import matplotlib
-matplotlib.use('Agg') #'%pylab inline'
+import os
+if not os.environ.get('SGE_ROOT') == None:										# this environment variable is set within the queue network, i.e., if it exists, 'Agg' mode to supress output
+	matplotlib.use('Agg') #'%pylab inline'
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes
@@ -164,6 +166,8 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 
 	plt.figure(1)																# plot the mean of the order parameter over a period 2T
 	plt.clf()
+	ax = plt.subplot(1, 1, 1)
+	ax.set_aspect('equal')
 	plt.scatter(allPoints[:,0], allPoints[:,1], c=results[:,0], alpha=0.5, edgecolor='')
 	plt.title(r'mean $R(t,m=%d )$, constant dim: $\phi_0^{\prime}=%.2f$' %(k ,initPhiPrime0) )
 	plt.xlabel(r'$\phi_1^{\prime}$')
@@ -178,6 +182,8 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 
 	plt.figure(2)
 	plt.clf()
+	ax = plt.subplot(1, 1, 1)
+	ax.set_aspect('equal')
 	plt.scatter(allPoints[:,0], allPoints[:,1], c=results[:,1], alpha=0.5, edgecolor='')
 	plt.title(r'last $R(t,m=%d )$, constant dim: $\phi_0^{\prime}=%.2f$' %(k ,initPhiPrime0) )
 	plt.xlabel(r'$\phi_1^{\prime}$')
@@ -192,6 +198,8 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 
 	plt.figure(3)
 	plt.clf()
+	ax = plt.subplot(1, 1, 1)
+	ax.set_aspect('equal')
 	tempresults = results[:,0].reshape((paramDiscretization, paramDiscretization))   #np.flipud()
 	tempresults = np.transpose(tempresults)
 	plt.imshow(tempresults, interpolation='nearest', cmap=cm.coolwarm, aspect='auto', origin='lower', extent=(allPoints[:,0].min(), allPoints[:,0].max(), allPoints[:,1].min(), allPoints[:,1].max()), vmin=0, vmax=1)
@@ -208,6 +216,8 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 
 	plt.figure(4)
 	plt.clf()
+	ax = plt.subplot(1, 1, 1)
+	ax.set_aspect('equal')
 	tempresults = results[:,1].reshape((paramDiscretization, paramDiscretization))   #np.flipud()
 	tempresults = np.transpose(tempresults)
 	plt.imshow(tempresults, interpolation='nearest', cmap=cm.coolwarm, aspect='auto', origin='lower', extent=(allPoints[:,0].min(), allPoints[:,0].max(), allPoints[:,1].min(), allPoints[:,1].max()), vmin=0, vmax=1)
