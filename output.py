@@ -221,7 +221,6 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	tempresults = results[:,1].reshape((paramDiscretization, paramDiscretization))   #np.flipud()
 	tempresults = np.transpose(tempresults)
 	plt.imshow(tempresults, interpolation='nearest', cmap=cm.coolwarm, aspect='auto', origin='lower', extent=(allPoints[:,0].min(), allPoints[:,0].max(), allPoints[:,1].min(), allPoints[:,1].max()), vmin=0, vmax=1)
-	plt.title(r'last $R(t,m)$, constant dim: $\phi_0^{\prime}=%.2f$' % initPhiPrime0)
 	plt.title(r'last $R(t,m=%d )$, constant dim: $\phi_0^{\prime}=%.2f$' %(k ,initPhiPrime0) )
 	plt.xlabel(r'$\phi_1^{\prime}$')
 	plt.ylabel(r'$\phi_2^{\prime}$')
