@@ -38,7 +38,7 @@ def simulatePllNetwork(mode,topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg,
 		out.plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K)
 
 	''' RETURN '''																# return value of mean order parameter, last order parameter, and the variance of r during the last 2T_{\omega}
-	return {'mean_order':np.mean(r), 'last_orderP':r[len(r)-1], 'stdev_orderP':np.var(r), 'phases': phi, 'intrinfreq': omega_0, 'coupling_strength': K_0}
+	return {'mean_order': np.mean(r), 'last_orderP': r[len(r)-1], 'stdev_orderP': np.var(r), 'phases': phi, 'intrinfreq': omega_0, 'coupling_strength': K_0}
 
 def multihelper(phiSr, initPhiPrime0, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiM, domega, diffconstK, plot_Phases_Freq, mode):
 	if N > 2:
@@ -156,7 +156,7 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, phiSr=[],
 		else:
 			Nsim = paramDiscretization**(N-1)
 			print('multiprocessing', paramDiscretization**(N-1), 'realizations')
-		pool_data=[]; data=[]
+		pool_data=[];
 		freeze_support()
 		pool = Pool(processes=numberCores)										# create a Pool object
 		pool_data.append( pool.map(multihelper_star, itertools.izip( 			# this makes a map of all parameter combinations that have to be simulated, itertools.repeat() names the constants
@@ -170,14 +170,16 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, phiSr=[],
 			phi.append( pool_data[0][i]['phases'] )
 			omega_0.append( pool_data[0][i]['intrinfreq'] )
 			K_0.append( pool_data[0][i]['coupling_strength'] )
-			# delays_0.append( pool_data[0][i]['transdelays'] )
+			delays_0.append( pool_data[0][i]['transdelays'] )
 
-		print( 'size phi, omega_0, K_0, results:', sys.getsizeof(np.array(phi)), '\t', sys.getsizeof(np.array(omega_0)), '\t', sys.getsizeof(np.array(K_0)), '\t', sys.getsizeof(np.array(results)) )
-		phi=np.array(phi)
-		omega_0=np.array(omega_0)
-		K_0=np.array(K_0)
+		del pool_data; del _allPoints;											# emtpy pool data, allPoints variables to free memory
+
+		print( 'size {omega_0, K_0, results}:', sys.getsizeof(omega_0), '\t', sys.getsizeof(K_0), '\t', sys.getsizeof(results), '\n' )
+		omega_0=np.array(omega_0); K_0=np.array(K_0); results=np.array(results);
+		# np.savez('results/phases_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), phi=phi) # save phases of trajectories
+		del phi; # phi=np.array(phi);
 		# delays_0=np.array(delays_0);
-		results=np.array(results)
+
 		#print( list( pool.map(multihelper_star, itertools.izip( 				# this makes a map of all parameter combinations that have to be simulated, itertools.repeat() names the constants
 		#					itertools.product(*scanValues), itertools.repeat(initPhiPrime0), itertools.repeat(topology), itertools.repeat(F), itertools.repeat(Nsteps), itertools.repeat(dt),
 		#					itertools.repeat(c),itertools.repeat(Fc), itertools.repeat(F_Omeg), itertools.repeat(K), itertools.repeat(N), itertools.repeat(k), itertools.repeat(delay),
@@ -203,13 +205,17 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, phiSr=[],
 
 			''' evaluate dictionaries '''
 			results.append( [ data['mean_order'],  data['last_orderP'], data['stdev_orderP'] ] )
-			phi.append( data['phases'] )
+			# phi.append( data['phases'] )
 			omega_0.append( data['intrinfreq'] )
 			K_0.append( data['coupling_strength'] )
 			delays_0.append( data['transdelays'] )
 			results = np.array(results)
 
-		phi=np.array(phi); omega_0=np.array(omega_0); K_0=np.array(K_0); delays_0=np.array(delays_0);
+		del pool_data; del _allPoints;											# emtpy pool data, allPoints variables to free memory
+
+		print( 'size omega_0, K_0, results:', sys.getsizeof(omega_0), '\t', sys.getsizeof(K_0), '\t', sys.getsizeof(results), '\n' )
+		omega_0=np.array(omega_0); K_0=np.array(K_0); results=np.array(results);
+		del phi; # phi=np.array(phi);
 			#print( list( simulatePllNetwork(topology, Fc, F_Omeg, K, N, k, delay, phiS, phiM, plot_Phases_Freq) ) )
 		print('results:', results)
 		print('time needed for execution of simulations sequentially: ', (time.time()-t0), ' seconds')

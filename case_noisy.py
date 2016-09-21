@@ -122,8 +122,12 @@ def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, phiSr=[], show
 			K_0.append( pool_data[0][i]['coupling_strength'] )
 			delays_0.append( pool_data[0][i]['transdelays'] )
 
-		phi=np.array(phi); omega_0=np.array(omega_0); K_0=np.array(K_0); delays_0=np.array(delays_0);
-		results=np.array(results);
+		del pool_data; del _allPoints;											# emtpy pool data, allPoints variables to free memory
+
+		print( 'size {phi, omega_0, K_0, results}:', sys.getsizeof(phi), '\t', sys.getsizeof(omega_0), '\t', sys.getsizeof(K_0), '\t', sys.getsizeof(results), '\n' )
+		omega_0=np.array(omega_0); K_0=np.array(K_0); results=np.array(results); delays_0=np.array(delays_0);
+		# np.savez('results/phases_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), phi=phi) # save phases of trajectories
+		phi=np.array(phi);
 
 		# print('data[0]["mean_order"]', data[0]['mean_order'])
 		#print( list( pool.map(multihelper_star, itertools.izip( 			# this makes a map of all parameter combinations that have to be simulated, itertools.repeat() names the constants

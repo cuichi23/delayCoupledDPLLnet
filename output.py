@@ -263,7 +263,7 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, domega, twistdelta, results, 
 	histo_bins = 75
 	t = np.arange(phi.shape[1])													# plot the phases of the oscillators over time, create "time vector"
 	print('\n\nplot data:')
-	print('Uncomment \"matplotlib.use(\'Agg\')\" in ouput.py to enable plotting figures to the desktop, DISABLE for queue-jobs!\n')
+	# print('Uncomment \"matplotlib.use(\'Agg\')\" in ouput.py to enable plotting figures to the desktop, DISABLE for queue-jobs!\n')
 	''' HISTOGRAMS PHASES AND FREQUENCIES '''
 
 	if np.std(delays_0.flatten()) > 1E-15:
