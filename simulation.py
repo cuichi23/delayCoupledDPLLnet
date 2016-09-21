@@ -6,7 +6,6 @@ import numpy as np
 import networkx as nx
 from scipy.signal import sawtooth
 
-
 ''' CLASSES
 
 authors: Alexandros Pollakis, Lucas Wetzel [emails]
