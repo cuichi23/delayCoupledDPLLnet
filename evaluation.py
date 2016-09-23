@@ -14,6 +14,7 @@ from itertools import combinations as combi
 import matplotlib
 import os
 if not os.environ.get('SGE_ROOT') == None:										# this environment variable is set within the queue network, i.e., if it exists, 'Agg' mode to supress output
+	print('NOTE: \"matplotlib.use(\'Agg\')\"-mode active, plots are not shown on screen, just saved to results folder!\n')
 	matplotlib.use('Agg') #'%pylab inline'
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm

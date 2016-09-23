@@ -15,6 +15,7 @@ from configparser import ConfigParser
 
 import matplotlib
 if not os.environ.get('SGE_ROOT') == None:										# this environment variable is set within the queue network, i.e., if it exists, 'Agg' mode to supress output
+	print('NOTE: \"matplotlib.use(\'Agg\')\"-mode active, plots are not shown on screen, just saved to results folder!\n')
 	matplotlib.use('Agg') #'%pylab inline'
 import matplotlib.pyplot as plt
 import evaluation as eva
@@ -476,9 +477,9 @@ def singleRealization(params):
 			break
 
 		elif user_input == 'delay':
-			user_sweep_start = float(raw_input('\nPlease specify the range in which delays should be simulated, start delay_s in [Hz] = '))
-			user_sweep_end	 = float(raw_input('\nPlease specify the range in which K should be simulated, end delay_e in [Hz] = '))
-			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz] ddelay = '))
+			user_sweep_start = float(raw_input('\nPlease specify the range in which delays should be simulated, start delay_s in [s] = '))
+			user_sweep_end	 = float(raw_input('\nPlease specify the range in which K should be simulated, end delay_e in [s] = '))
+			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [s] ddelay = '))
 			new_delay_values = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
 
 			N 		= chooseNumber()											# calls function that asks user for input of number of oscis
@@ -627,9 +628,9 @@ def noisyStatistics(params):
 			break
 
 		elif user_input == 'delay':
-			user_sweep_start = float(raw_input('\nPlease specify the range in which delays should be simulated, start delay_s in [Hz] = '))
-			user_sweep_end	 = float(raw_input('\nPlease specify the range in which K should be simulated, end delay_e in [Hz] = '))
-			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz] ddelay = '))
+			user_sweep_start = float(raw_input('\nPlease specify the range in which delays should be simulated, start delay_s in [s] = '))
+			user_sweep_end	 = float(raw_input('\nPlease specify the range in which K should be simulated, end delay_e in [s] = '))
+			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [s] ddelay = '))
 			new_delay_values = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
 
 			N 		= chooseNumber()											# calls function that asks user for input of number of oscis
@@ -783,9 +784,9 @@ def bruteForce(params, param_cases_csv):
 			break
 
 		elif user_input == 'delay':
-			user_sweep_start = float(raw_input('\nPlease specify the range in which delays should be simulated, start delay_s in [Hz] = '))
-			user_sweep_end	 = float(raw_input('\nPlease specify the range in which K should be simulated, end delay_e in [Hz] = '))
-			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz] ddelay = '))
+			user_sweep_start = float(raw_input('\nPlease specify the range in which delays should be simulated, start delay_s in [s] = '))
+			user_sweep_end	 = float(raw_input('\nPlease specify the range in which K should be simulated, end delay_e in [s] = '))
+			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [s] ddelay = '))
 			new_delay_values = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
 
 			N 		= chooseNumber()											# calls function that asks user for input of number of oscis
