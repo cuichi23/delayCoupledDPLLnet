@@ -2,6 +2,7 @@
 # Object-oriented parameter sweep
 # Version 1: Initial version
 # Author: Daniel Platz
+# sine and cosine coupling functions: Lucas Wetzel
 # ##############################################################################
 import numpy as np
 import scipy.signal as signal
@@ -20,6 +21,21 @@ class Square(object):
     def __call__(self, t):
         return self.amp * signal.square(2 * np.pi * self.freq * t, duty=0.5)
 
+class Dcosdt(object):
+    '''Periodic sine wave vertically centered around 0'''
+    def __init__(self, freq):
+        self.freq = freq
+
+    def __call__(self, t):
+        return ( -1.0 * np.sin(2 * np.pi * self.freq * t) )
+
+class Dsindt(object):
+    '''Periodic sine wave vertically centered around 0'''
+    def __init__(self, freq):
+        self.freq = freq
+
+    def __call__(self, t):
+        return ( 1.0 * np.cos(2 * np.pi * self.freq * t) )
 
 class Triangle(object):
     ''' Periodic triangle signal vertically centered around 0'''
@@ -39,6 +55,39 @@ class Triangle(object):
     def min(self):
         return -1.0
 
+class Cos(object):
+    ''' Periodic triangle signal vertically centered around 0'''
+    def __init__(self, freq):
+        self.freq = freq
+
+    def __call__(self, t):
+        return np.cos(2 * np.pi * self.freq * t)
+
+    def get_derivative(self):
+        return Dcosdt(self.freq)
+
+    def max(self):
+        return 1.0
+
+    def min(self):
+        return -1.0
+
+class Sin(object):
+    ''' Periodic triangle signal vertically centered around 0'''
+    def __init__(self, freq):
+        self.freq = freq
+
+    def __call__(self, t):
+        return np.sin(2 * np.pi * self.freq * t)
+
+    def get_derivative(self):
+        return Dsindt(self.freq)
+
+    def max(self):
+        return 1.0
+
+    def min(self):
+        return -1.0
 
 # ##############################################################################
 

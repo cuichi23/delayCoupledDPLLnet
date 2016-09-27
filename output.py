@@ -59,7 +59,7 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, coupFct, Tsi
 		f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'sin')					# calculate spectrum of signals, i.e., of this state
 	elif coupFct == 'cos':
 		print('Calculate spectrum for cosinusoidal signals. Fsim=%d' %Fsim)
-		f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'sin')					# calculate spectrum of signals, i.e., of this state
+		f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'cos')					# calculate spectrum of signals, i.e., of this state
 
 	now = datetime.datetime.now()
 
