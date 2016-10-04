@@ -2,13 +2,12 @@
 # Object-oriented parameter sweep
 # Version 1: Initial version
 # Author: Daniel Platz
-# sine and cosine coupling functions: Lucas Wetzel
 # ##############################################################################
 import numpy as np
 import scipy.signal as signal
 import scipy.optimize as optimize
 
-
+import networkx as nx
 
 # ##############################################################################
 
@@ -21,21 +20,6 @@ class Square(object):
     def __call__(self, t):
         return self.amp * signal.square(2 * np.pi * self.freq * t, duty=0.5)
 
-class Dcosdt(object):
-    '''Periodic sine wave vertically centered around 0'''
-    def __init__(self, freq):
-        self.freq = freq
-
-    def __call__(self, t):
-        return ( -1.0 * np.sin(2 * np.pi * self.freq * t) )
-
-class Dsindt(object):
-    '''Periodic sine wave vertically centered around 0'''
-    def __init__(self, freq):
-        self.freq = freq
-
-    def __call__(self, t):
-        return ( 1.0 * np.cos(2 * np.pi * self.freq * t) )
 
 class Triangle(object):
     ''' Periodic triangle signal vertically centered around 0'''
@@ -55,39 +39,6 @@ class Triangle(object):
     def min(self):
         return -1.0
 
-class Cos(object):
-    ''' Periodic triangle signal vertically centered around 0'''
-    def __init__(self, freq):
-        self.freq = freq
-
-    def __call__(self, t):
-        return np.cos(2 * np.pi * self.freq * t)
-
-    def get_derivative(self):
-        return Dcosdt(self.freq)
-
-    def max(self):
-        return 1.0
-
-    def min(self):
-        return -1.0
-
-class Sin(object):
-    ''' Periodic triangle signal vertically centered around 0'''
-    def __init__(self, freq):
-        self.freq = freq
-
-    def __call__(self, t):
-        return np.sin(2 * np.pi * self.freq * t)
-
-    def get_derivative(self):
-        return Dsindt(self.freq)
-
-    def max(self):
-        return 1.0
-
-    def min(self):
-        return -1.0
 
 # ##############################################################################
 
@@ -231,6 +182,48 @@ def get_stability(n, w, k, h, m, tau, omega, wc):
     # Determine help variables
     alpha_plus = 0.5 * np.pi * k * dhdt(-omega * tau - phi_m)
     alpha_minus = 0.5 * np.pi * k * dhdt(-omega * tau + phi_m)
+
+
+if topology == 'global':
+    G = nx.complete_graph(Nplls)
+elif topology == 'ring':
+    G = nx.cycle_graph(Nplls)
+elif topology == 'chain':
+    G = nx.path_graph(Nplls)
+else:
+    N = np.sqrt(Nplls)
+    if N.is_integer():
+        N = int(N)
+    else:
+        raise ValueError('Npll is not valid: sqrt(N) is not an integer')
+    if topology == 'square':
+        G=nx.grid_2d_graph(N,N)
+    elif topology == 'hexagon':
+        G=nx.grid_2d_graph(N,N)
+        for n in G:
+            x,y=n
+            if x>0 and y>0:
+                G.add_edge(n,(x-1,y-1))
+            if x<N-1 and y<N-1:
+                G.add_edge(n,(x+1,y+1))
+    elif topology == 'octagon':
+        G=nx.grid_2d_graph(N,N)
+        for n in G:
+            x,y=n
+            if x>0 and y>0:
+                G.add_edge(n,(x-1,y-1))
+            if x<N-1 and y<N-1:
+                G.add_edge(n,(x+1,y+1))
+            if x<N-1 and y>0:
+                G.add_edge(n,(x+1,y-1))
+            if x<N-1 and y>0:
+                G.add_edge(n,(x+1,y-1))
+            if x>0 and y<N-1:
+                G.add_edge(n,(x-1,y+1))
+    G = nx.convert_node_labels_to_integers(G)
+
+
+
 
     # Construct coupling matrix and compute its eigensystem
     e_mat = np.zeros((n, n))
@@ -563,7 +556,7 @@ class SweepFactory(object):
        tsim : float
               simulation time
     '''
-    def __init__(self, n, w, k, tau, h, wc, m, isRadians=True, tsim=0.0):
+    def __init__(self, n, w, k, tau, h, wc, m, tsim=0.0, isRadians=True):
         if isRadians:                                                           # if parameters provided in rad*Hz
             self.n = n
             self.w = w

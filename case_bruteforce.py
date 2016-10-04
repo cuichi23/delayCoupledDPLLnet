@@ -168,7 +168,7 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, phiSr=[],
 		for i in range(Nsim):
 			''' evaluate dictionaries '''
 			results.append( [ pool_data[0][i]['mean_order'],  pool_data[0][i]['last_orderP'], pool_data[0][i]['stdev_orderP'] ] )
-			phi.append( pool_data[0][i]['phases'] )
+			# phi.append( pool_data[0][i]['phases'] )
 			omega_0.append( pool_data[0][i]['intrinfreq'] )
 			K_0.append( pool_data[0][i]['coupling_strength'] )
 			delays_0.append( pool_data[0][i]['transdelays'] )
@@ -178,7 +178,7 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, phiSr=[],
 		print( 'size {omega_0, K_0, delays_0, results}:', sys.getsizeof(omega_0), '\t', sys.getsizeof(K_0), '\t', sys.getsizeof(delays_0), '\t', sys.getsizeof(results), '\n' )
 		omega_0=np.array(omega_0); K_0=np.array(K_0); results=np.array(results);
 		# np.savez('results/phases_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), phi=phi) # save phases of trajectories
-		del phi; # phi=np.array(phi);
+		# phi=np.array(phi);
 		# delays_0=np.array(delays_0);
 
 		#print( list( pool.map(multihelper_star, itertools.izip( 				# this makes a map of all parameter combinations that have to be simulated, itertools.repeat() names the constants

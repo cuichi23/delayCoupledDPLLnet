@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes
 from mpl_toolkits.axes_grid1.inset_locator import mark_inset
+from scipy.interpolate import spline
 
 import datetime
 
@@ -105,7 +106,10 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, coupFct, Tsi
 	plt.figure('frequencies over time')											# plot the frequencies of the oscillators over time
 	plt.clf()
 	phidot = np.diff(phi, axis=0)/dt
-	plt.plot((t[0:-1]*dt),phidot)
+	# tnew = np.linspace( t[0], t[-1] , int(len(t[0:-1])/100) )
+	# power_smooth = spline(t[0:-1], phidot, tnew)
+	# plt.plot((t[0:-1]*dt), phidot, tnew, power_smooth)
+	plt.plot((t[0:-1]*dt), phidot)
 	plt.plot(delay-dt, phidot[int(round(delay/dt)-1),0], 'yo', ms=5)
 	plt.axvspan(t[-int(2*1.0/(F*dt))]*dt, t[-1]*dt, color='b', alpha=0.3)
 	plt.title(r'mean frequency [rad Hz] of last $2T$-eigenperiods $\dot{\bar{\phi}}=$%.4f' % np.mean(phidot[-int(round(2*1.0/(F*dt))):, 0] ), fontdict = titlefont)
