@@ -72,9 +72,9 @@ class LowPass:
 			self.y = 0.0
 		return self.y
 
-	def next(self,x):							      							# this updates y=x_k^{C}(t), the control signal, using the input x=x_k^{PD}(t), the phase-detector signal
-		x_ctrl0 = 0.0
-		self.y = (1-self.beta)*self.y + self.beta*(x-x_ctrl0/self.Fc)			# the difference to the old version is the non-zero initial condition x_k^C(0)=[\dot{\theta}_k(0)-\omega] / K
+	def next(self,xPD):							      							# this updates y=x_k^{C}(t), the control signal, using the input x=x_k^{PD}(t), the phase-detector signal
+		y_ctrl0 = 0.0															# since y_ctrl0 = x_k^C(t=0) * \delta(t-0), t=0 is set in function above already!
+		self.y = (1-self.beta)*self.y + self.beta*(xPD-y_ctrl0/self.Fc)			# the difference to the old version is the non-zero initial condition x_k^C(t=0)=[\dot{\theta}_k(0)-\omega] / K
 		#print('state of filter AFTER update:', self.y)
 		return self.y
 
@@ -300,8 +300,10 @@ def generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,
 			N = int(N)
 		else:
 			raise ValueError('Npll is not valid: sqrt(N) is not an integer')
-		if topology == 'square':
+		if topology == 'square-open':
 			G=nx.grid_2d_graph(N,N)
+		elif topology == 'square-periodic':
+			G=nx.grid_2d_graph(N,N, periodic=True)                              # for periodic boundary conditions:
 		elif topology == 'hexagon':
 			G=nx.grid_2d_graph(N,N)
 			for n in G:

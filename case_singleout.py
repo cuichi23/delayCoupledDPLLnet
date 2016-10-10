@@ -164,7 +164,7 @@ if __name__ == '__main__':
 	''' SIMULATION PARAMETER'''
 
 	# process arguments -- provided on program call, e.g. python oracle.py [arg0] [arg1] ... [argN]
-	topology	= str(sys.argv[1])												# topology: {global, chain, ring, square lattice, hexagonal lattice, osctagon}
+	topology	= str(sys.argv[1])												# topology: {global, chain, ring, square-open, square-periodic, hexagonal lattice, osctagon}
 	N 		 	= int(sys.argv[2])												# number of oscillators
 	K 			= float(sys.argv[3])											# coupling strength
 	Fc 			= float(sys.argv[4])											# cut-off frequency of the loop filter

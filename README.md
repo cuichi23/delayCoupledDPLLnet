@@ -24,7 +24,7 @@ where:
 		'noisy', simulate many realizations of a network with dyn. freq noise, optional distributed PLL component parameters
 		'oracle', mode to use with design centering algorithm Josefine
 	[topology]
-		'string': choose from {'global','ring','chain','square','hexagon','octagon'}
+		'string': choose from {'global','ring','chain','square-open', 'square-periodic','hexagon','octagon'}
 
 	[#osci]
 		'Integer', for 2D grids use integers N whose square root yields an integer value 

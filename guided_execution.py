@@ -31,11 +31,11 @@ def chooseTopology():															# ask user-input for topology
 	a_true = True
 	while a_true:
 		# get user input to know which topology should be analyzed
-		topology = str(raw_input('\nPlease specify topology from 1-dim [chain, ring], 2-dim [square, hexgon, octagon] or mean-field [global] to be analyzed: '))
-		if ( topology == 'square' or topology == 'hexagon' or topology == 'octagon' or topology == 'chain' or topology == 'ring' or topology == 'global' ):
+		topology = str(raw_input('\nPlease specify topology from 1-dim [chain, ring], 2-dim [square-open, square-periodic, hexgon, octagon] or mean-field [global] to be analyzed: '))
+		if ( topology == 'square-open' or topology == 'square-periodic' or topology == 'hexagon' or topology == 'octagon' or topology == 'chain' or topology == 'ring' or topology == 'global' ):
 			break
 		else:
-			print('Please provide one of these input-strings: [chain, ring, square, hexgon, octagon, global]!')
+			print('Please provide one of these input-strings: [chain, ring, square-open, square-periodic, hexgon, octagon, global]!')
 
 	return str(topology)
 
@@ -406,7 +406,7 @@ def singleRealization(params):
 
 			# perform a K sweep
 			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
-			sf = synctools.SweepFactory(N, F, new_K_values, delay, h, Fc, k, isRadian)
+			sf = synctools.SweepFactory(N, F, new_K_values, delay, h, Fc, k, topology, isRadian)
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation: \n', para_mat)

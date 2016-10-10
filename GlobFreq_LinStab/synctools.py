@@ -143,7 +143,7 @@ def get_omega_implicit(n, w, k, tau, h, m):
         return None
 
 
-def get_stability(n, w, k, h, m, tau, omega, wc):
+def get_stability(n, w, k, h, m, tau, omega, wc, topology):
     '''Linear stability analysis of globally synchronized state.
 
        The computation is based on finding the roots of the two-dimensional characteristic equation.
@@ -179,61 +179,86 @@ def get_stability(n, w, k, h, m, tau, omega, wc):
     dhdt = h.get_derivative()
     phi_m = (2 * np.pi * m) / n
 
+    # Construct coupling matrix and compute its eigensystem
+    if topology == 'global':
+        G = nx.complete_graph(Nplls)
+    elif topology == 'ring':
+        G = nx.cycle_graph(Nplls)
+    elif topology == 'chain':
+        G = nx.path_graph(Nplls)
+    else:
+        N = np.sqrt(Nplls)
+        if N.is_integer():
+            N = int(N)
+        else:
+            raise ValueError('N_pll is not valid: sqrt(N) is not an integer')
+        if topology == 'square-open':
+            G=nx.grid_2d_graph(N,N)
+        elif topology == 'square-periodic':
+            G=nx.grid_2d_graph(N,N, periodic=True)                              # for periodic boundary conditions:
+        elif topology == 'hexagon':
+            print('\nOpen boundary conditions in this case, extend code... add part with edges that span "around"!\n')
+            G=nx.grid_2d_graph(N,N)
+            for n in G:
+                x,y=n
+                if x>0 and y>0:
+                    G.add_edge(n,(x-1,y-1))
+                if x<N-1 and y<N-1:
+                    G.add_edge(n,(x+1,y+1))
+        elif topology == 'octagon':
+            print('\nOpen boundary conditions in this case, extend code... add part with edges that span "around"!\n')
+            G=nx.grid_2d_graph(N,N)
+            for n in G:
+                x,y=n
+                if x>0 and y>0:
+                    G.add_edge(n,(x-1,y-1))
+                if x<N-1 and y<N-1:
+                    G.add_edge(n,(x+1,y+1))
+                if x<N-1 and y>0:
+                    G.add_edge(n,(x+1,y-1))
+                if x<N-1 and y>0:
+                    G.add_edge(n,(x+1,y-1))
+                if x>0 and y<N-1:
+                    G.add_edge(n,(x-1,y+1))
+        # matrix components are numbered from 1 to N^2, not for kl, each 1 to N
+        G = nx.convert_node_labels_to_integers(G)
+
+    # number of neighbors of each node, can also be deduced from G-graph object, use that!
+    if ( topology == 'ring' or topology == 'chain' ):
+        number_neigh_periodic = 2
+    elif ( topology == 'square' or topology == 'hexagon' or topology == 'octagon' ):
+        number_neigh_2d_periodic = 4
+    elif ( topology == 'global' ):
+        number_neigh_global = N
+
     # Determine help variables
-    alpha_plus = 0.5 * np.pi * k * dhdt(-omega * tau - phi_m)
+    alpha_plus = 0.25 * 2.0 * np.pi * k * dhdt(-omega * tau - phi_m)
     alpha_minus = 0.5 * np.pi * k * dhdt(-omega * tau + phi_m)
 
+    ''' 1d chain topology, open boundary conditions '''
+    if topology == 'chain':
+        e_mat = np.zeros((n, n))
+        e_mat[0, -1] = 0
+        e_mat[0, 1] = alpha_minus
+        for ik in range(1, n - 1):
+            e_mat[ik, ik - 1] = alpha_plus
+            e_mat[ik, ik + 1] = alpha_minus
+        e_mat[-1, 0] = 0
+        e_mat[-1, -2] = alpha_plus
+    ''' 1d ring topology, periodic boundary conditions '''
+    elif topology == 'ring':
+        e_mat = np.zeros((n, n))
+        e_mat[0, -1] = alpha_plus
+        e_mat[0, 1] = alpha_minus
+        for ik in range(1, n - 1):
+            e_mat[ik, ik - 1] = alpha_plus
+            e_mat[ik, ik + 1] = alpha_minus
+        e_mat[-1, 0] = alpha_minus
+        e_mat[-1, -2] = alpha_plus
 
-if topology == 'global':
-    G = nx.complete_graph(Nplls)
-elif topology == 'ring':
-    G = nx.cycle_graph(Nplls)
-elif topology == 'chain':
-    G = nx.path_graph(Nplls)
-else:
-    N = np.sqrt(Nplls)
-    if N.is_integer():
-        N = int(N)
-    else:
-        raise ValueError('Npll is not valid: sqrt(N) is not an integer')
-    if topology == 'square':
-        G=nx.grid_2d_graph(N,N)
-    elif topology == 'hexagon':
-        G=nx.grid_2d_graph(N,N)
-        for n in G:
-            x,y=n
-            if x>0 and y>0:
-                G.add_edge(n,(x-1,y-1))
-            if x<N-1 and y<N-1:
-                G.add_edge(n,(x+1,y+1))
-    elif topology == 'octagon':
-        G=nx.grid_2d_graph(N,N)
-        for n in G:
-            x,y=n
-            if x>0 and y>0:
-                G.add_edge(n,(x-1,y-1))
-            if x<N-1 and y<N-1:
-                G.add_edge(n,(x+1,y+1))
-            if x<N-1 and y>0:
-                G.add_edge(n,(x+1,y-1))
-            if x<N-1 and y>0:
-                G.add_edge(n,(x+1,y-1))
-            if x>0 and y<N-1:
-                G.add_edge(n,(x-1,y+1))
-    G = nx.convert_node_labels_to_integers(G)
+    ''' Normalization? '''
 
-
-
-
-    # Construct coupling matrix and compute its eigensystem
-    e_mat = np.zeros((n, n))
-    e_mat[0, -1] = alpha_plus
-    e_mat[0, 1] = alpha_minus
-    for ik in range(1, n - 1):
-        e_mat[ik, ik - 1] = alpha_plus
-        e_mat[ik, ik + 1] = alpha_minus
-    e_mat[-1, 0] = alpha_minus
-    e_mat[-1, -2] = alpha_plus
+    # obtain eigenvectors and eigenvalues
     em, vm = np.linalg.eig(e_mat)
     # print('EIGENVALUES:', em)
 
@@ -281,14 +306,17 @@ class PllSystem(object):
            coupling function
        wc : float
             low-pass filter (angular) cut-off frequency
+       topology : string
+            determines the coupling topology of the network
     '''
-    def __init__(self, n, w, k, tau, h, wc):
-        self.n = n
-        self.w = w
-        self.k = k
-        self.tau = tau
-        self.h = h
-        self.wc = wc
+    def __init__(self, n, w, k, tau, h, wc, topology):
+        self.n        = n
+        self.w        = w
+        self.k        = k
+        self.tau      = tau
+        self.h        = h
+        self.wc       = wc
+        self.topology = topology
 
     def get_twist_state(self, m):
         '''Determine the possible states of global synchronization for a specific m twist
@@ -306,7 +334,7 @@ class PllSystem(object):
         if o != None:
             s = []
             for el in o:
-                l = get_stability(self.n, self.w, self.k, self.h, m, self.tau, el, self.wc)
+                l = get_stability(self.n, self.w, self.k, self.h, m, self.tau, el, self.wc, self.topology)
                 s.append(TwistState(self, m, el, l))
             return s
         else:
@@ -556,7 +584,7 @@ class SweepFactory(object):
        tsim : float
               simulation time
     '''
-    def __init__(self, n, w, k, tau, h, wc, m, tsim=0.0, isRadians=True):
+    def __init__(self, n, w, k, tau, h, wc, m, topology, tsim=0.0, isRadians=True):
         if isRadians:                                                           # if parameters provided in rad*Hz
             self.n = n
             self.w = w
@@ -566,6 +594,7 @@ class SweepFactory(object):
             self.wc = wc
             self.m = m
             self.tsim = tsim
+            self.topology = topology
         else:                                                                   # if parameters provided in Hz, multiply by 2pi, as needed in the phase model
             self.n = n
             self.w = 2.0*np.pi*w                                                # here, w = f
@@ -576,6 +605,7 @@ class SweepFactory(object):
             self.wc = 2.0*np.pi*wc                                              # here, wc = fc
             self.m = m
             self.tsim = tsim
+            self.topology = topology
 
     def _identify_swept_variable(self):
         '''Identify the swept variable
@@ -597,6 +627,8 @@ class SweepFactory(object):
             return 'tau'
         elif type(self.wc) is np.ndarray:
             return 'wc'
+        elif type(self.topology) is list:
+            return 'topology'
         else:
             return None
 
@@ -617,7 +649,7 @@ class SweepFactory(object):
         key_sweep = self._identify_swept_variable()
         par_sweep = self[key_sweep]
         n_sweep = len(par_sweep)
-        key_sys = ['n', 'w', 'k', 'tau', 'h', 'wc']
+        key_sys = ['n', 'w', 'k', 'tau', 'h', 'wc', 'topology']
         for i in range(n_sweep):
             args = []
             for key in key_sys:
