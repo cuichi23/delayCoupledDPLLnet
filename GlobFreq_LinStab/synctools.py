@@ -7,7 +7,7 @@ import numpy as np
 import scipy.signal as signal
 import scipy.optimize as optimize
 
-import networkx as nx
+import networkx
 
 # ##############################################################################
 
@@ -188,12 +188,12 @@ def get_omega_implicit(n, w, k, tau, h, m):
     else:
         return None
 
-def chooseTwistNumbers(n):   												# ask user-input for delay
+def chooseTwistNumbers(nx, ny):   												# ask user-input for delay
     a_true = True
     while a_true:
         # get user input on number of oscis in the network
-        k1 = raw_input('\nPlease specify the first twist number for 2d m1-m2-twist solutions [integer] in [0, ..., %d] [dimless]: ' %(N-1))
-        k2 = raw_input('\nPlease specify the second twist number for 2d m1-m2-twist solutions [integer] in [0, ..., %d] [dimless]: ' %(N-1))
+        k1 = raw_input('\nPlease specify the first (x-direction) twist number for 2d m1-m2-twist solutions [integer] in [0, ..., %d] [dimless]: ' %(nx-1))
+        k2 = raw_input('\nPlease specify the second (y-direction) twist number for 2d m1-m2-twist solutions [integer] in [0, ..., %d] [dimless]: ' %(ny-1))
         if ( int(k1)>=0 and int(k2)>=0 ):
             break
         else:
@@ -201,7 +201,124 @@ def chooseTwistNumbers(n):   												# ask user-input for delay
 
     return int(k1), int(k2)
 
-def get_stability(n, w, k, h, m, tau, omega, wc, topology):
+def calcTopoMatrix(n, nx, ny, w, k, h, m, tau, omega, wc, topology):
+    # Dependent parameters
+    b = 1.0 / wc
+    dhdt = h.get_derivative()
+
+    # Construct coupling matrix and compute its eigensystem
+    if topology == 'global':
+        G = networkx.complete_graph(n)
+        d = np.zeros((n, n))                                                    # prepare coupling topology matrix with 0 and 1, then normalize
+        for ir in range(n):                                                     # iterate and fill
+            ir_neigh = G.neighbors(ir)
+            d[ir, ir_neigh] = 1
+            d[ir, :] = d[ir, :]  / np.sum(d[ir, :])
+        e_mat = d
+
+        Should we put K into the matrix, check consistency for all cases
+
+        print('Global coupling does not support m-twist solutions! Careful here, recheck.')
+
+    elif ( topology == 'hexagon' or topology == 'octagon' ):
+
+        N = np.sqrt(n)
+		if N.is_integer():
+			N = int(N)
+		else:
+			raise ValueError('Npll is not valid: sqrt(N) is not an integer')
+        elif topology == 'hexagon':
+            print('\nOpen boundary conditions in this case, extend code... add part with edges that span "around"!\n')
+            G=networkx.grid_2d_graph(N,N)
+            for n in G:
+                x,y=n
+                if x>0 and y>0:
+                    G.add_edge(n,(x-1,y-1))
+                if x<N-1 and y<N-1:
+                    G.add_edge(n,(x+1,y+1))
+        elif topology == 'octagon':
+            print('\nOpen boundary conditions in this case, extend code... add part with edges that span "around"!\n')
+            G=networkx.grid_2d_graph(N,N)
+            for n in G:
+                x,y=n
+                if x>0 and y>0:
+                    G.add_edge(n,(x-1,y-1))
+                if x<N-1 and y<N-1:
+                    G.add_edge(n,(x+1,y+1))
+                if x<N-1 and y>0:
+                    G.add_edge(n,(x+1,y-1))
+                if x<N-1 and y>0:
+                    G.add_edge(n,(x+1,y-1))
+                if x>0 and y<N-1:
+                    G.add_edge(n,(x-1,y+1))
+        # matrix components are numbered from 1 to N^2, not for kl, each 1 to N
+        G = networkx.convert_node_labels_to_integers(G, ordering='sorted')
+
+    elif ( topology == 'ring' or 'chain' ):
+        # Determine help variables
+        alpha_minus = 0.5 * k * dhdt(-omega * tau + phi_m)                      # factor 0.5, since 2 neighbors in 1d
+        alpha_plus  = 0.5 * k * dhdt(-omega * tau - phi_m)
+        if topology == 'ring':
+            ''' 1d ring topology, periodic boundary conditions '''
+            e_mat = np.zeros((n, n))
+            e_mat[0, -1] = alpha_plus
+            e_mat[0, 1] = alpha_minus
+            for ik in range(1, n - 1):
+                e_mat[ik, ik - 1] = alpha_plus
+                e_mat[ik, ik + 1] = alpha_minus
+            e_mat[-1, 0] = alpha_minus
+            e_mat[-1, -2] = alpha_plus
+
+        elif topology == 'chain':
+            ''' 1d chain topology, open boundary conditions '''
+            e_mat = np.zeros((n, n))
+            e_mat[0, -1] = 0.0
+            e_mat[0, 1] = alpha_minus
+            for ik in range(1, n - 1):
+                e_mat[ik, ik - 1] = alpha_plus
+                e_mat[ik, ik + 1] = alpha_minus
+            e_mat[-1, 0] = 0.0
+            e_mat[-1, -2] = alpha_plus
+
+    elif ( topology == 'square-open' or topology == 'square-periodic' ):
+
+        if topology == 'square-open':
+            G=networkx.grid_2d_graph(nx, ny)
+            delta_phase_chequer = np.pi
+            print('Check chequerboard case in synctools again!')
+        elif topology == 'square-periodic':
+            G=networkx.grid_2d_graph(nx, ny, periodic=True)                     # for periodic boundary conditions:
+            mx, my = chooseTwistNumbers(nx, ny)
+
+        G = networkx.convert_node_labels_to_integers(G, ordering='sorted')
+        ''' Normalization '''
+        d = np.zeros((n, n))                                                    # prepare coupling topology matrix with 0 and 1, then normalize
+        for ir in range(n):                                                     # iterate and fill
+            ir_neigh = G.neighbors(ir)
+            d[ir, ir_neigh] = 1
+            d[ir, :] = d[ir, :]  / np.sum(d[ir, :])
+
+        # Determine help variables
+        # alpha_minus = 0.5 * np.pi * k * dhdt(-omega * tau + phi_m)
+        delta_phi_mx = (2.0 * np.pi * mx) / nx
+        delta_phi_my = (2.0 * np.pi * my) / ny
+
+        # if type(h) == Triangle:
+        #     prefactor = 2.0 / np.pi
+        # else:
+        #     prefactor = 1.0
+        prefactor = 1.0
+        a = np.zeros((n, n))                                                    # prepare coupling matrix that includes the phase-differences of m-twist solutions as property of the topology
+        for ir in range(n):                                                     # iterate and fill
+            for ic in range(n):
+                a[ir, ic] = k * dhdt( -omega * tau + delta_phi_mx *( np.mod(ic,float(nx))-np.mod(ir,float(nx)) ) +
+                                                     delta_phi_my *( np.floor(ic/float(nx))-np.floor(ir/float(nx)) ) )
+
+        e_mat = d * a                                                           # element-wise multiplication
+
+    return e_mat
+
+def get_stability(n, nx, ny, w, k, h, m, tau, omega, wc, topology):
     '''Linear stability analysis of globally synchronized state.
 
        The computation is based on finding the roots of the two-dimensional characteristic equation.
@@ -232,102 +349,8 @@ def get_stability(n, w, k, h, m, tau, omega, wc, topology):
       lambda_nu : complex
                   the complex linear stability analysis exponent with the biggest real value
     '''
-    # Dependent parameters
-    b = 1.0 / wc
-    dhdt = h.get_derivative()
 
-    # Determine help variables
-    alpha_minus = 0.5 * np.pi * k * dhdt(-omega * tau + phi_m)
-    alpha_plus  = 0.5 * np.pi * k * dhdt(-omega * tau - phi_m)
-
-    # Construct coupling matrix and compute its eigensystem
-    if topology == 'global':
-        G = nx.complete_graph(n)
-        print('Global coupling does not support m-twist solutions! Careful here, recheck.')
-    elif topology == 'ring':
-        ''' 1d ring topology, periodic boundary conditions '''
-        elif topology == 'ring':
-            e_mat = np.zeros((n, n))
-            e_mat[0, -1] = alpha_plus
-            e_mat[0, 1] = alpha_minus
-            for ik in range(1, n - 1):
-                e_mat[ik, ik - 1] = alpha_plus
-                e_mat[ik, ik + 1] = alpha_minus
-            e_mat[-1, 0] = alpha_minus
-            e_mat[-1, -2] = alpha_plus
-    elif topology == 'chain':
-        ''' 1d chain topology, open boundary conditions '''
-        if topology == 'chain':
-            e_mat = np.zeros((n, n))
-            e_mat[0, -1] = 0
-            e_mat[0, 1] = alpha_minus
-            for ik in range(1, n - 1):
-                e_mat[ik, ik - 1] = alpha_plus
-                e_mat[ik, ik + 1] = alpha_minus
-            e_mat[-1, 0] = 0
-            e_mat[-1, -2] = alpha_plus
-    else:
-        N = np.sqrt(n)                                                          # not necessary? -- rectangular is enough
-        if N.is_integer():
-            N = int(N)
-        else:
-            raise ValueError('N_pll is not valid: sqrt(N) is not an integer')
-        if topology == 'square-open':
-            G=nx.grid_2d_graph(N,N)
-            delta_phase_chequer = np.pi
-        elif topology == 'square-periodic':
-            G=nx.grid_2d_graph(N,N, periodic=True)                              # for periodic boundary conditions:
-            m1, m2 = chooseTwistNumbers(n)
-        elif topology == 'hexagon':
-            print('\nOpen boundary conditions in this case, extend code... add part with edges that span "around"!\n')
-            G=nx.grid_2d_graph(N,N)
-            for n in G:
-                x,y=n
-                if x>0 and y>0:
-                    G.add_edge(n,(x-1,y-1))
-                if x<N-1 and y<N-1:
-                    G.add_edge(n,(x+1,y+1))
-        elif topology == 'octagon':
-            print('\nOpen boundary conditions in this case, extend code... add part with edges that span "around"!\n')
-            G=nx.grid_2d_graph(N,N)
-            for n in G:
-                x,y=n
-                if x>0 and y>0:
-                    G.add_edge(n,(x-1,y-1))
-                if x<N-1 and y<N-1:
-                    G.add_edge(n,(x+1,y+1))
-                if x<N-1 and y>0:
-                    G.add_edge(n,(x+1,y-1))
-                if x<N-1 and y>0:
-                    G.add_edge(n,(x+1,y-1))
-                if x>0 and y<N-1:
-                    G.add_edge(n,(x-1,y+1))
-        # matrix components are numbered from 1 to N^2, not for kl, each 1 to N
-        G = nx.convert_node_labels_to_integers(G, ordering='sorted')
-
-    ''' Normalization '''
-    d = np.zeros((n, n))                                                        # prepare coupling topology matrix with 0 and 1, then normalize
-    for ir in range(n):                                                         # iterate and fill
-        ir_neigh = G.neighbors(ir)
-        d[ir, ir_neigh] = 1
-        d[ir, :] = d[ir, :]  / np.sum(d[ir, :])
-
-    # Determine help variables
-    # alpha_minus = 0.5 * np.pi * k * dhdt(-omega * tau + phi_m)
-    delta_phi_m1 = (2.0 * np.pi * m1) / np.sqrt(n)
-    delta_phi_m2 = (2.0 * np.pi * m2) / np.sqrt(n)
-
-    if type(h) == Triangle:
-        prefactor = 2.0 / np.pi
-    else:
-        prefactor = 1.0
-    a = np.zeros((n, n))                                                        # prepare coupling matrix that includes the phase-differences of m-twist solutions as property of the topology
-    for ir in range(n):                                                         # iterate and fill
-        for ic in range(n):
-            a[ir, ic] = prefactor * k * dhdt( -omega * tau + delta_phi_m1 *( np.mod(ic,N)-np.mod(ir,N) ) +
-                                                                delta_phi_m2 *( np.floor(ic/float(N))-np.floor(ir/float(N)) ) )
-
-    e_mat = d * a                                                               # element-wise multiplication
+    e_mat = calcTopoMatrix(n, nx, ny, w, k, h, m, tau, omega, wc, topology)
 
     # obtain eigenvectors and eigenvalues
     em, vm = np.linalg.eig(e_mat)
@@ -342,6 +365,9 @@ def get_stability(n, w, k, h, m, tau, omega, wc, topology):
             mu = np.real(nu)
             gamma = np.imag(nu)
             x = np.zeros(2)
+
+            case differentiation 1d and 2d!
+
             x[0] = b * l[0]**2 - b * l[1]**2 + l[0] + 0.5 * (alpha_plus + alpha_minus) - 0.5 * mu * np.exp(-l[0] * tau) * np.cos(l[1] * tau) - 0.5 * gamma * np.exp(-l[0] * tau) * np.sin(l[1] * tau)
             x[1] = 2 * b * l[0] * l[1] + l[1] + 0.5 * mu * np.exp(-l[0] * tau) * np.sin(l[1] * tau) - 0.5 * gamma * np.exp(-l[0] * tau) * np.cos(l[1] * tau)
             return x

@@ -303,7 +303,7 @@ def generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,
 		if topology == 'square-open':
 			G=nx.grid_2d_graph(N,N)
 		elif topology == 'square-periodic':
-			G=nx.grid_2d_graph(N,N, periodic=True)                              # for periodic boundary conditions:
+            G=nx.grid_2d_graph(N,N, periodic=True)                              # for periodic boundary conditions:
 		elif topology == 'hexagon':
 			G=nx.grid_2d_graph(N,N)
 			for n in G:

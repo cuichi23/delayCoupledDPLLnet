@@ -87,11 +87,14 @@ def chooseTransDelay():															# ask user-input for delay
 
 	return float(delay)
 
-def chooseTwistNumber(N):														# ask user-input for delay
+def chooseTwistNumber(N):														# ask user-input for twist number
 	a_true = True
 	while a_true:
 		# get user input on number of oscis in the network
 		k = raw_input('\nPlease specify the m-twist number [integer] in [0, ..., %d] [dimless]: ' %(N-1))
+
+		extend for 2d with mixed twists and also add that to simulation.py where the topology is set... 
+
 		if ( int(k)>=0 ):
 			break
 		else:
