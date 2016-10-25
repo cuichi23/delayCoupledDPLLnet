@@ -51,6 +51,19 @@ def chooseNumber():																# ask user-input for number of oscis in the n
 
 	return int(N)
 
+def get2DosciNumbers():
+	a_true = True
+	while a_true:
+		# get user input on number of oscis in the network
+		Nx = raw_input('\nPlease specify the number [integer] of oscillators in x-direction from [2, 1E5] in the network: ')
+		Ny = raw_input('\nPlease specify the number [integer] of oscillators in y-direction from [2, 1E5] in the network: ')
+		if ( int(Nx) > 1 and int(Ny) > 1 ):
+			break
+		else:
+			print('Please provide input as an [integer] in [2, 1000]!')
+
+	return int(Nx), int(Ny)
+
 def chooseK(mean_int_freq):														# ask user-input for coupling strength
 	a_true = True
 	while a_true:
@@ -92,15 +105,28 @@ def chooseTwistNumber(N):														# ask user-input for twist number
 	while a_true:
 		# get user input on number of oscis in the network
 		k = raw_input('\nPlease specify the m-twist number [integer] in [0, ..., %d] [dimless]: ' %(N-1))
-
-		extend for 2d with mixed twists and also add that to simulation.py where the topology is set... 
-
 		if ( int(k)>=0 ):
 			break
 		else:
 			print('Please provide input as an [integer] in [0, %d]!' %(N-1))
 
 	return int(k)
+
+def get2DTwistNumbers(Nx, Ny):													# ask user-input for twist number
+	a_true = True
+	while a_true:
+		# get user input on number of oscis in the network
+		kx = raw_input('\nPlease specify the mx-twist number [integer] in [0, ..., %d] [dimless]: ' %(Nx-1))
+		ky = raw_input('\nPlease specify the my-twist number [integer] in [0, ..., %d] [dimless]: ' %(Ny-1))
+
+		also add that to simulation.py where the topology is set...
+
+		if ( int(kx)>=0 and int(ky)>=0 ):
+			break
+		else:
+			print('Please provide input as an [integer] in [0, Nx/Ny]!')
+
+	return int(kx), int(ky)
 
 def chooseDeltaPert(N):															# ask user-input for delta-perturbation
 	b_true = True
@@ -380,6 +406,7 @@ def setDeltaPertubation(N, case):
 
 	return perturbation_vec
 
+''' SINGLE REALIZATION '''
 def singleRealization(params):
 	x_true = True
 	while x_true:
@@ -391,11 +418,18 @@ def singleRealization(params):
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz] dK = '))
 			new_K_values	 = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
 
-			N 		= chooseNumber()											# calls function that asks user for input of number of oscis
-			k		= chooseTwistNumber(N)										# choose twist under investigation
+			topology= chooseTopology()											# calls function that asks user for input of type of network topology
+			if ( topology == 'square-periodic' or topology == 'square-open' ):
+				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
+				N = Nx*Ny
+				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
+				k = -999														# set to dummy value
+			else:
+				N = chooseNumber()												# calls function that asks user for input of number of oscis
+				k = chooseTwistNumber(N)										# choose twist under investigation
+				kx = -999; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
-			topology= chooseTopology()											# calls function that asks user for input of type of network topology
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
 			pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
 			# Nsim    = chooseNsim()												# calls function that asks user for input for number of realizations
@@ -409,7 +443,7 @@ def singleRealization(params):
 
 			# perform a K sweep
 			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
-			sf = synctools.SweepFactory(N, F, new_K_values, delay, h, Fc, k, topology, isRadian)
+			sf = synctools.SweepFactory(N, Nx, Ny, F, new_K_values, delay, h, Fc, k, kx, ky, topology, isRadian)
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation: \n', para_mat)
@@ -424,12 +458,13 @@ def singleRealization(params):
 
 				for i in range (len(para_mat[:,0])):
 					print('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
-													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-													+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
-					# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+							+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
+							+str(c)+' '+'1'+str(Nx)+str(Ny)+str(mx)+str(my)+' '+' '.join(map(str, pert)))
+					# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(mx)+str(my)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					csing.singleout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
-									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(1), pert, plot_out)
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(1), str(int(Nx)), str(int(Ny)), str(int(mx)), str(int(my)),
+									pert, plot_out)
 			break
 
 		elif user_input == 'Fc':
@@ -438,11 +473,18 @@ def singleRealization(params):
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz] dFc = '))
 			new_Fc_values	 = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
 
-			N 		= chooseNumber()											# calls function that asks user for input of number of oscis
-			k		= chooseTwistNumber(N)										# choose twist under investigation
+			topology= chooseTopology()											# calls function that asks user for input of type of network topology
+			if ( topology == 'square-periodic' or topology == 'square-open' ):
+				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
+				N = Nx*Ny
+				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
+				k = -999														# set to dummy value
+			else:
+				N = chooseNumber()												# calls function that asks user for input of number of oscis
+				k = chooseTwistNumber(N)										# choose twist under investigation
+				kx = -999; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
-			topology= chooseTopology()											# calls function that asks user for input of type of network topology
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
 			pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
 			# Nsim    = chooseNsim()												# calls function that asks user for input for number of realizations
@@ -456,7 +498,7 @@ def singleRealization(params):
 
 			# perform a Fc sweep
 			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
-			sf = synctools.SweepFactory(N, F, K, delay, h, new_Fc_values, k, isRadian)
+			sf = synctools.SweepFactory(N, Nx, Ny, F, K, delay, h, new_Fc_values, k, kx, ky, isRadian)
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation: \n', para_mat)
@@ -472,11 +514,12 @@ def singleRealization(params):
 				for i in range (len(para_mat[:,0])):
 					print('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-													+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
-					# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+													+str(c)+' '+'1'+str(Nx)+str(Ny)+str(mx)+str(my)+' '+' '.join(map(str, pert)))
+					# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(mx)+str(my)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					csing.singleout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
-									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(1), pert, plot_out)
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(1), str(int(Nx)), str(int(Ny)), str(int(mx)), str(int(my)),
+									pert, plot_out)
 			break
 
 		elif user_input == 'delay':
@@ -485,11 +528,18 @@ def singleRealization(params):
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [s] ddelay = '))
 			new_delay_values = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
 
-			N 		= chooseNumber()											# calls function that asks user for input of number of oscis
-			k		= chooseTwistNumber(N)										# choose twist under investigation
+			topology= chooseTopology()											# calls function that asks user for input of type of network topology
+			if ( topology == 'square-periodic' or topology == 'square-open' ):
+				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
+				N = Nx*Ny
+				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
+				k = -999														# set to dummy value
+			else:
+				N = chooseNumber()												# calls function that asks user for input of number of oscis
+				k = chooseTwistNumber(N)										# choose twist under investigation
+				kx = -999; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
-			topology= chooseTopology()											# calls function that asks user for input of type of network topology
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
 			pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
 			# Nsim    = chooseNsim()												# calls function that asks user for input for number of realizations
@@ -503,7 +553,7 @@ def singleRealization(params):
 
 			# perform a delay sweep
 			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
-			sf = synctools.SweepFactory(N, F, K, new_delay_values, h, Fc, k, isRadian)
+			sf = synctools.SweepFactory(N, Nx, Ny, F, K, new_delay_values, h, Fc, k, kx, ky, isRadian)
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation: \n', para_mat)
@@ -519,11 +569,12 @@ def singleRealization(params):
 				for i in range (len(para_mat[:,0])):
 					print('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-													+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
-					# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+													+str(c)+' '+'1'+str(Nx)+str(Ny)+str(mx)+str(my)+' '+' '.join(map(str, pert)))
+					# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(mx)+str(my)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					csing.singleout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
-									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(1), pert, plot_out)
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(1), str(int(Nx)), str(int(Ny)), str(int(mx)), str(int(my)),
+									pert, plot_out)
 			break
 
 		else:
@@ -531,6 +582,7 @@ def singleRealization(params):
 
 	return None
 
+''' STATISTICS '''
 def noisyStatistics(params):
 	x_true = True
 	while x_true:
@@ -542,11 +594,18 @@ def noisyStatistics(params):
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz] dK = '))
 			new_K_values	 = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
 
-			N 		= chooseNumber()											# calls function that asks user for input of number of oscis
-			k		= chooseTwistNumber(N)										# choose twist under investigation
+			topology= chooseTopology()											# calls function that asks user for input of type of network topology
+			if ( topology == 'square-periodic' or topology == 'square-open' ):
+				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
+				N = Nx*Ny
+				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
+				k = -999														# set to dummy value
+			else:
+				N = chooseNumber()												# calls function that asks user for input of number of oscis
+				k = chooseTwistNumber(N)										# choose twist under investigation
+				kx = -999; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
-			topology= chooseTopology()											# calls function that asks user for input of type of network topology
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
 			pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
 			Nsim    = chooseNsim()												# calls function that asks user for input for number of realizations
@@ -576,11 +635,12 @@ def noisyStatistics(params):
 				for i in range (len(para_mat[:,0])):
 					print('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 												+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-												+str(c)+' '+str(Nsim)+' '+' '.join(map(str, pert)))
-					# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)+' '+' '.join(map(str, pert)))
+												+str(c)+' '+str(Nsim)+str(Nx)+str(Ny)+str(mx)+str(my)ky.join(map(str, pert)))
+					# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)ky.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					cnois.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
-									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(Nsim), pert, plot_out)
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(Nsim), str(int(Nx)), str(int(Ny)), str(int(mx)), str(int(my)),
+									pert, plot_out)
 			break
 
 		elif user_input == 'Fc':
@@ -589,8 +649,16 @@ def noisyStatistics(params):
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz] dFc = '))
 			new_Fc_values	 = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
 
-			N 		= chooseNumber()											# calls function that asks user for input of number of oscis
-			k		= chooseTwistNumber(N)										# choose twist under investigation
+			topology= chooseTopology()											# calls function that asks user for input of type of network topology
+			if ( topology == 'square-periodic' or topology == 'square-open' ):
+				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
+				N = Nx*Ny
+				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
+				k = -999														# set to dummy value
+			else:
+				N = chooseNumber()												# calls function that asks user for input of number of oscis
+				k = chooseTwistNumber(N)										# choose twist under investigation
+				kx = -999; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
@@ -623,11 +691,12 @@ def noisyStatistics(params):
 				for i in range (len(para_mat[:,0])):
 					print('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 												+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-												+str(c)+' '+str(Nsim)+' '+' '.join(map(str, pert)))
-					# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)+' '+' '.join(map(str, pert)))
+												+str(c)+' '+str(Nsim)+str(Nx)+str(Ny)+str(mx)+str(my)+' '+' '.join(map(str, pert)))
+					# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)+str(Nx)+str(Ny)+str(mx)+str(my)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					cnois.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
-									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(Nsim), pert, plot_out)
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(Nsim), str(int(Nx)), str(int(Ny)), str(int(mx)), str(int(my)),
+									pert, plot_out)
 			break
 
 		elif user_input == 'delay':
@@ -636,11 +705,18 @@ def noisyStatistics(params):
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [s] ddelay = '))
 			new_delay_values = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
 
-			N 		= chooseNumber()											# calls function that asks user for input of number of oscis
-			k		= chooseTwistNumber(N)										# choose twist under investigation
+			topology= chooseTopology()											# calls function that asks user for input of type of network topology
+			if ( topology == 'square-periodic' or topology == 'square-open' ):
+				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
+				N = Nx*Ny
+				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
+				k = -999														# set to dummy value
+			else:
+				N = chooseNumber()												# calls function that asks user for input of number of oscis
+				k = chooseTwistNumber(N)										# choose twist under investigation
+				kx = -999; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
-			topology= chooseTopology()											# calls function that asks user for input of type of network topology
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
 			pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
 			Nsim    = chooseNsim()												# calls function that asks user for input for number of realizations
@@ -670,11 +746,12 @@ def noisyStatistics(params):
 				for i in range (len(para_mat[:,0])):
 					print('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 												+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-												+str(c)+' '+str(Nsim)+' '+' '.join(map(str, pert)))
-					# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)+' '+' '.join(map(str, pert)))
+												+str(c)+' '+str(Nsim)+str(Nx)+str(Ny)+str(mx)+str(my)+' '+' '.join(map(str, pert)))
+					# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)+str(Nx)+str(Ny)+str(mx)+str(my)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					cnois.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
-									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(Nsim), pert, plot_out)
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(Nsim), str(int(Nx)), str(int(Ny)), str(int(mx)), str(int(my)),
+									pert, plot_out)
 			break
 
 		else:
@@ -682,6 +759,7 @@ def noisyStatistics(params):
 
 	return None
 
+''' BRUTE FORCE '''
 def bruteForce(params, param_cases_csv):
 	x_true = True
 	while x_true:
@@ -694,11 +772,18 @@ def bruteForce(params, param_cases_csv):
 			new_K_values	 = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
 			# print('new K-values: ', new_K_values)
 
-			N 		= chooseNumber()											# calls function that asks user for input of number of oscis
-			k		= chooseTwistNumber(N)										# choose twist under investigation
+			topology= chooseTopology()											# calls function that asks user for input of type of network topology
+			if ( topology == 'square-periodic' or topology == 'square-open' ):
+				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
+				N = Nx*Ny
+				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
+				k = -999														# set to dummy value
+			else:
+				N = chooseNumber()												# calls function that asks user for input of number of oscis
+				k = chooseTwistNumber(N)										# choose twist under investigation
+				kx = -999; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
-			topology= chooseTopology()											# calls function that asks user for input of type of network topology
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
 			# pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
 			pert = []
@@ -730,11 +815,12 @@ def bruteForce(params, param_cases_csv):
 					print('Tsim: ', para_mat[i,9])
 					print('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '
-													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
-					# os.system('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(mx)+str(my)+' '+' '.join(map(str, pert)))
+					# os.system('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(mx)+str(my)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					cbrut.bruteforceout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
-									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(1), pert, plot_out)
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(1), str(int(Nx)), str(int(Ny)), str(int(mx)), str(int(my)),
+									pert, plot_out)
 			break
 
 		elif user_input == 'Fc':
@@ -743,11 +829,18 @@ def bruteForce(params, param_cases_csv):
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz] dFc = '))
 			new_Fc_values	 = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
 
-			N 		= chooseNumber()											# calls function that asks user for input of number of oscis
-			k		= chooseTwistNumber(N)										# choose twist under investigation
+			topology= chooseTopology()											# calls function that asks user for input of type of network topology
+			if ( topology == 'square-periodic' or topology == 'square-open' ):
+				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
+				N = Nx*Ny
+				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
+				k = -999														# set to dummy value
+			else:
+				N = chooseNumber()												# calls function that asks user for input of number of oscis
+				k = chooseTwistNumber(N)										# choose twist under investigation
+				kx = -999; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
-			topology= chooseTopology()											# calls function that asks user for input of type of network topology
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
 			# pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
 			pert = []
@@ -779,11 +872,12 @@ def bruteForce(params, param_cases_csv):
 					print('Tsim: ', para_mat[i,9])
 					print('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '
-													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
-					# os.system('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(mx)+str(my)+' '+' '.join(map(str, pert)))
+					# os.system('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(mx)+str(my)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					cbrut.bruteforceout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
-									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(1), pert, plot_out)
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(1), str(int(Nx)), str(int(Ny)), str(int(mx)), str(int(my)),
+									pert, plot_out)
 			break
 
 		elif user_input == 'delay':
@@ -792,11 +886,18 @@ def bruteForce(params, param_cases_csv):
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [s] ddelay = '))
 			new_delay_values = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
 
-			N 		= chooseNumber()											# calls function that asks user for input of number of oscis
-			k		= chooseTwistNumber(N)										# choose twist under investigation
+			topology= chooseTopology()											# calls function that asks user for input of type of network topology
+			if ( topology == 'square-periodic' or topology == 'square-open' ):
+				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
+				N = Nx*Ny
+				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
+				k = -999														# set to dummy value
+			else:
+				N = chooseNumber()												# calls function that asks user for input of number of oscis
+				k = chooseTwistNumber(N)										# choose twist under investigation
+				kx = -999; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
-			topology= chooseTopology()											# calls function that asks user for input of type of network topology
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
 			# pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
 			pert = []
@@ -828,11 +929,12 @@ def bruteForce(params, param_cases_csv):
 					print('Tsim: ', para_mat[i,9])
 					print('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '
-													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
-					# os.system('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+' '.join(map(str, pert)))
+													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(mx)+str(my)+' '+' '.join(map(str, pert)))
+					# os.system('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(mx)+str(my)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					cbrut.bruteforceout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
-									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(1), pert, plot_out)
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(1), str(int(Nx)), str(int(Ny)), str(int(mx)), str(int(my)),
+									pert, plot_out)
 			break
 
 		else:

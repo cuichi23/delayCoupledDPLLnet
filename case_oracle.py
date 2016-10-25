@@ -77,6 +77,8 @@ if __name__ == '__main__':
 
 	''' SIMULATION PARAMETER'''
 
+	print('Note: here the cases with 2d-twist solutions still needs to be implemented!')
+
 	mode = int(0);																# mode=0 -> algorithm usage mode, mode=1 -> single realization mode,
 																				# mode=2 -> brute force scanning mode for parameter interval scans
 																				# mode=3 -> calculate many noisy realization for the same parameter set

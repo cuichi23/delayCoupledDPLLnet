@@ -140,7 +140,7 @@ def get_parametric_omega_curve(n, w, k, h, m, s_min, s_max, ds):
     return tau, omega, s
 
 
-def get_omega_implicit(n, w, k, tau, h, m):
+def get_omega_implicit(n, Nx, Ny, w, k, tau, h, m, mx, my):
     '''Computes the global synchronization frequency for a given delay.
 
       Based in nonlinear implicit equation of global synchronization frequency
@@ -318,7 +318,7 @@ def calcTopoMatrix(n, nx, ny, w, k, h, m, tau, omega, wc, topology):
 
     return e_mat
 
-def get_stability(n, nx, ny, w, k, h, m, tau, omega, wc, topology):
+def get_stability(n, Nx, Ny, w, k, h, m, mx, my, tau, omega, wc, topology):
     '''Linear stability analysis of globally synchronized state.
 
        The computation is based on finding the roots of the two-dimensional characteristic equation.
@@ -350,7 +350,7 @@ def get_stability(n, nx, ny, w, k, h, m, tau, omega, wc, topology):
                   the complex linear stability analysis exponent with the biggest real value
     '''
 
-    e_mat = calcTopoMatrix(n, nx, ny, w, k, h, m, tau, omega, wc, topology)
+    e_mat = calcTopoMatrix(n, Nx, Ny, w, k, h, m, mx, my, tau, omega, wc, topology)
 
     # obtain eigenvectors and eigenvalues
     em, vm = np.linalg.eig(e_mat)
@@ -415,24 +415,28 @@ class PllSystem(object):
         self.wc       = wc
         self.topology = topology
 
-    def get_twist_state(self, m):
+    def get_twist_state(self, m, mx, my):
         '''Determine the possible states of global synchronization for a specific m twist
 
            Parameters
            ----------
            m : int
-               twist numer
+               twist number
+           mx : int
+                twist number 2d, x-direction
+           my : int
+                twist number 2d, y-direction
 
            Returns
            -------
            s : list of twist states or None
         '''
-        o = get_omega_implicit(self.n, self.w, self.k, self.tau, self.h, m)
+        o = get_omega_implicit(self.n, self.Nx, self.Ny, self.w, self.k, self.tau, self.h, m, mx, my)
         if o != None:
             s = []
             for el in o:
-                l = get_stability(self.n, self.w, self.k, self.h, m, self.tau, el, self.wc, self.topology)
-                s.append(TwistState(self, m, el, l))
+                l = get_stability(self.n, self.Nx, self.Ny, self.w, self.k, self.h, m, mx, my, self.tau, el, self.wc, self.topology)
+                s.append(TwistState(self, m, mx, my, el, l))
             return s
         else:
             return None
@@ -651,6 +655,10 @@ class FlatStateList(object):
             x[:, 7] = np.real(self.get_l())
             x[:, 8] = np.imag(self.get_l())
             x[:, 9] = -25.0/x[:, 7]                                             #self.get_tsim()
+            x[:,10] = self.Nx
+            x[:,11] = self.Ny
+            x[:,12] = self.mx
+            x[:,13] = self.my
             return x
         else:
             return None
@@ -681,26 +689,34 @@ class SweepFactory(object):
        tsim : float
               simulation time
     '''
-    def __init__(self, n, w, k, tau, h, wc, m, topology, tsim=0.0, isRadians=True):
+    def __init__(self, n, Ny, Nx, w, k, tau, h, wc, m, mx, my, topology, tsim=0.0, isRadians=True):
         if isRadians:                                                           # if parameters provided in rad*Hz
-            self.n = n
-            self.w = w
-            self.k = k
-            self.tau = tau
-            self.h = h
-            self.wc = wc
-            self.m = m
+            self.n    = n
+            self.Nx   = Ny
+            self.Ny   = Nx
+            self.w    = w
+            self.k    = k
+            self.tau  = tau
+            self.h    = h
+            self.wc   = wc
+            self.m    = m
+            self.mx   = mx
+            self.my   = my
             self.tsim = tsim
             self.topology = topology
         else:                                                                   # if parameters provided in Hz, multiply by 2pi, as needed in the phase model
-            self.n = n
-            self.w = 2.0*np.pi*w                                                # here, w = f
-            self.k = 2.0*np.pi*k                                                # here, k is given in Hz instead rad*Hz
+            self.n    = n
+            self.Nx   = Ny
+            self.Ny   = Nx
+            self.w    = 2.0*np.pi*w                                             # here, w = f
+            self.k    = 2.0*np.pi*k                                             # here, k is given in Hz instead rad*Hz
             print('K:', k)
-            self.tau = tau
-            self.h = h
-            self.wc = 2.0*np.pi*wc                                              # here, wc = fc
-            self.m = m
+            self.tau  = tau
+            self.h    = h
+            self.wc   = 2.0*np.pi*wc                                            # here, wc = fc
+            self.m    = m
+            self.mx   = mx
+            self.my   = my
             self.tsim = tsim
             self.topology = topology
 
@@ -755,6 +771,6 @@ class SweepFactory(object):
                 else:
                     args.append(self[key])
             pll = PllSystem(*args)
-            s = pll.get_twist_state(self.m)
+            s = pll.get_twist_state(self.m, self.mx, self.my)
             fsl.add_states(s)
         return fsl

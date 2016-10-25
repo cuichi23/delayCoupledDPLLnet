@@ -287,7 +287,7 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,coupling
 	return {'phases': phi, 'intrinfreq': omega_0, 'coupling_strength': K_0, 'transdelays': delays_0}
 
 ''' CREATE PLL LIST '''
-def generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,y0,phiM,domega,diffconstK):
+def generatePllObjects(mode,topology,couplingfct,Nplls,Nx,Ny,dt,c,delay,F,F_Omeg,K,Fc,y0,phiM,domega,diffconstK):
 	if topology == 'global':
 		G = nx.complete_graph(Nplls)
 	elif topology == 'ring':
@@ -296,14 +296,15 @@ def generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,
 		G = nx.path_graph(Nplls)
 	else:
 		N = np.sqrt(Nplls)
-		if N.is_integer():
-			N = int(N)
-		else:
-			raise ValueError('Npll is not valid: sqrt(N) is not an integer')
+		if Nx == Ny:
+			if N.is_integer():
+				N = int(N)
+			else:
+				raise ValueError('Npll is not valid: sqrt(N) is not an integer')
 		if topology == 'square-open':
-			G=nx.grid_2d_graph(N,N)
+			G=nx.grid_2d_graph(Nx,Ny)
 		elif topology == 'square-periodic':
-            G=nx.grid_2d_graph(N,N, periodic=True)                              # for periodic boundary conditions:
+			G=nx.grid_2d_graph(Nx,Ny, periodic=True)                            # for periodic boundary conditions:
 		elif topology == 'hexagon':
 			G=nx.grid_2d_graph(N,N)
 			for n in G:
