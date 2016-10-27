@@ -203,7 +203,6 @@ def get_omega_implicit(n, Nx, Ny, w, k, tau, h, m, mx, my):
 
 def calcTopoMatrix(n, Nx, Ny, w, k, h, m, mx, my, tau, omega, wc, topology):
     # Dependent parameters
-    b = 1.0 / wc
     dhdt = h.get_derivative()
 
     # Construct coupling matrix and compute its eigensystem
@@ -252,6 +251,13 @@ def calcTopoMatrix(n, Nx, Ny, w, k, h, m, mx, my, tau, omega, wc, topology):
                     G.add_edge(n,(x-1,y+1))
         # matrix components are numbered from 1 to N^2, not for kl, each 1 to N
         G = networkx.convert_node_labels_to_integers(G, ordering='sorted')
+        print('CHECK HERE AGAIN!!!!!!!!')
+        d = np.zeros((n, n))                                                # prepare coupling topology matrix with 0 and 1, then normalize
+        for ir in range(n):                                                     # iterate and fill
+            ir_neigh = G.neighbors(ir)
+            d[ir, ir_neigh] = 1
+            d[ir, :] = d[ir, :]  / np.sum(d[ir, :])
+        e_mat = d
 
     elif ( topology == 'ring' or topology == 'chain' ):
         # Determine help variables
