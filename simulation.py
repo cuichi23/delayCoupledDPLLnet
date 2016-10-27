@@ -237,14 +237,14 @@ class DistDelayDelayerWithDynNoise(Delayer):
 		return np.asarray(x[idx_time,:]), np.asarray(x[idx_delayed,:])			# x is is the time-series from which the values at t-dt and t-tau are returned
 
 ''' SIMULATE NETWORK '''
-def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,couplingfct,phiS,phiM,domega,diffconstK):
+def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,couplingfct,phiS,phiM,domega,diffconstK,Nx=0,Ny=0):
 	y0 = 0																		# inital filter status:
 	''' for the last step of the initial history, the filter status has to be set if one uses the second order (inertia) type description of the model;
  		this avoids performing the integration of the filter and reduces the dependence on an entiry history to a ODE of first order for the control signal;
 		it is important however, to get the details associated to this transformation, concerning initial condition for the condtrol signal in the case of the ODE first order
 		or instead the continuous history in case of the integration '''
 	np.random.seed()															# restart pseudo random-number generator
-	pll_list = generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,y0,phiM,domega,diffconstK)	# create object lists of PLL objects of the network
+	pll_list = generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,y0,phiM,domega,diffconstK,Nx,Ny)	# create object lists of PLL objects of the network
 
 	delay_steps = pll_list[0].delayer.delay_steps       						# get the number of steps representing the delay at a given time-step from delayer of PLL_0
 	phi = np.empty([Nsteps+delay_steps,Nplls])									# prepare container for phase time series
@@ -287,7 +287,7 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,coupling
 	return {'phases': phi, 'intrinfreq': omega_0, 'coupling_strength': K_0, 'transdelays': delays_0}
 
 ''' CREATE PLL LIST '''
-def generatePllObjects(mode,topology,couplingfct,Nplls,Nx,Ny,dt,c,delay,F,F_Omeg,K,Fc,y0,phiM,domega,diffconstK):
+def generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,y0,phiM,domega,diffconstK,Nx,Ny):
 	if topology == 'global':
 		G = nx.complete_graph(Nplls)
 	elif topology == 'ring':
@@ -327,7 +327,7 @@ def generatePllObjects(mode,topology,couplingfct,Nplls,Nx,Ny,dt,c,delay,F,F_Omeg
 					G.add_edge(n,(x+1,y-1))
 				if x>0 and y<N-1:
 					G.add_edge(n,(x-1,y+1))
-		G = nx.convert_node_labels_to_integers(G)
+		G = nx.convert_node_labels_to_integers(G, ordering='sorted')
 
 	# print('c=',c,' coupling-function:', couplingfct,'\n')
 	# print('Complete this part for all cases, e.g. the case of K drawn from a distribution.')

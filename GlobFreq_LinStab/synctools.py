@@ -187,21 +187,21 @@ def get_omega_implicit(n, Nx, Ny, w, k, tau, h, m, mx, my):
         return omega
     else:
         return None
+#
+# def chooseTwistNumbers(Nx, Ny):   												# ask user-input for delay
+#     a_true = True
+#     while a_true:
+#         # get user input on number of oscis in the network
+#         k1 = raw_input('\nPlease specify the first (x-direction) twist number for 2d m1-m2-twist solutions [integer] in [0, ..., %d] [dimless]: ' %(Nx-1))
+#         k2 = raw_input('\nPlease specify the second (y-direction) twist number for 2d m1-m2-twist solutions [integer] in [0, ..., %d] [dimless]: ' %(Ny-1))
+#         if ( int(k1)>=0 and int(k2)>=0 ):
+#             break
+#         else:
+#             print('Please provide input as an [integer] in [0, %d]!' %(N-1))
+#
+#     return int(k1), int(k2)
 
-def chooseTwistNumbers(nx, ny):   												# ask user-input for delay
-    a_true = True
-    while a_true:
-        # get user input on number of oscis in the network
-        k1 = raw_input('\nPlease specify the first (x-direction) twist number for 2d m1-m2-twist solutions [integer] in [0, ..., %d] [dimless]: ' %(nx-1))
-        k2 = raw_input('\nPlease specify the second (y-direction) twist number for 2d m1-m2-twist solutions [integer] in [0, ..., %d] [dimless]: ' %(ny-1))
-        if ( int(k1)>=0 and int(k2)>=0 ):
-            break
-        else:
-            print('Please provide input as an [integer] in [0, %d]!' %(N-1))
-
-    return int(k1), int(k2)
-
-def calcTopoMatrix(n, nx, ny, w, k, h, m, tau, omega, wc, topology):
+def calcTopoMatrix(n, Nx, Ny, w, k, h, m, mx, my, tau, omega, wc, topology):
     # Dependent parameters
     b = 1.0 / wc
     dhdt = h.get_derivative()
@@ -216,18 +216,16 @@ def calcTopoMatrix(n, nx, ny, w, k, h, m, tau, omega, wc, topology):
             d[ir, :] = d[ir, :]  / np.sum(d[ir, :])
         e_mat = d
 
-        Should we put K into the matrix, check consistency for all cases
-
         print('Global coupling does not support m-twist solutions! Careful here, recheck.')
 
     elif ( topology == 'hexagon' or topology == 'octagon' ):
-
         N = np.sqrt(n)
-		if N.is_integer():
-			N = int(N)
-		else:
-			raise ValueError('Npll is not valid: sqrt(N) is not an integer')
-        elif topology == 'hexagon':
+        if N.is_integer():
+            N = int(N)
+        else:
+            raise ValueError('Npll is not valid: sqrt(N) is not an integer')
+
+        if topology == 'hexagon':
             print('\nOpen boundary conditions in this case, extend code... add part with edges that span "around"!\n')
             G=networkx.grid_2d_graph(N,N)
             for n in G:
@@ -236,6 +234,7 @@ def calcTopoMatrix(n, nx, ny, w, k, h, m, tau, omega, wc, topology):
                     G.add_edge(n,(x-1,y-1))
                 if x<N-1 and y<N-1:
                     G.add_edge(n,(x+1,y+1))
+
         elif topology == 'octagon':
             print('\nOpen boundary conditions in this case, extend code... add part with edges that span "around"!\n')
             G=networkx.grid_2d_graph(N,N)
@@ -254,10 +253,12 @@ def calcTopoMatrix(n, nx, ny, w, k, h, m, tau, omega, wc, topology):
         # matrix components are numbered from 1 to N^2, not for kl, each 1 to N
         G = networkx.convert_node_labels_to_integers(G, ordering='sorted')
 
-    elif ( topology == 'ring' or 'chain' ):
+    elif ( topology == 'ring' or topology == 'chain' ):
         # Determine help variables
-        alpha_minus = 0.5 * k * dhdt(-omega * tau + phi_m)                      # factor 0.5, since 2 neighbors in 1d
-        alpha_plus  = 0.5 * k * dhdt(-omega * tau - phi_m)
+        print('topology:', topology)
+        deltaphi_m = (2.0 * np.pi * m) / n
+        alpha_minus = 0.5 * k * dhdt(-omega * tau + deltaphi_m)                 # factor 0.5, since 2 neighbors in 1d
+        alpha_plus  = 0.5 * k * dhdt(-omega * tau - deltaphi_m)
         if topology == 'ring':
             ''' 1d ring topology, periodic boundary conditions '''
             e_mat = np.zeros((n, n))
@@ -283,12 +284,13 @@ def calcTopoMatrix(n, nx, ny, w, k, h, m, tau, omega, wc, topology):
     elif ( topology == 'square-open' or topology == 'square-periodic' ):
 
         if topology == 'square-open':
-            G=networkx.grid_2d_graph(nx, ny)
+            G=networkx.grid_2d_graph(Nx, Ny)
             delta_phase_chequer = np.pi
-            print('Check chequerboard case in synctools again!')
+            print('Check chequerboard case (in synctools) again!')
+
         elif topology == 'square-periodic':
-            G=networkx.grid_2d_graph(nx, ny, periodic=True)                     # for periodic boundary conditions:
-            mx, my = chooseTwistNumbers(nx, ny)
+            G=networkx.grid_2d_graph(Nx, Ny, periodic=True)                     # for periodic boundary conditions:
+            # mx, my = chooseTwistNumbers(Nx, Ny)
 
         G = networkx.convert_node_labels_to_integers(G, ordering='sorted')
         ''' Normalization '''
@@ -299,9 +301,8 @@ def calcTopoMatrix(n, nx, ny, w, k, h, m, tau, omega, wc, topology):
             d[ir, :] = d[ir, :]  / np.sum(d[ir, :])
 
         # Determine help variables
-        # alpha_minus = 0.5 * np.pi * k * dhdt(-omega * tau + phi_m)
-        delta_phi_mx = (2.0 * np.pi * mx) / nx
-        delta_phi_my = (2.0 * np.pi * my) / ny
+        delta_phi_mx = (2.0 * np.pi * mx) / Nx
+        delta_phi_my = (2.0 * np.pi * my) / Ny
 
         # if type(h) == Triangle:
         #     prefactor = 2.0 / np.pi
@@ -311,11 +312,11 @@ def calcTopoMatrix(n, nx, ny, w, k, h, m, tau, omega, wc, topology):
         a = np.zeros((n, n))                                                    # prepare coupling matrix that includes the phase-differences of m-twist solutions as property of the topology
         for ir in range(n):                                                     # iterate and fill
             for ic in range(n):
-                a[ir, ic] = k * dhdt( -omega * tau + delta_phi_mx *( np.mod(ic,float(nx))-np.mod(ir,float(nx)) ) +
-                                                     delta_phi_my *( np.floor(ic/float(nx))-np.floor(ir/float(nx)) ) )
-
+                a[ir, ic] = k * dhdt( -omega * tau + delta_phi_mx *( np.mod(ic,float(Nx))-np.mod(ir,float(Nx)) ) +
+                                                     delta_phi_my *( np.floor(ic/float(Nx))-np.floor(ir/float(Nx)) ) )
         e_mat = d * a                                                           # element-wise multiplication
 
+    print('topology: ', topology, 'with coupling matrix: ', e_mat)
     return e_mat
 
 def get_stability(n, Nx, Ny, w, k, h, m, mx, my, tau, omega, wc, topology):
@@ -356,6 +357,7 @@ def get_stability(n, Nx, Ny, w, k, h, m, mx, my, tau, omega, wc, topology):
     em, vm = np.linalg.eig(e_mat)
     # print('EIGENVALUES:', em)
 
+    b = 2.0*np.pi / wc
     # Solve characteristic equation for each eigenvalue
     lambda_nu = []
     for inu in range(len(em)):
@@ -365,11 +367,11 @@ def get_stability(n, Nx, Ny, w, k, h, m, mx, my, tau, omega, wc, topology):
             mu = np.real(nu)
             gamma = np.imag(nu)
             x = np.zeros(2)
+            if ( topology == 'square-periodic' or topology == 'square-open' and ( m != 0 or mx != 0 or my != 0 ) ):
 
-            case differentiation 1d and 2d!
-
-            x[0] = b * l[0]**2 - b * l[1]**2 + l[0] + 0.5 * (alpha_plus + alpha_minus) - 0.5 * mu * np.exp(-l[0] * tau) * np.cos(l[1] * tau) - 0.5 * gamma * np.exp(-l[0] * tau) * np.sin(l[1] * tau)
-            x[1] = 2 * b * l[0] * l[1] + l[1] + 0.5 * mu * np.exp(-l[0] * tau) * np.sin(l[1] * tau) - 0.5 * gamma * np.exp(-l[0] * tau) * np.cos(l[1] * tau)
+            else:
+                x[0] = b * l[0]**2 - b * l[1]**2 + l[0] + 0.5 * (alpha_plus + alpha_minus) - 0.5 * mu * np.exp(-l[0] * tau) * np.cos(l[1] * tau) - 0.5 * gamma * np.exp(-l[0] * tau) * np.sin(l[1] * tau)
+                x[1] = 2 * b * l[0] * l[1] + l[1] + 0.5 * mu * np.exp(-l[0] * tau) * np.sin(l[1] * tau) - 0.5 * gamma * np.exp(-l[0] * tau) * np.cos(l[1] * tau)
             return x
 
         l_opt = optimize.root(func, np.array([1.0, 1.0]), tol=1e-14)
@@ -406,8 +408,10 @@ class PllSystem(object):
        topology : string
             determines the coupling topology of the network
     '''
-    def __init__(self, n, w, k, tau, h, wc, topology):
+    def __init__(self, n, w, k, tau, h, wc, topology, Nx, Ny):
         self.n        = n
+        self.Nx       = Nx
+        self.Ny       = Ny
         self.w        = w
         self.k        = k
         self.tau      = tau
@@ -762,7 +766,7 @@ class SweepFactory(object):
         key_sweep = self._identify_swept_variable()
         par_sweep = self[key_sweep]
         n_sweep = len(par_sweep)
-        key_sys = ['n', 'w', 'k', 'tau', 'h', 'wc', 'topology']
+        key_sys = ['n', 'w', 'k', 'tau', 'h', 'wc', 'topology', 'Nx', 'Ny']
         for i in range(n_sweep):
             args = []
             for key in key_sys:

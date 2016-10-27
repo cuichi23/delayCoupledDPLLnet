@@ -19,9 +19,9 @@ import time
 import datetime
 
 ''' SIMULATION CALL '''
-def simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, isPlottingTimeSeries=False):
+def simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, Nx=0, Ny=0, kx=0, ky=0, isPlottingTimeSeries=False):
 	''' SIMULATION OF NETWORK '''
-	simresult = sim.simulateNetwork(mode,N,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,couplingfct,phiS, phiM, domega, diffconstK)
+	simresult = sim.simulateNetwork(mode,N,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,couplingfct,phiS,phiM,domega,diffconstK,Nx,Ny)
 	phi     = simresult['phases']
 	omega_0 = simresult['intrinfreq']
 	K_0     = simresult['coupling_strength']
@@ -42,7 +42,7 @@ def simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg
 # 		phiSr = np.insert(phiSr, 0, initPhiPrime0)								# insert the first variable in the rotated space, constant initPhiPrime0
 # 	phiS = eva.rotate_phases(phiSr, isInverse=False)							# rotate back into physical phase space
 # 	np.random.seed()
-# 	return simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, plot_Phases_Freq)
+# 	return simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, Nx, Ny, kx, ky, plot_Phases_Freq)
 #
 # def multihelper_star(dynparam_fixparam):
 # 	return multihelper(*dynparam_fixparam)
@@ -70,6 +70,7 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, Nx=0, Ny=0, k
 	now = datetime.datetime.now()												# single realization mode
 	plot_Phases_Freq = True										  				# plot phase time series for this realization
 
+	phiS=[]
 	if len(phiSr)==N:
 		print('Parameters set, perturbations provided manually in rotated phase space of phases.')
 		# choose the value of phi'_0, i.e., where the plane, rectangular to the axis phi'_0 in the rotated phase space, is placed
@@ -85,6 +86,7 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, Nx=0, Ny=0, k
 		# sys.exit(0)
 		phiSValues = np.zeros((Nsim, N), dtype=np.float)						# create vector that will contain the initial perturbation (in the history) for each realizations
 		print('\nNo perturbation set, hence all perturbations have the default value zero (in original phase space of phases)!')
+		phiS=phiSValues
 
 	Tsim 	= 2.0*Tsim*(1.0/F)			  										# simulation time in multiples of the period of the uncoupled oscillators
 	print('NOTE: single realizations will be simulated for 2*Tsim to have enough waveforms after transients have decayed to plot spectral density.')
@@ -97,21 +99,26 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, Nx=0, Ny=0, k
 		twistdelta_x = ( 2.0 * np.pi * kx / ( float( Nx ) ) )					# phase difference between neighboring oscillators in a stable m-twist state
 		twistdelta_y = ( 2.0 * np.pi * ky / ( float( Ny ) ) )					# phase difference between neighboring oscillators in a stable m-twist state
 		# print('phase differences of',k,'-twist:', twistdelta, '\n')
-		if k == 0:
+		if (k == 0 and kx == 0 and ky == 0):
 			phiM = np.zeros(N)													# phiM denotes the unperturbed initial phases according to the m-twist state under investigation
 		else:
-			phiM = np.arange(0.0, N*twistdelta, twistdelta)						# vector mit N entries from 0 increasing by twistdelta for every element, i.e., the phase-configuration
-																				# in the original phase space of an m-twist solution
+			phiM=[]
+			for rows in range(Ny):												# set the mx-my-twist state's initial condition (history of "perfect" configuration)
+				phiMtemp = np.arange(twistdelta_y*rows, Nx*twistdelta_x+twistdelta_y*rows, twistdelta_x)
+				phiM.append(phiMtemp)
+			phiM = np.array(phiM)
+			phiM = phiM.flatten(); # print('phiM: ', phiM)
 	else:
 		twistdelta = ( 2.0 * np.pi * k / ( float( N ) ) )						# phase difference between neighboring oscillators in a stable m-twist state
 		# print('phase differences of',k,'-twist:', twistdelta, '\n')
-		if k == 0:
+		if (k == 0 and kx == 0 and ky == 0):
 			phiM = np.zeros(N)													# phiM denotes the unperturbed initial phases according to the m-twist state under investigation
 		else:
 			phiM = np.arange(0.0, N*twistdelta, twistdelta)						# vector mit N entries from 0 increasing by twistdelta for every element, i.e., the phase-configuration
-																				# in the original phase space of an m-twist solution
+			# print('phiM: ', phiM)												# in the original phase space of an m-twist solution
+
 	t0 = time.time()
-	data = simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, plot_Phases_Freq) # initiates simulation and saves result in results container
+	data = simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, Nx, Ny, kx, ky, plot_Phases_Freq) # initiates simulation and saves result in results container
 	print('time needed for execution of simulation: ', (time.time()-t0), ' seconds')
 
 	''' evaluate dictionaries '''

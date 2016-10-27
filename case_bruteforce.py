@@ -19,9 +19,9 @@ import time
 import datetime
 
 ''' SIMULATION CALL '''
-def simulatePllNetwork(mode,topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, isPlottingTimeSeries=False):
+def simulatePllNetwork(mode,topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, Nx=0, Ny=0, kx=0, ky=0, isPlottingTimeSeries=False):
 	''' SIMULATION OF NETWORK '''
-	simresult = sim.simulateNetwork(mode,N,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,couplingfct,phiS, phiM, domega, diffconstK)
+	simresult = sim.simulateNetwork(mode,N,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,couplingfct,phiS,phiM,domega,diffconstK,Nx,Ny)
 	phi     = simresult['phases']
 	omega_0 = simresult['intrinfreq']
 	K_0     = simresult['coupling_strength']
@@ -91,13 +91,28 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, Nx=0, Ny=
 	if N > 2:
 		print('shift along the first axis in rotated phase space, equivalent to phase kick of all oscillators before simulation starts: phi`_0=', initPhiPrime0)
 
-	twistdelta = ( 2.0 * np.pi * k / float(N) )									# phase difference between neighboring oscillators in a stable m-twist state
-	#print('phase differences of',k,'-twist:', twistdelta, '\n')
-	if k == 0:
-		phiM = np.zeros(N)														# vector mit N entries from 0 increasing by twistdelta for every element, i.e., the initial phase-configuration
-	else:																		# in the original phase space
-		phiM = np.arange(0.0, N*twistdelta, twistdelta)
-		#print('phiM = ', phiM, '\n')
+	if ( topology == 'square-open' or topology == 'square-periodic' ):
+		twistdelta_x = ( 2.0 * np.pi * kx / ( float( Nx ) ) )					# phase difference between neighboring oscillators in a stable m-twist state
+		twistdelta_y = ( 2.0 * np.pi * ky / ( float( Ny ) ) )					# phase difference between neighboring oscillators in a stable m-twist state
+		# print('phase differences of',k,'-twist:', twistdelta, '\n')
+		if (k == 0 and kx == 0 and ky == 0):
+			phiM = np.zeros(N)													# phiM denotes the unperturbed initial phases according to the m-twist state under investigation
+		else:
+			phiM=[]
+			for rows in range(Ny):												# set the mx-my-twist state's initial condition (history of "perfect" configuration)
+				phiMtemp = np.arange(twistdelta_y*rows, Nx*twistdelta_x+twistdelta_y*rows, twistdelta_x)
+				phiM.append(phiMtemp)
+			phiM = np.array(phiM)
+			phiM = phiM.flatten()
+	else:
+		twistdelta = ( 2.0 * np.pi * k / ( float( N ) ) )						# phase difference between neighboring oscillators in a stable m-twist state
+		# print('phase differences of',k,'-twist:', twistdelta, '\n')
+		if (k == 0 and kx == 0 and ky == 0):
+			phiM = np.zeros(N)													# phiM denotes the unperturbed initial phases according to the m-twist state under investigation
+		else:
+			phiM = np.arange(0.0, N*twistdelta, twistdelta)						# vector mit N entries from 0 increasing by twistdelta for every element, i.e., the phase-configuration
+																				# in the original phase space of an m-twist solution
+
 	phiMr = eva.rotate_phases(phiM, isInverse=True)								# calculate phiM in terms of rotated phase space
 	# print('phiR =', phiR, '\n')
 
@@ -202,7 +217,7 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, Nx=0, Ny=
 			#print( 'type of phiS', type(phiS))
 			#print( 'type of initPhiPrime0', type(initPhiPrime0))
 			#print( 'phiS = ', phiS, '\n')
-			data = simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, plot_Phases_Freq, mode)
+			data = simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, Nx, Ny, kx, ky, plot_Phases_Freq, mode)
 
 			''' evaluate dictionaries '''
 			results.append( [ data['mean_order'],  data['last_orderP'], data['stdev_orderP'] ] )
@@ -217,7 +232,7 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, Nx=0, Ny=
 		print( 'size omega_0, K_0, results:', sys.getsizeof(omega_0), '\t', sys.getsizeof(K_0), '\t', sys.getsizeof(results), '\n' )
 		omega_0=np.array(omega_0); K_0=np.array(K_0); results=np.array(results);
 		del phi; # phi=np.array(phi);
-			#print( list( simulatePllNetwork(topology, Fc, F_Omeg, K, N, k, delay, phiS, phiM, plot_Phases_Freq) ) )
+			#print( list( simulatePllNetwork(topology, Fc, F_Omeg, K, N, k, delay, phiS, phiM, Nx, Ny, kx, ky, plot_Phases_Freq) ) )
 		print('results:', results)
 		print('time needed for execution of simulations sequentially: ', (time.time()-t0), ' seconds')
 

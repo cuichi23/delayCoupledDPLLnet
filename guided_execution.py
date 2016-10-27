@@ -1,3 +1,4 @@
+
 from __future__ import print_function
 import os
 from os import listdir
@@ -118,9 +119,6 @@ def get2DTwistNumbers(Nx, Ny):													# ask user-input for twist number
 		# get user input on number of oscis in the network
 		kx = raw_input('\nPlease specify the mx-twist number [integer] in [0, ..., %d] [dimless]: ' %(Nx-1))
 		ky = raw_input('\nPlease specify the my-twist number [integer] in [0, ..., %d] [dimless]: ' %(Ny-1))
-
-		also add that to simulation.py where the topology is set...
-
 		if ( int(kx)>=0 and int(ky)>=0 ):
 			break
 		else:
@@ -314,7 +312,8 @@ def writeCsvFileNewCases(para_mat_new, topology, couplingfct, c):
 			id_line = lastIDcsv+1+i
 			temp = [ str(float(para_mat_new[i,2])), str(float(para_mat_new[i,3])), str(float(para_mat_new[i,4])), str(float(para_mat_new[i,6])),
 						str(float(para_mat_new[i,5])), str(int(round(float(para_mat_new[i,9])))), str(id_line), str(para_mat_new[i,7]),
-						str(float(para_mat_new[i,9]/20.0)), str(topology), str(c), str(int(para_mat_new[i,0])), str(couplingfct)]
+						str(float(para_mat_new[i,9]/20.0)), str(topology), str(c), str(int(para_mat_new[i,0])), str(couplingfct),
+						str(para_mat_new[i,10]), str(para_mat_new[i,11]), str(para_mat_new[i,12]), str(para_mat_new[i,13])]
 			print('\n', temp, '\n')
 			writer.writerow(temp)
 
@@ -635,7 +634,7 @@ def noisyStatistics(params):
 				for i in range (len(para_mat[:,0])):
 					print('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 												+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-												+str(c)+' '+str(Nsim)+str(Nx)+str(Ny)+str(mx)+str(my)ky.join(map(str, pert)))
+												+str(c)+' '+str(Nsim)+str(Nx)+str(Ny)+str(mx)+str(my).join(map(str, pert)))
 					# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)ky.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					cnois.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
@@ -803,7 +802,7 @@ def bruteForce(params, param_cases_csv):
 			para_mat_temp = fsl.get_parameter_matrix(isRadians=False)			# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {N, f, K, Fc, delay, m, F_Omeg, ReLamb, ImLamb and Tsim} approximation:\n', para_mat_temp)
 
-			para_mat = chooseCsvSaveOption(param_cases_csv, para_mat_temp, topology, str(params['DEFAULT']['couplingfct']), c)
+			para_mat = chooseCsvSaveOption(param_cases_csv, para_mat_temp, topology, str(params['DEFAULT']['couplingfct']), c) # Nx, Ny, kx, ky contained in para_mat_temp
 
 			if not para_mat == []:
 				if len(para_mat[:,0]) > 1:
