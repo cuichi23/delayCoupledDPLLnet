@@ -423,11 +423,11 @@ def singleRealization(params):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
 				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
-				k = -999														# set to dummy value
+				k = kx															# set to dummy value
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
 				k = chooseTwistNumber(N)										# choose twist under investigation
-				kx = -999; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
+				kx = k; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
@@ -478,11 +478,11 @@ def singleRealization(params):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
 				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
-				k = -999														# set to dummy value
+				k = kx															# set to dummy value
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
 				k = chooseTwistNumber(N)										# choose twist under investigation
-				kx = -999; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
+				kx = k; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
@@ -533,11 +533,11 @@ def singleRealization(params):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
 				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
-				k = -999														# set to dummy value
+				k = kx															# set to dummy value
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
 				k = chooseTwistNumber(N)										# choose twist under investigation
-				kx = -999; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
+				kx = k; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
@@ -599,11 +599,11 @@ def noisyStatistics(params):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
 				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
-				k = -999														# set to dummy value
+				k = kx															# set to dummy value
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
 				k = chooseTwistNumber(N)										# choose twist under investigation
-				kx = -999; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
+				kx = k; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
@@ -654,11 +654,11 @@ def noisyStatistics(params):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
 				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
-				k = -999														# set to dummy value
+				k = kx															# set to dummy value
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
 				k = chooseTwistNumber(N)										# choose twist under investigation
-				kx = -999; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
+				kx = k; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
@@ -710,11 +710,11 @@ def noisyStatistics(params):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
 				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
-				k = -999														# set to dummy value
+				k = kx															# set to dummy value
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
 				k = chooseTwistNumber(N)										# choose twist under investigation
-				kx = -999; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
+				kx = k; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
@@ -777,11 +777,11 @@ def bruteForce(params, param_cases_csv):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
 				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
-				k = -999														# set to dummy value
+				k = kx															# set to dummy value
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
 				k = chooseTwistNumber(N)										# choose twist under investigation
-				kx = -999; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
+				kx = k; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
@@ -834,11 +834,11 @@ def bruteForce(params, param_cases_csv):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
 				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
-				k = -999														# set to dummy value
+				k = kx															# set to dummy value
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
 				k = chooseTwistNumber(N)										# choose twist under investigation
-				kx = -999; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
+				kx = k; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
@@ -891,11 +891,11 @@ def bruteForce(params, param_cases_csv):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
 				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
-				k = -999														# set to dummy value
+				k = kx															# set to dummy value
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
 				k = chooseTwistNumber(N)										# choose twist under investigation
-				kx = -999; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
+				kx = k; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
