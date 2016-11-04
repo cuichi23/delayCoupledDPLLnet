@@ -1,4 +1,3 @@
-
 from __future__ import print_function
 import os
 from os import listdir
@@ -261,7 +260,9 @@ def chooseCsvSaveOption(param_cases_csv, para_mat, topology, couplingfct, c):
 	for i in range (len(para_mat[:,0])):
 		temp = []																# reset temp container for every loop
 		temp = param_cases_csv.loc[(param_cases_csv['delay']==para_mat[i,4]) & (param_cases_csv['Fc']==para_mat[i,3]) & (param_cases_csv['K']==para_mat[i,2])
-									& (param_cases_csv['N']==para_mat[i,0]) & (param_cases_csv['c']==c) & (param_cases_csv['topology']==str(topology))].sort('K')
+									& (param_cases_csv['N']==para_mat[i,0]) & (param_cases_csv['c']==c) & (param_cases_csv['topology']==str(topology))
+									& (param_cases_csv['Nx']==para_mat[i,10]) & (param_cases_csv['Ny']==para_mat[i,11])
+									& (param_cases_csv['mx']==para_mat[i,12]) & (param_cases_csv['my']==para_mat[i,13])].sort('K')
 		exist_set.append( temp )
 		if len(temp) == 0:														# if temp is not set/empty,
 			para_mat_new.append(para_mat[i,:])
@@ -307,7 +308,7 @@ def writeCsvFileNewCases(para_mat_new, topology, couplingfct, c):
 	# print('In write function! Here para_mat_new[0,7]: ', para_mat_new[0,7])
 	with open('GlobFreq_LinStab/DPLLParameters.csv', 'a') as f:				# 'a' means append to file! other modes: 'w' write only and replace existing file, 'r' readonly...
 		writer = csv.writer(f, delimiter=',') #, header=2, dtype={'K': np.float, 'Fc': np.float, 'delay': np.float, 'F_Omeg': np.float, 'k': np.int, 'Tsim': np.int, 'sim-time-approx': np.float, 'topology': np.str, 'c': np.float})
-		# write row K, Fc, delay, F_Omeg, k, Tsim, sim-time-approx, topology, c
+		# write row K, Fc, delay, F_Omeg, k, Tsim, sim-time-approx, topology, c, Nx, Ny, mx, my
 		for i in range (len(para_mat_new[:,0])):
 			id_line = lastIDcsv+1+i
 			temp = [ str(float(para_mat_new[i,2])), str(float(para_mat_new[i,3])), str(float(para_mat_new[i,4])), str(float(para_mat_new[i,6])),
