@@ -323,7 +323,7 @@ def calcTopoMatrix(n, Nx, Ny, w, k, h, m, mx, my, tau, omega, wc, topology):
         e_mat = d * a                                                           # element-wise multiplication
 
     print('topology: ', topology, 'with coupling matrix: ', e_mat)
-    return e_mat
+    return e_mat, alpha_plus, alpha_minus
 
 def get_stability(n, Nx, Ny, w, k, h, m, mx, my, tau, omega, wc, topology):
     '''Linear stability analysis of globally synchronized state.
@@ -357,11 +357,12 @@ def get_stability(n, Nx, Ny, w, k, h, m, mx, my, tau, omega, wc, topology):
                   the complex linear stability analysis exponent with the biggest real value
     '''
 
-    e_mat = calcTopoMatrix(n, Nx, Ny, w, k, h, m, mx, my, tau, omega, wc, topology)
+    e_mat, alpha_plus, alpha_minus = calcTopoMatrix(n, Nx, Ny, w, k, h, m, mx, my, tau, omega, wc, topology)
 
     # obtain eigenvectors and eigenvalues
     em, vm = np.linalg.eig(e_mat)
     # print('EIGENVALUES:', em)
+
 
     b = 2.0*np.pi / wc
     # Solve characteristic equation for each eigenvalue
@@ -374,7 +375,7 @@ def get_stability(n, Nx, Ny, w, k, h, m, mx, my, tau, omega, wc, topology):
             gamma = np.imag(nu)
             x = np.zeros(2)
             if ( topology == 'square-periodic' or topology == 'square-open' and ( m != 0 or mx != 0 or my != 0 ) ):
-
+                print('Problem here in synctools')
             else:
                 x[0] = b * l[0]**2 - b * l[1]**2 + l[0] + 0.5 * (alpha_plus + alpha_minus) - 0.5 * mu * np.exp(-l[0] * tau) * np.cos(l[1] * tau) - 0.5 * gamma * np.exp(-l[0] * tau) * np.sin(l[1] * tau)
                 x[1] = 2 * b * l[0] * l[1] + l[1] + 0.5 * mu * np.exp(-l[0] * tau) * np.sin(l[1] * tau) - 0.5 * gamma * np.exp(-l[0] * tau) * np.cos(l[1] * tau)
@@ -442,6 +443,7 @@ class PllSystem(object):
            s : list of twist states or None
         '''
         o = get_omega_implicit(self.n, self.Nx, self.Ny, self.w, self.k, self.tau, self.h, m, mx, my)
+        print('Omega:', o)
         if o != None:
             s = []
             for el in o:
@@ -467,8 +469,10 @@ class TwistState(object):
        l : complex
            complex linear stability analysis exponent
     '''
-    def __init__(self, system, m, omega, l):
+    def __init__(self, system, m, mx, my, omega, l):
         self.m = m
+        self.mx = mx
+        self.my = my
         self.omega = omega
         self.l = l
         self.system = system
@@ -477,8 +481,10 @@ class TwistState(object):
 class FlatStateList(object):
     '''Flat list of TwistStates'''
     def __init__(self, tsim=0.0):
-        self.states = []
-        self.n = 0
+        self.states   = []
+        self.n  = 0
+        self.Nx = 0
+        self.Ny = 0
         self.tsim = tsim
 
     def add_states(self, s):
@@ -508,6 +514,26 @@ class FlatStateList(object):
         else:
             return None
 
+    def get_nx(self):
+        '''Returns an array of the number of oscillators of the states in the list'''
+        if self.nx > 0:
+            x = np.zeros(self.n)
+            for i in range(self.n):
+                x[i] = self.states[i].system.n
+            return x
+        else:
+            return None
+
+    def get_ny(self):
+        '''Returns an array of the number of oscillators of the states in the list'''
+        if self.ny > 0:
+            x = np.zeros(self.nx, self.ny)
+            for i in range(self.nx):
+                for j in range(self.ny):
+                    x[i] = self.states[i].system.nx.ny
+            return x
+        else:
+            return None
 
     def get_w(self, isRadians=True):
         '''Returns an array of the intrinsic frequencies of oscillators of the states in the list
@@ -665,10 +691,10 @@ class FlatStateList(object):
             x[:, 7] = np.real(self.get_l())
             x[:, 8] = np.imag(self.get_l())
             x[:, 9] = -25.0/x[:, 7]                                             #self.get_tsim()
-            x[:,10] = self.Nx
-            x[:,11] = self.Ny
-            x[:,12] = self.mx
-            x[:,13] = self.my
+            x[:,10] = self.get_nx()
+            x[:,11] = self.get_ny()
+            x[:,12] = self.get_mx()
+            x[:,13] = self.get_my()
             return x
         else:
             return None

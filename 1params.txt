@@ -3,11 +3,11 @@
 multiproc = True
 #
 #2: discretization for brute force scan in rotated phase space with phi_k_prime (for each dimension)
-paramdiscretization = 5
+paramdiscretization = 3
 #3: number of processors that can be used --> with intel ht: 2*number of cores of proc.
-numbercores = 8
+numbercores = 6
 #4: type of coupling function -- choose from {triang(ular), cos(ine), sin(e)}
-couplingfct = triang
+couplingfct = sin
 #5: free-running frequency of the plls [hz]
 f = 1
 #6: sample phases with fsim [hz] multiples of the intrinsic frequency -> goal: about 100 samples per period

@@ -427,7 +427,7 @@ def singleRealization(params):
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
 				k = chooseTwistNumber(N)										# choose twist under investigation
-				kx = k; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
+				kx = k; ky = -999; Nx = np.sqrt(N); Ny = np.sqrt(N);
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
@@ -443,7 +443,8 @@ def singleRealization(params):
 
 			# perform a K sweep
 			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
-			sf = synctools.SweepFactory(N, Nx, Ny, F, new_K_values, delay, h, Fc, k, kx, ky, topology, isRadian)
+			sf = synctools.SweepFactory(N, Ny, Nx, F, new_K_values, delay, h, Fc, k, kx, ky,topology, isRadian)
+
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation: \n', para_mat)
@@ -482,7 +483,7 @@ def singleRealization(params):
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
 				k = chooseTwistNumber(N)										# choose twist under investigation
-				kx = k; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
+				kx = k; ky = -999; Nx = np.sqrt(N); Ny = np.sqrt(N);
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
@@ -498,7 +499,8 @@ def singleRealization(params):
 
 			# perform a Fc sweep
 			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
-			sf = synctools.SweepFactory(N, Nx, Ny, F, K, delay, h, new_Fc_values, k, kx, ky, isRadian)
+			sf = synctools.SweepFactory(N, Ny, Nx, F, new_K_values, delay, h, Fc, k, kx, ky,topology, isRadian)
+
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation: \n', para_mat)
@@ -537,7 +539,7 @@ def singleRealization(params):
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
 				k = chooseTwistNumber(N)										# choose twist under investigation
-				kx = k; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
+				kx = k; ky = -999; Nx = np.sqrt(N); Ny = np.sqrt(N);
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
@@ -553,7 +555,8 @@ def singleRealization(params):
 
 			# perform a delay sweep
 			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
-			sf = synctools.SweepFactory(N, Nx, Ny, F, K, new_delay_values, h, Fc, k, kx, ky, isRadian)
+			sf = synctools.SweepFactory(N, Ny, Nx, F, new_K_values, delay, h, Fc, k, kx, ky,topology, isRadian)
+
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation: \n', para_mat)
@@ -603,7 +606,7 @@ def noisyStatistics(params):
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
 				k = chooseTwistNumber(N)										# choose twist under investigation
-				kx = k; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
+				kx = k; ky = -999; Nx = np.sqrt(N); Ny = np.sqrt(N);
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
@@ -619,7 +622,8 @@ def noisyStatistics(params):
 
 			# perform a K sweep
 			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
-			sf = synctools.SweepFactory(N, F, new_K_values, delay, h, Fc, k, isRadian)
+			sf = synctools.SweepFactory(N, Ny, Nx, F, new_K_values, delay, h, Fc, k, kx, ky,topology, isRadian)
+
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation: \n', para_mat)
@@ -658,7 +662,7 @@ def noisyStatistics(params):
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
 				k = chooseTwistNumber(N)										# choose twist under investigation
-				kx = k; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
+				kx = k; ky = -999; Nx = np.sqrt(N); Ny = np.sqrt(N);
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
@@ -675,7 +679,8 @@ def noisyStatistics(params):
 
 			# perform a Fc sweep
 			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
-			sf = synctools.SweepFactory(N, F, K, delay, h, new_Fc_values, k, isRadian)
+			sf = synctools.SweepFactory(N, Ny, Nx, F, new_K_values, delay, h, Fc, k, kx, ky,topology, isRadian)
+
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation: \n', para_mat)
@@ -714,7 +719,7 @@ def noisyStatistics(params):
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
 				k = chooseTwistNumber(N)										# choose twist under investigation
-				kx = k; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
+				kx = k; ky = -999; Nx = np.sqrt(N); Ny = np.sqrt(N);
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
@@ -730,7 +735,8 @@ def noisyStatistics(params):
 
 			# perform a delay sweep
 			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
-			sf = synctools.SweepFactory(N, F, K, new_delay_values, h, Fc, k, isRadian)
+			sf = synctools.SweepFactory(N, Ny, Nx, F, new_K_values, delay, h, Fc, k, kx, ky,topology, isRadian)
+
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {delay, K, Fc, F_Omeg, and Tsim} approximation: \n', para_mat)
@@ -781,7 +787,7 @@ def bruteForce(params, param_cases_csv):
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
 				k = chooseTwistNumber(N)										# choose twist under investigation
-				kx = k; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
+				kx = k; ky = -999; Nx = np.sqrt(N); Ny = np.sqrt(N);
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
@@ -798,7 +804,8 @@ def bruteForce(params, param_cases_csv):
 
 			# perform a K sweep
 			isRadian=False
-			sf = synctools.SweepFactory(N, F, new_K_values, delay, h, Fc, k, isRadian)
+			sf = synctools.SweepFactory(N, Ny, Nx, F, new_K_values, delay, h, Fc, k, kx, ky,topology, isRadian)
+
 			fsl = sf.sweep()
 			para_mat_temp = fsl.get_parameter_matrix(isRadians=False)			# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {N, f, K, Fc, delay, m, F_Omeg, ReLamb, ImLamb and Tsim} approximation:\n', para_mat_temp)
@@ -838,7 +845,7 @@ def bruteForce(params, param_cases_csv):
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
 				k = chooseTwistNumber(N)										# choose twist under investigation
-				kx = k; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
+				kx = k; ky = -999; Nx = np.sqrt(N); Ny = np.sqrt(N);
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
@@ -855,7 +862,8 @@ def bruteForce(params, param_cases_csv):
 
 			# perform a Fc sweep
 			isRadian=False
-			sf = synctools.SweepFactory(N, F, K, delay, h, new_Fc_values, k, isRadian)
+			sf = synctools.SweepFactory(N, Ny, Nx, F, new_K_values, delay, h, Fc, k, kx, ky,topology, isRadian)
+
 			fsl = sf.sweep()
 			para_mat_temp = fsl.get_parameter_matrix(isRadians=False)			# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {N, f, K, Fc, delay, m, F_Omeg, ReLamb, ImLamb and Tsim} approximation:\n', para_mat_temp)
@@ -895,7 +903,7 @@ def bruteForce(params, param_cases_csv):
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
 				k = chooseTwistNumber(N)										# choose twist under investigation
-				kx = k; ky = -999; Nx = sqrt(N); Ny = sqrt(N);
+				kx = k; ky = -999; Nx = np.sqrt(N); Ny = np.sqrt(N);
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
@@ -912,7 +920,8 @@ def bruteForce(params, param_cases_csv):
 
 			# perform a delay sweep
 			isRadian=False
-			sf = synctools.SweepFactory(N, F, K, new_delay_values, h, Fc, k, isRadian)
+			sf = synctools.SweepFactory(N, Ny, Nx, F, new_K_values, delay, h, Fc, k, kx, ky,topology, isRadian)
+
 			fsl = sf.sweep()
 			para_mat_temp = fsl.get_parameter_matrix(isRadians=False)			# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {N, f, K, Fc, delay, m, F_Omeg, ReLamb, ImLamb and Tsim} approximation:\n', para_mat_temp)
