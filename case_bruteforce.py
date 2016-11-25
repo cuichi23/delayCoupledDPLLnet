@@ -107,7 +107,7 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, Nx=0, Ny=
 	else:
 		twistdelta = ( 2.0 * np.pi * k / ( float( N ) ) )						# phase difference between neighboring oscillators in a stable m-twist state
 		# print('phase differences of',k,'-twist:', twistdelta, '\n')
-		if (k == 0 and kx == 0 and ky == 0):
+		if k == 0:
 			phiM = np.zeros(N)													# phiM denotes the unperturbed initial phases according to the m-twist state under investigation
 		else:
 			phiM = np.arange(0.0, N*twistdelta, twistdelta)						# vector mit N entries from 0 increasing by twistdelta for every element, i.e., the phase-configuration

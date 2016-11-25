@@ -215,7 +215,11 @@ def calcTopoMatrix(n, Nx, Ny, w, k, h, m, mx, my, tau, omega, wc, topology):
             d[ir, :] = d[ir, :]  / np.sum(d[ir, :])
         e_mat = d
 
-        print('Global coupling does not support m-twist solutions! Careful here, recheck.')
+        if mx == 0:
+            alpha_plus  = 0.5 * k * dhdt(-omega * tau + 0.0)
+            alpha_minus = alpha_plus
+        else:
+            print('Global coupling does not support m-twist solutions! Careful here, recheck.')
 
     elif ( topology == 'hexagon' or topology == 'octagon' ):
         N = np.sqrt(n)
@@ -481,8 +485,8 @@ class TwistState(object):
 class FlatStateList(object):
     '''Flat list of TwistStates'''
     def __init__(self, tsim=0.0):
-        self.states   = []
-        self.n  = 0
+        self.states = []
+        self.n  = 0                                                             # this is a variable to count the number of states
         self.nx = 0
         self.ny = 0
         self.tsim = tsim
@@ -503,8 +507,7 @@ class FlatStateList(object):
                 self.states.append(el)
             self.n = len(self.states)
 
-
-    def get_n(self):
+    def get_n_osci(self):
         '''Returns an array of the number of oscillators of the states in the list'''
         if self.n > 0:
             x = np.zeros(self.n)
@@ -514,23 +517,22 @@ class FlatStateList(object):
         else:
             return None
 
-    def get_nx(self):
+    def get_nx_osci(self):
         '''Returns an array of the number of oscillators of the states in the list'''
-        if self.nx > 0:
+        if self.n > 0:
             x = np.zeros(self.n)
             for i in range(self.n):
-                x[i] = self.states[i].system.n
+                x[i] = self.states[i].system.nx
             return x
         else:
             return None
 
-    def get_ny(self):
+    def get_ny_osci(self):
         '''Returns an array of the number of oscillators of the states in the list'''
-        if self.ny > 0:
-            x = np.zeros(self.nx, self.ny)
-            for i in range(self.nx):
-                for j in range(self.ny):
-                    x[i] = self.states[i].system.nx.ny
+        if self.n > 0:
+            x = np.zeros(self.n)
+            for i in range(self.n):
+                x[i] = self.states[i].system.ny
             return x
         else:
             return None
@@ -701,7 +703,7 @@ class FlatStateList(object):
             s = 1.0 / (2 * np.pi)
         if self.n > 0:
             x = np.zeros((self.n, 14))
-            x[:, 0] = self.get_n()
+            x[:, 0] = self.get_n_osci()
             x[:, 1] = self.get_w(isRadians=isRadians)
             x[:, 2] = self.get_k(isRadians=isRadians)
             x[:, 3] = self.get_wc(isRadians=isRadians)
@@ -711,8 +713,8 @@ class FlatStateList(object):
             x[:, 7] = np.real(self.get_l())
             x[:, 8] = np.imag(self.get_l())
             x[:, 9] = -25.0/x[:, 7]                                             #self.get_tsim()
-            x[:,10] = self.get_nx()
-            x[:,11] = self.get_ny()
+            x[:,10] = self.get_nx_osci()
+            x[:,11] = self.get_ny_osci()
             x[:,12] = self.get_mx()
             x[:,13] = self.get_my()
             return x
