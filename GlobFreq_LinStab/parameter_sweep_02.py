@@ -39,9 +39,9 @@ print '1. Demo PLL, SweepFactory and FlatStateList objects'
 # System parameters
 n = 3
 w = 2 * np.pi
-k = 2 * np.pi * 0.25
-wc = 0.5 * w
-m = 0
+k = 1.57
+wc = 1 * w
+m = 1
 tau = np.linspace(0, 2, 250)
 h = synctools.Triangle(1.0 / (2 * np.pi))
 tsim = 0.1234
@@ -73,7 +73,7 @@ gs = gridspec.GridSpec(2, 1)
 xlim = [0, 2]
 
 plt.subplot(gs[0])
-plt.title(r'System parameters: n = %i, k = %.3f, $\omega$ = %.3f, $\omega_c$ = %.3f' % (n, k, w, wc))
+plt.title(r'System parameters: n = %i, k = %.f, $\omega$ = %.3f, $\omega_c$ = %.3f' % (n, k, w, wc))
 plt.scatter(tau2, omega2, c=c_l2, cmap=cmap, edgecolors='face', vmin=vmin, vmax=vmax)
 plt.colorbar()
 plt.legend(fontsize=9)
