@@ -219,11 +219,11 @@ def calcTopoMatrix(n, nx, ny, w, k, h, m, mx, my, tau, omega, wc, topology):
         for ir in range(n):                                                     # iterate and fill
             ir_neigh = G.neighbors(ir)
             d[ir, ir_neigh] = 1
-            d[ir, :] = d[ir, :]  / np.sum(d[ir, :])
+            d[ir, :] = d[ir, :]  / np.sum(d[ir, :])                             # normalizing by the number of connections
         e_mat = d
 
         if mx == 0:
-            alpha_plus  = 0.5 * k * dhdt(-omega * tau + 0.0)
+            alpha_plus  = k * dhdt(-omega * tau + 0.0)                          #  2.0 * np.pi *
             alpha_minus = alpha_plus
         else:
             print('Global coupling does not support m-twist solutions! Careful here, recheck.')
@@ -239,7 +239,7 @@ def calcTopoMatrix(n, nx, ny, w, k, h, m, mx, my, tau, omega, wc, topology):
             print('\nOpen boundary conditions in this case, extend code... add part with edges that span "around"!\n')
 
             if mx == 0:
-                alpha_plus  = 0.0
+                alpha_plus  = k * dhdt(-omega * tau + 0.0)
                 alpha_minus = alpha_plus
             else:
                 print('Hexagonal coupling does not support m-twist solutions! Careful here, recheck.')
@@ -256,7 +256,7 @@ def calcTopoMatrix(n, nx, ny, w, k, h, m, mx, my, tau, omega, wc, topology):
             print('\nOpen boundary conditions in this case, extend code... add part with edges that span "around"!\n')
 
             if mx == 0:
-                alpha_plus  = 0.0
+                alpha_plus  = k * dhdt(-omega * tau + 0.0)
                 alpha_minus = alpha_plus
             else:
                 print('Hexagonal coupling does not support m-twist solutions! Careful here, recheck.')
@@ -288,8 +288,8 @@ def calcTopoMatrix(n, nx, ny, w, k, h, m, mx, my, tau, omega, wc, topology):
         # Determine help variables
         print('topology:', topology)
         deltaphi_m = (2.0 * np.pi * m) / n
-        alpha_minus = 0.5 * k * dhdt(-omega * tau + deltaphi_m)                 # factor 0.5, since 2 neighbors in 1d
-        alpha_plus  = 0.5 * k * dhdt(-omega * tau - deltaphi_m)
+        alpha_minus = 0.5 * np.pi * k * dhdt(-omega * tau + deltaphi_m)         # factor 0.5, since 2 neighbors in 1d
+        alpha_plus  = 0.5 * np.pi * k * dhdt(-omega * tau - deltaphi_m)
         if topology == 'ring':
             ''' 1d ring topology, periodic boundary conditions '''
             e_mat = np.zeros((n, n))
