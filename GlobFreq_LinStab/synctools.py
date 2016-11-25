@@ -393,7 +393,12 @@ def get_stability(n, nx, ny, w, k, h, m, mx, my, tau, omega, wc, topology):
             gamma = np.imag(nu)
             x = np.zeros(2)
             if ( topology == 'square-periodic' or topology == 'square-open' and ( m != 0 or mx != 0 or my != 0 ) ):
-                print('Problem here in synctools')
+                if topology == 'square-open':
+                    x[0] = b * l[0]**2 - b * l[1]**2 + l[0] + 1 - mu * np.exp(-l[0] * tau) * np.cos(l[1] * tau) - gamma * np.exp(-l[0] * tau) * np.sin(l[1] * tau)
+                    x[1] = 2 * b * l[0] * l[1] + l[1] + mu * np.exp(-l[0] * tau) * np.sin(l[1] * tau) - gamma * np.exp(-l[0] * tau) * np.cos(l[1] * tau)
+                else:
+                    x[0] = b * l[0]**2 - b * l[1]**2 + l[0] + np.sum(e_mat[0,:]) - mu * np.exp(-l[0] * tau) * np.cos(l[1] * tau) - gamma * np.exp(-l[0] * tau) * np.sin(l[1] * tau)
+                    x[1] = 2 * b * l[0] * l[1] + l[1] + mu * np.exp(-l[0] * tau) * np.sin(l[1] * tau) - gamma * np.exp(-l[0] * tau) * np.cos(l[1] * tau)
             else:
                 x[0] = b * l[0]**2 - b * l[1]**2 + l[0] + 0.5 * (alpha_plus + alpha_minus) - 0.5 * mu * np.exp(-l[0] * tau) * np.cos(l[1] * tau) - 0.5 * gamma * np.exp(-l[0] * tau) * np.sin(l[1] * tau)
                 x[1] = 2 * b * l[0] * l[1] + l[1] + 0.5 * mu * np.exp(-l[0] * tau) * np.sin(l[1] * tau) - 0.5 * gamma * np.exp(-l[0] * tau) * np.cos(l[1] * tau)

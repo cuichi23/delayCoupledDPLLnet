@@ -41,7 +41,7 @@ def simulatePllNetwork(mode,topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg,
 	return {'mean_order':np.mean(r), 'last_orderP':r[len(r)-1], 'stdev_orderP':np.var(r), 'phases': phi,
 			'intrinfreq': omega_0, 'coupling_strength': K_0, 'transdelays': delays_0}
 
-def multihelper(phiSr, initPhiPrime0, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiM, domega, diffconstK, plot_Phases_Freq, mode):
+def multihelper(phiSr, initPhiPrime0, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiM, domega, diffconstK, Nx, Ny, kx, ky, plot_Phases_Freq, mode):
 	if N > 2:
 		phiSr = np.insert(phiSr, 0, initPhiPrime0)								# insert the first variable in the rotated space, constant initPhiPrime0
 	phiS = eva.rotate_phases(phiSr, isInverse=False)							# rotate back into physical phase space
@@ -127,7 +127,8 @@ def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, Nx=0, Ny=0, kx
 		pool_data.append( pool.map(multihelper_star, itertools.izip( 		# this makes a map of all parameter combinations that have to be simulated, itertools.repeat() names the constants
 							phiSValues, itertools.repeat(initPhiPrime0), itertools.repeat(topology), itertools.repeat(couplingfct), itertools.repeat(F), itertools.repeat(Nsteps), itertools.repeat(dt),
 							itertools.repeat(c),itertools.repeat(Fc), itertools.repeat(F_Omeg), itertools.repeat(K), itertools.repeat(N), itertools.repeat(k), itertools.repeat(delay),
-							itertools.repeat(phiM), itertools.repeat(domega), itertools.repeat(diffconstK), itertools.repeat(plot_Phases_Freq), itertools.repeat(mode) ) ) )
+							itertools.repeat(phiM), itertools.repeat(domega), itertools.repeat(diffconstK), itertools.repeat(Nx), itertools.repeat(Ny), itertools.repeat(kx), itertools.repeat(ky), 
+							itertools.repeat(plot_Phases_Freq), itertools.repeat(mode) ) ) )
 		# print('pool_data:', pool_data, 'type(pool_data):', type(pool_data) )
 		results=[]; phi=[]; omega_0=[]; K_0=[]; delays_0=[];
 		for i in range(Nsim):

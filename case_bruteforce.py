@@ -41,12 +41,12 @@ def simulatePllNetwork(mode,topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg,
 	return {'mean_order': np.mean(r), 'last_orderP': r[len(r)-1], 'stdev_orderP': np.var(r), 'phases': phi,
 	 		'intrinfreq': omega_0, 'coupling_strength': K_0, 'transdelays': delays_0}
 
-def multihelper(phiSr, initPhiPrime0, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiM, domega, diffconstK, plot_Phases_Freq, mode):
+def multihelper(phiSr, initPhiPrime0, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiM, domega, diffconstK, Nx=0, Ny=0, kx=0, ky=0, plot_Phases_Freq, mode):
 	if N > 2:
 		phiSr = np.insert(phiSr, 0, initPhiPrime0)								# insert the first variable in the rotated space, constant initPhiPrime0
 	phiS = eva.rotate_phases(phiSr, isInverse=False)							# rotate back into physical phase space
 	np.random.seed()
-	return simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, plot_Phases_Freq)
+	return simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, Nx, Ny, kx, ky, diffconstK, plot_Phases_Freq)
 
 def multihelper_star(dynparam_fixparam):
 	return multihelper(*dynparam_fixparam)
@@ -178,7 +178,8 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, Nx=0, Ny=
 		pool_data.append( pool.map(multihelper_star, itertools.izip( 			# this makes a map of all parameter combinations that have to be simulated, itertools.repeat() names the constants
 							itertools.product(*scanValues), itertools.repeat(initPhiPrime0), itertools.repeat(topology), itertools.repeat(couplingfct), itertools.repeat(F), itertools.repeat(Nsteps),
 							itertools.repeat(dt), itertools.repeat(c),itertools.repeat(Fc), itertools.repeat(F_Omeg), itertools.repeat(K), itertools.repeat(N), itertools.repeat(k), itertools.repeat(delay),
-							itertools.repeat(phiM), itertools.repeat(domega), itertools.repeat(diffconstK), itertools.repeat(plot_Phases_Freq), itertools.repeat(mode) ) ) )
+							itertools.repeat(phiM), itertools.repeat(domega), itertools.repeat(diffconstK), itertools.repeat(Nx), itertools.repeat(Ny), itertools.repeat(kx), itertools.repeat(ky),
+							itertools.repeat(plot_Phases_Freq), itertools.repeat(mode) ) ) )
 		results=[]; phi=[]; omega_0=[]; K_0=[]; delays_0=[];
 		for i in range(Nsim):
 			''' evaluate dictionaries '''
