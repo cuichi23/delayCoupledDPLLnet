@@ -483,8 +483,8 @@ class FlatStateList(object):
     def __init__(self, tsim=0.0):
         self.states   = []
         self.n  = 0
-        self.Nx = 0
-        self.Ny = 0
+        self.nx = 0
+        self.ny = 0
         self.tsim = tsim
 
     def add_states(self, s):
@@ -607,6 +607,26 @@ class FlatStateList(object):
         else:
             return None
 
+    def get_mx(self):
+        '''Returns an array of the twist numbers of the states in the list'''
+        if self.n > 0:
+            x = np.zeros(self.n)
+            for i in range(self.n):
+                x[i] = self.states[i].mx
+            return x
+        else:
+            return None
+
+    def get_my(self):
+        '''Returns an array of the twist numbers of the states in the list'''
+        if self.n > 0:
+            x = np.zeros(self.n)
+            for i in range(self.n):
+                x[i] = self.states[i].my
+            return x
+        else:
+            return None
+
     def get_omega(self, isRadians=True):
         '''Returns an array of the global synchronization frequencies of the states in the list
 
@@ -680,7 +700,7 @@ class FlatStateList(object):
         else:
             s = 1.0 / (2 * np.pi)
         if self.n > 0:
-            x = np.zeros((self.n, 10))
+            x = np.zeros((self.n, 14))
             x[:, 0] = self.get_n()
             x[:, 1] = self.get_w(isRadians=isRadians)
             x[:, 2] = self.get_k(isRadians=isRadians)
