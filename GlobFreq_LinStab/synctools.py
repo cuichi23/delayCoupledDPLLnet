@@ -140,7 +140,7 @@ def get_parametric_omega_curve(n, w, k, h, m, s_min, s_max, ds):
     return tau, omega, s
 
 
-def get_omega_implicit(n, Nx, Ny, w, k, tau, h, m, mx, my):
+def get_omega_implicit(n, nx, ny, w, k, tau, h, m, mx, my):
     '''Computes the global synchronization frequency for a given delay.
 
       Based in nonlinear implicit equation of global synchronization frequency
@@ -188,12 +188,12 @@ def get_omega_implicit(n, Nx, Ny, w, k, tau, h, m, mx, my):
     else:
         return None
 #
-# def chooseTwistNumbers(Nx, Ny):   												# ask user-input for delay
+# def chooseTwistNumbers(nx, ny):   												# ask user-input for delay
 #     a_true = True
 #     while a_true:
 #         # get user input on number of oscis in the network
-#         k1 = raw_input('\nPlease specify the first (x-direction) twist number for 2d m1-m2-twist solutions [integer] in [0, ..., %d] [dimless]: ' %(Nx-1))
-#         k2 = raw_input('\nPlease specify the second (y-direction) twist number for 2d m1-m2-twist solutions [integer] in [0, ..., %d] [dimless]: ' %(Ny-1))
+#         k1 = raw_input('\nPlease specify the first (x-direction) twist number for 2d m1-m2-twist solutions [integer] in [0, ..., %d] [dimless]: ' %(nx-1))
+#         k2 = raw_input('\nPlease specify the second (y-direction) twist number for 2d m1-m2-twist solutions [integer] in [0, ..., %d] [dimless]: ' %(ny-1))
 #         if ( int(k1)>=0 and int(k2)>=0 ):
 #             break
 #         else:
@@ -201,7 +201,7 @@ def get_omega_implicit(n, Nx, Ny, w, k, tau, h, m, mx, my):
 #
 #     return int(k1), int(k2)
 
-def calcTopoMatrix(n, Nx, Ny, w, k, h, m, mx, my, tau, omega, wc, topology):
+def calcTopoMatrix(n, nx, ny, w, k, h, m, mx, my, tau, omega, wc, topology):
     # Dependent parameters
     dhdt = h.get_derivative()
 
@@ -294,13 +294,13 @@ def calcTopoMatrix(n, Nx, Ny, w, k, h, m, mx, my, tau, omega, wc, topology):
     elif ( topology == 'square-open' or topology == 'square-periodic' ):
 
         if topology == 'square-open':
-            G=networkx.grid_2d_graph(Nx, Ny)
+            G=networkx.grid_2d_graph(nx, ny)
             delta_phase_chequer = np.pi
             print('Check chequerboard case (in synctools) again!')
 
         elif topology == 'square-periodic':
-            G=networkx.grid_2d_graph(Nx, Ny, periodic=True)                     # for periodic boundary conditions:
-            # mx, my = chooseTwistNumbers(Nx, Ny)
+            G=networkx.grid_2d_graph(nx, ny, periodic=True)                     # for periodic boundary conditions:
+            # mx, my = chooseTwistNumbers(nx, ny)
 
         G = networkx.convert_node_labels_to_integers(G, ordering='sorted')
         ''' Normalization '''
@@ -311,8 +311,8 @@ def calcTopoMatrix(n, Nx, Ny, w, k, h, m, mx, my, tau, omega, wc, topology):
             d[ir, :] = d[ir, :]  / np.sum(d[ir, :])
 
         # Determine help variables
-        delta_phi_mx = (2.0 * np.pi * mx) / Nx
-        delta_phi_my = (2.0 * np.pi * my) / Ny
+        delta_phi_mx = (2.0 * np.pi * mx) / nx
+        delta_phi_my = (2.0 * np.pi * my) / ny
 
         # if type(h) == Triangle:
         #     prefactor = 2.0 / np.pi
@@ -322,14 +322,14 @@ def calcTopoMatrix(n, Nx, Ny, w, k, h, m, mx, my, tau, omega, wc, topology):
         a = np.zeros((n, n))                                                    # prepare coupling matrix that includes the phase-differences of m-twist solutions as property of the topology
         for ir in range(n):                                                     # iterate and fill
             for ic in range(n):
-                a[ir, ic] = k * dhdt( -omega * tau + delta_phi_mx *( np.mod(ic,float(Nx))-np.mod(ir,float(Nx)) ) +
-                                                     delta_phi_my *( np.floor(ic/float(Nx))-np.floor(ir/float(Nx)) ) )
+                a[ir, ic] = k * dhdt( -omega * tau + delta_phi_mx *( np.mod(ic,float(nx))-np.mod(ir,float(nx)) ) +
+                                                     delta_phi_my *( np.floor(ic/float(nx))-np.floor(ir/float(nx)) ) )
         e_mat = d * a                                                           # element-wise multiplication
 
     print('topology: ', topology, 'with coupling matrix: ', e_mat)
     return e_mat, alpha_plus, alpha_minus
 
-def get_stability(n, Nx, Ny, w, k, h, m, mx, my, tau, omega, wc, topology):
+def get_stability(n, nx, ny, w, k, h, m, mx, my, tau, omega, wc, topology):
     '''Linear stability analysis of globally synchronized state.
 
        The computation is based on finding the roots of the two-dimensional characteristic equation.
@@ -361,7 +361,7 @@ def get_stability(n, Nx, Ny, w, k, h, m, mx, my, tau, omega, wc, topology):
                   the complex linear stability analysis exponent with the biggest real value
     '''
 
-    e_mat, alpha_plus, alpha_minus = calcTopoMatrix(n, Nx, Ny, w, k, h, m, mx, my, tau, omega, wc, topology)
+    e_mat, alpha_plus, alpha_minus = calcTopoMatrix(n, nx, ny, w, k, h, m, mx, my, tau, omega, wc, topology)
 
     # obtain eigenvectors and eigenvalues
     em, vm = np.linalg.eig(e_mat)
@@ -419,10 +419,10 @@ class PllSystem(object):
        topology : string
             determines the coupling topology of the network
     '''
-    def __init__(self, n, w, k, tau, h, wc, topology, Nx, Ny):
+    def __init__(self, n, w, k, tau, h, wc, topology, nx, ny):
         self.n        = n
-        self.Nx       = Nx
-        self.Ny       = Ny
+        self.nx       = nx
+        self.ny       = ny
         self.w        = w
         self.k        = k
         self.tau      = tau
@@ -446,12 +446,12 @@ class PllSystem(object):
            -------
            s : list of twist states or None
         '''
-        o = get_omega_implicit(self.n, self.Nx, self.Ny, self.w, self.k, self.tau, self.h, m, mx, my)
+        o = get_omega_implicit(self.n, self.nx, self.ny, self.w, self.k, self.tau, self.h, m, mx, my)
         print('Omega:', o)
         if o != None:
             s = []
             for el in o:
-                l = get_stability(self.n, self.Nx, self.Ny, self.w, self.k, self.h, m, mx, my, self.tau, el, self.wc, self.topology)
+                l = get_stability(self.n, self.nx, self.ny, self.w, self.k, self.h, m, mx, my, self.tau, el, self.wc, self.topology)
                 s.append(TwistState(self, m, mx, my, el, l))
             return s
         else:
@@ -747,11 +747,11 @@ class SweepFactory(object):
        tsim : float
               simulation time
     '''
-    def __init__(self, n, Ny, Nx, w, k, tau, h, wc, m, mx, my, topology, tsim=0.0, isRadians=True):
+    def __init__(self, n, ny, nx, w, k, tau, h, wc, m, mx, my, topology, tsim=0.0, isRadians=True):
         if isRadians:                                                           # if parameters provided in rad*Hz
             self.n    = n
-            self.Nx   = Ny
-            self.Ny   = Nx
+            self.nx   = nx
+            self.ny   = ny
             self.w    = w
             self.k    = k
             self.tau  = tau
@@ -764,8 +764,8 @@ class SweepFactory(object):
             self.topology = topology
         else:                                                                   # if parameters provided in Hz, multiply by 2pi, as needed in the phase model
             self.n    = n
-            self.Nx   = Ny
-            self.Ny   = Nx
+            self.nx   = ny
+            self.ny   = nx
             self.w    = 2.0*np.pi*w                                             # here, w = f
             self.k    = 2.0*np.pi*k                                             # here, k is given in Hz instead rad*Hz
             print('K:', k)
@@ -820,7 +820,7 @@ class SweepFactory(object):
         key_sweep = self._identify_swept_variable()
         par_sweep = self[key_sweep]
         n_sweep = len(par_sweep)
-        key_sys = ['n', 'w', 'k', 'tau', 'h', 'wc', 'topology', 'Nx', 'Ny']
+        key_sys = ['n', 'w', 'k', 'tau', 'h', 'wc', 'topology', 'nx', 'ny']
         for i in range(n_sweep):
             args = []
             for key in key_sys:
