@@ -248,20 +248,22 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, domega, twistdelta, results, 
 	orderparam = np.array(orderparam)
 	r          = np.array(r)
 
-	#firstfreq  = (np.diff(phi[:,0:1, :], axis=1)/(dt))						# calculate first frequency of each time series (history of simulation): for each oscillator and realization
-	firstfreqs    = (np.diff(phi[:,0:int(round(delay/dt))+4, :], axis=1)/(dt))	# calculate first frequencies of each time series: for each oscillator and realization
-	firstfreqsext = (np.diff(phi[:,0:int(round((8*delay)/dt))+4, :], axis=1)/(dt))
+	#firstfreq  = (np.diff(phi[:,0:1, :], axis=1)/(dt))							# calculate first frequency of each time series (history of simulation): for each oscillator and realization
+	firstfreqs    = np.diff(phi[:,0:int(round(delay/dt))+4, :], axis=1)/(dt)	# calculate first frequencies of each time series: for each oscillator and realization
+	firstfreqsext = np.diff(phi[:,0:int(round((8*delay)/dt))+4, :], axis=1)/(dt)
 	firstfreq     = firstfreqs[:,0,:]
 	simstartfreq  = firstfreqs[:,int(round(delay/dt))+2,:]
-	lastfreq      = (np.diff(phi[:,-2:, :], axis=1)/(dt))
-	lastfreqs     = (np.diff(phi[:,-int(2.0*1.0/(F*dt)):, :], axis=1)/(dt))	# calculate last frequency of each time series: for each oscillator and realization
+	lastfreq      = np.diff(phi[:,-2:, :], axis=1)/(dt)
+	lastfreqs     = np.diff(phi[:,-int(2.0*1.0/(F*dt)):, :], axis=1)/(dt)		# calculate last frequency of each time series: for each oscillator and realization
 	lastfreq      = lastfreqs[:,-1:, :]
 	#print( 'the results:\n', results, '\n type:', type(results), '\n')
 	#print( 'first value in results:\n', results[0], '\n type:', type(results[0]), '\n')
 	#print( np.array(results))
 	''' SAVE FREQUENCIES '''
 	now = datetime.datetime.now()												# provides me the current date and time
-	np.savez('results/freqs_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), data=[firstfreqsext, firstfreq, lastfreq])
+	# print('data to be saved: \n', firstfreqsext)
+	print('shape firstfreqsext: ', firstfreqsext.shape)
+	# np.savez('results/freqs_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), data=[firstfreqsext, firstfreq, lastfreq])
 
 	'''PLOT TEST'''
 	dpi_value  = 300

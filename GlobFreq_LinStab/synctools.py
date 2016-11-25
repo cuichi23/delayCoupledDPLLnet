@@ -130,7 +130,8 @@ def get_parametric_omega_curve(n, w, k, h, m, s_min, s_max, ds):
               global angular frequency of the synchronized system
       s : np.ndarray
           used curve parameter values
-   '''
+    '''
+    print('ATTENTION HERE: in get_parametric_omega_curve, not for 2d!')
     phi_m = (2 * np.pi * m) / n
     n_s = np.int(np.rint((s_max - s_min) / ds))
     s = np.linspace(s_min, s_max, n_s)
@@ -140,7 +141,7 @@ def get_parametric_omega_curve(n, w, k, h, m, s_min, s_max, ds):
     return tau, omega, s
 
 
-def get_omega_implicit(n, nx, ny, w, k, tau, h, m, mx, my):
+def get_omega_implicit(n, nx, ny, w, k, tau, h, m, mx, my, topology):
     '''Computes the global synchronization frequency for a given delay.
 
       Based in nonlinear implicit equation of global synchronization frequency
@@ -165,8 +166,14 @@ def get_omega_implicit(n, nx, ny, w, k, tau, h, m, mx, my):
       omega : list/None
               list of possible gloabally synchronized states for given parameters. None if there is no possible state
    '''
-    phi_m = (2 * np.pi * m) / n
-    func = lambda s: -s + 0.5 * k * tau * (h(-s + phi_m) + h(-s - phi_m)) + w * tau
+
+    if ( topology == 'square-periodic' or topology == 'square-open' ):
+        phi_mx = (2 * np.pi * mx) / nx
+        phi_my = (2 * np.pi * my) / ny
+        func = lambda s: -s + 0.25 * k * tau * (h(-s + phi_mx) + h(-s - phi_mx) + h(-s + phi_my) + h(-s - phi_my)) + w * tau
+    else:
+        phi_m = (2 * np.pi * m) / n
+        func = lambda s: -s + 0.5 * k * tau * (h(-s + phi_m) + h(-s - phi_m)) + w * tau
 
     # Determine values of the curve parameter under the assumption of a bound coupling functions
     h_min = 2 * h.min()
@@ -449,7 +456,7 @@ class PllSystem(object):
         self.wc       = wc
         self.topology = topology
 
-    def get_twist_state(self, m, mx, my):
+    def get_twist_state(self, m, mx, my, topology):
         '''Determine the possible states of global synchronization for a specific m twist
 
            Parameters
@@ -465,7 +472,7 @@ class PllSystem(object):
            -------
            s : list of twist states or None
         '''
-        o = get_omega_implicit(self.n, self.nx, self.ny, self.w, self.k, self.tau, self.h, m, mx, my)
+        o = get_omega_implicit(self.n, self.nx, self.ny, self.w, self.k, self.tau, self.h, m, mx, my, topology)
         print('Omega:', o)
         if o != None:
             s = []
@@ -848,6 +855,6 @@ class SweepFactory(object):
                 else:
                     args.append(self[key])
             pll = PllSystem(*args)
-            s = pll.get_twist_state(self.m, self.mx, self.my)
+            s = pll.get_twist_state(self.m, self.mx, self.my, self.topology)
             fsl.add_states(s)
         return fsl
