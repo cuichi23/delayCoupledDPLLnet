@@ -230,6 +230,13 @@ def calcTopoMatrix(n, nx, ny, w, k, h, m, mx, my, tau, omega, wc, topology):
 
         if topology == 'hexagon':
             print('\nOpen boundary conditions in this case, extend code... add part with edges that span "around"!\n')
+
+            if mx == 0:
+                alpha_plus  = 0.0
+                alpha_minus = alpha_plus
+            else:
+                print('Hexagonal coupling does not support m-twist solutions! Careful here, recheck.')
+
             G=networkx.grid_2d_graph(N,N)
             for n in G:
                 x,y=n
@@ -240,6 +247,13 @@ def calcTopoMatrix(n, nx, ny, w, k, h, m, mx, my, tau, omega, wc, topology):
 
         elif topology == 'octagon':
             print('\nOpen boundary conditions in this case, extend code... add part with edges that span "around"!\n')
+
+            if mx == 0:
+                alpha_plus  = 0.0
+                alpha_minus = alpha_plus
+            else:
+                print('Hexagonal coupling does not support m-twist solutions! Careful here, recheck.')
+
             G=networkx.grid_2d_graph(N,N)
             for n in G:
                 x,y=n
@@ -256,7 +270,7 @@ def calcTopoMatrix(n, nx, ny, w, k, h, m, mx, my, tau, omega, wc, topology):
         # matrix components are numbered from 1 to N^2, not for kl, each 1 to N
         G = networkx.convert_node_labels_to_integers(G, ordering='sorted')
         print('CHECK HERE AGAIN!!!!!!!!')
-        d = np.zeros((n, n))                                                # prepare coupling topology matrix with 0 and 1, then normalize
+        d = np.zeros((n, n))                                                    # prepare coupling topology matrix with 0 and 1, then normalize
         for ir in range(n):                                                     # iterate and fill
             ir_neigh = G.neighbors(ir)
             d[ir, ir_neigh] = 1

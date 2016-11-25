@@ -679,7 +679,7 @@ def noisyStatistics(params):
 
 			# perform a Fc sweep
 			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
-			sf = synctools.SweepFactory(N, Ny, Nx, F, K, delay, h, new_Fc_values, k, kx, ky,topology, isRadian
+			sf = synctools.SweepFactory(N, Ny, Nx, F, K, delay, h, new_Fc_values, k, kx, ky,topology, isRadian)
 
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
