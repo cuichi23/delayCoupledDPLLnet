@@ -165,6 +165,10 @@ class Topology(object):
     def get_coupling_sum(self, h, twist_number, s):
         pass
 
+    def get_couling_derivate_matrix(self, h, twist_number, k, s):
+        pass
+
+
 
 class Global(Topology):
     def __init__(self, n):
@@ -175,6 +179,19 @@ class Global(Topology):
             return h(-s)
         else:
             raise Exception('Topology not compatible with state')
+
+    def get_couling_derivate_matrix(self, h, twist_number, s):
+        if type(twist_number) == InPhase:
+            G = networkx.complete_graph(self.n)
+            d = np.zeros((self.n, self.n))
+            for ir in range(self.n):
+                ir_neigh = G.neighbors(ir)
+                d[ir, ir_neigh] = 1
+                d[ir, :] = d[ir, :] / np.sum(d[ir, :])
+            return d
+        else:
+            raise Exception('Topology not compatible with state')
+
 
 
 class Ring(Topology):
@@ -191,6 +208,25 @@ class Ring(Topology):
         else:
             raise Exception('Topology not compatible with state')
 
+    def get_couling_derivate_matrix(self, h, twist_number, s):
+        if type(twist_number) == InPhase or type(twist_number) == Twist1D:
+            if type(twist_number) == InPhase:
+                m = 0
+            else:
+                m = twist_number.get_m()
+            dhdx = h.get_derivative()
+            dphi = (2 * np.pi * m) / self.n
+            d = np.zeros((self.n, self.n))
+            for i_row in range(self.n):
+                i_minus = np.mod(i_row - 1, self.n)
+                i_plus  = np.mod(i_row + 1, self.n)
+                d[i_row, i_minus] = 0.5 * dhdx(-s - dphi)
+                d[i_row, i_plus]  = 0.5 * dhdx(-s + dphi)
+            return d
+        else:
+            raise Exception('Topology not compatible with state')
+
+
 
 class Chain(Topology):
     def __init__(self, n):
@@ -202,11 +238,26 @@ class Chain(Topology):
         else:
             raise Exception('Topology not compatible with state')
 
+    def get_couling_derivate_matrix(self, h, twist_number, s):
+        if type(twist_number) == InPhase:
+            dhdx = h.get_derivative()
+            d = np.zeros((self.n, self.n))
+            d[0, 1] = dhdx(-s)
+            for i_row in range(1, self.n - 1):
+                d[i_row, i_row - 1] = 0.5 * dhdx(-s)
+                d[i_row, i_row + 1] = 0.5 * dhdx(-s)
+            d[-1, -2] = dhdx(-s)
+            return d
+        else:
+            raise Exception('Topology not compatible with state')
+
+
 
 class SquarePeriodic(Topology):
     def __init__(self, nx, ny):
         self.nx = nx     # number of oscillators in the x-direction
         self.ny = ny     # number of oscillators in the y-direction
+        self.n = self.nx * self.ny # total number of oscillators
 
     def get_coupling_sum(self, h, twist_number, s):
         if type(twist_number) == InPhase:
@@ -220,17 +271,74 @@ class SquarePeriodic(Topology):
         else:
             raise Exception('Topology not compatible with state')
 
+    def get_couling_derivate_matrix(self, h, twist_number, s):
+        if type(twist_number) == InPhase or type(twist_number) == Twist2D:
+            if type(twist_number) == InPhase:
+                mx = 0
+                my = 0
+            else:
+                mx = twist_number.get_mx()
+                my = twist_number.get_my()
+            dhdx = h.get_derivative()
+            dphi_x = (2 * np.pi * mx) / self.nx
+            dphi_y = (2 * np.pi * my) / self.nx
+
+            g = networkx.grid_2d_graph(self.ny, self.nx, periodic=True)
+            g = networkx.convert_node_labels_to_integers(g, ordering='sorted')
+            c = _networkx2mat(g, self.n)
+            a = _build_2d_dhdx_matrix(dhdx, self.nx, self.ny, self.n, dphi_x, dphi_y, s)
+            d = c * a
+            return d
+        else:
+            raise Exception('Topology not compatible with state')
+
 
 class SquareOpen(Topology):
     def __init__(self, nx, ny):
         self.nx = nx     # number of oscillators in the x-direction
         self.ny = ny     # number of oscillators in the y-direction
+        self.n = self.nx * self.ny # total number of oscillators
 
     def get_coupling_sum(self, h, twist_number, s):
         if type(twist_number) == InPhase:
             return h(-s)
         else:
             raise Exception('Topology not compatible with state')
+
+    def get_couling_derivate_matrix(self, h, twist_number, s):
+        if type(twist_number) == InPhase:
+            dhdx = h.get_derivative()
+            dphi_x = 0.0
+            dphi_y = 0.0
+
+            g = networkx.grid_2d_graph(self.ny, self.nx, periodic=False)
+            g = networkx.convert_node_labels_to_integers(g, ordering='sorted')
+            c = _networkx2mat(g, self.n)
+            a = _build_2d_dhdx_matrix(dhdx, self.nx, self.ny, self.n, dphi_x, dphi_y, s)
+            d = c * a
+            return d
+        else:
+            raise Exception('Topology not compatible with state')
+
+
+
+def _build_2d_dhdx_matrix(dhdx, nx, ny, n, dphi_x, dphi_y, s):
+    a = np.zeros((n, n))                                                    # prepare coupling matrix that includes the phase-differences of m-twist solutions as property of the topology
+    for ir in range(n):                                                     # iterate and fill
+        for ic in range(n):
+            a[ir, ic] = dhdx( -s + dphi_x *(np.mod(ic, float(nx)) - np.mod(ir, float(nx)) ) + dphi_y *(np.floor(ic / float(nx)) - np.floor(ir / float(nx))))
+    return a
+
+
+def _networkx2mat(g, n):
+    c = np.zeros((n, n))                                                    # prepare coupling topology matrix with 0 and 1, then normalize
+    for ir in range(n):                                                     # iterate and fill
+        ir_neigh = g.neighbors(ir)
+        c[ir, ir_neigh] = 1
+        c[ir, :] = c[ir, :] / np.sum(c[ir, :])
+    return c
+
+
 
 
 # ##############################################################################
@@ -336,6 +444,11 @@ def get_omega_curve(topo, twist_number, h, k, w, tau, ns=10000):
 
     tau, omega = flatten_multivalued_curve(tau, omega)
     return tau, omega
+
+
+
+def get_stability2(w, k, h, wc, tau, omega,topology, twist_number):
+    pass
 
 
 # ##############################################################################
