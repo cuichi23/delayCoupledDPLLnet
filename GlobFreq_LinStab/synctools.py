@@ -10,6 +10,8 @@ import scipy.optimize as optimize
 import networkx
 
 # ##############################################################################
+# Coupling function classes
+# ##############################################################################
 
 class Dcosdt(object):
     '''Periodic sine wave vertically centered around 0'''
@@ -88,6 +90,169 @@ class Sin(object):
     def min(self):
         return -1.0
 
+
+
+# ##############################################################################
+# Twist number classes
+# ##############################################################################
+
+
+class TwistNumber(object):
+    def __init__(self):
+        pass
+
+    def get_m(self):
+        pass
+
+    def get_mx(self):
+        pass
+
+    def get_my(self):
+        pass
+
+
+class InPhase(TwistNumber):
+    def __init__(self):
+        pass
+
+class Twist1D(TwistNumber):
+    def __init__(self, m):
+        self.m = m    # Twist index
+
+    def get_m(self):
+        return self.m
+
+    def get_mx(self):
+        return self.m
+
+    def get_my(self):
+        return 0
+
+class Twist2D(TwistNumber):
+    def __init__(self, mx, my):
+        self.mx = mx      # Twist index in x-direction
+        self.my = my      # Twist index in y-direction
+
+    def get_m(self):
+        return 0
+
+    def get_mx(self):
+        return self.mx
+
+    def get_my(self):
+        return self.my
+
+
+
+
+# ##############################################################################
+# Topology classes
+# ##############################################################################
+
+class Topology(object):
+    def __init__(self):
+        pass
+
+    def get_n(self):
+        pass
+
+    def get_nx(self):
+        pass
+
+    def get_ny(self):
+        pass
+
+    def get_coupling_sum(self, h, twist_number, s):
+        pass
+
+
+class Global(Topology):
+    def __init__(self, n):
+        self.n = n      # number of oscillators
+
+    def get_coupling_sum(self, h, twist_number, s):
+        if type(twist_number) == InPhase:
+            return h(-s)
+        else:
+            raise Exception('Topology not compatible with state')
+
+
+class Ring(Topology):
+    def __init__(self, n):
+        self.n = n     # number of oscillators in the ring
+
+    def get_coupling_sum(self, h, twist_number, s):
+        if type(twist_number) == InPhase:
+            return h(-s)
+        elif type(twist_number) == Twist1D:
+            m = twist_number.get_m()
+            dphi = (2 * np.pi * m) / float(self.n)
+            return 0.5 * (h(-s - dphi) + h(-s + dphi) )
+        else:
+            raise Exception('Topology not compatible with state')
+
+
+class Chain(Topology):
+    def __init__(self, n):
+        self.n = n    # number of oscillators in the chain
+
+    def get_coupling_sum(self, h, twist_number, s):
+        if type(twist_number) == InPhase:
+            return h(-s)
+        else:
+            raise Exception('Topology not compatible with state')
+
+
+class SquarePeriodic(Topology):
+    def __init__(self, nx, ny):
+        self.nx = nx     # number of oscillators in the x-direction
+        self.ny = ny     # number of oscillators in the y-direction
+
+    def get_coupling_sum(self, h, twist_number, s):
+        if type(twist_number) == InPhase:
+            return h(-s)
+        elif type(twist_number) == Twist2D:
+            mx = twist_number.get_mx()
+            my = twist_number.get_my()
+            dphi_x = (2 * np.pi * mx) / float(self.nx)
+            dphi_y = (2 * np.pi * my) / float(self.ny)
+            return 0.25 * (h(-s - dphi_x) + h(-s + dphi_x) + h(-s - dphi_y) + h(-s + dphi_y))
+        else:
+            raise Exception('Topology not compatible with state')
+
+
+class SquareOpen(Topology):
+    def __init__(self, nx, ny):
+        self.nx = nx     # number of oscillators in the x-direction
+        self.ny = ny     # number of oscillators in the y-direction
+
+    def get_coupling_sum(self, h, twist_number, s):
+        if type(twist_number) == InPhase:
+            return h(-s)
+        else:
+            raise Exception('Topology not compatible with state')
+
+
+# ##############################################################################
+# System class
+# ##############################################################################
+
+#class PllParameters(object):
+    #def __init__(self, w, k, tau, wc):
+        #self.w        = w
+        #self.k        = k
+        #self.tau      = tau
+        #self.wc       = wc
+
+    #def get_w(self):
+        #return self.w
+
+    #def get_k(self):
+        #return self.k
+
+
+# ##############################################################################
+# New methods compatible with different topologies
 # ##############################################################################
 
 def get_sign_changes(x):
@@ -99,6 +264,83 @@ def get_sign_changes(x):
         return i[0]
     else:
         return []
+
+
+
+def flatten_multivalued_curve(x, y_multi):
+    x_flat = []
+    y_flat = []
+    for ix in range(len(x)):
+        for iy in range(len(y_multi[ix])):
+            x_flat.append(x[ix])
+            y_flat.append(y_multi[ix][iy])
+    x_flat = np.array(x_flat)
+    y_flat = np.array(y_flat)
+
+    # Return results
+    return x_flat, y_flat
+
+
+
+def get_parametric_omega_curve2(topo, twist_number, h, k, w, s_min, s_max, ds):
+    # Setup coupling sum
+    c = lambda s: topo.get_coupling_sum(h, twist_number, s)
+
+    # Sweep s
+    n_s = np.int(np.rint((s_max - s_min) / ds))
+    s = np.linspace(s_min, s_max, n_s)
+
+    # Compute
+    omega = w + k * c(s)
+    tau  = s / omega
+
+    # Return results
+    return tau, omega, s
+
+
+
+def get_omega(topo, twist_number, h, k, w, tau, ns=10000):
+    # Setup coupling sum
+    c = lambda s: topo.get_coupling_sum(h, twist_number, s)
+
+    # Setup implicit equation for s
+    f = lambda s: k * tau * c(s) + w * tau - s
+
+    # Determine search interval for s
+    # Assumption c can only vary between -1 and +1
+    s_min = (w - k) * tau
+    s_max = (w + k) * tau
+    s = np.linspace(s_min - 2, s_max + 2, ns)   # safty margin added
+
+    # Find sign changes as you go along curve
+    # Assumes that there are no double sign changes between two values of s
+    # A finer sampling interval can be achieved by increasing ns
+    i_root = get_sign_changes(f(s))
+    if len(i_root) > 0:
+        omega = []
+        for ir in range(len(i_root)):
+            # Numerically solve the implicit equation for omega
+            s_tmp = optimize.brentq(f, s[i_root[ir]], s[i_root[ir] + 1])
+            omega.append(w + k * c(s_tmp))
+        return omega
+    else:
+        return None
+
+
+
+def get_omega_curve(topo, twist_number, h, k, w, tau, ns=10000):
+    omega = []
+    for el in tau:
+        omega_tmp = get_omega(topo, twist_number, h, k, w, el, ns=ns)
+        omega.append(omega_tmp)
+
+    tau, omega = flatten_multivalued_curve(tau, omega)
+    return tau, omega
+
+
+# ##############################################################################
+
+
 
 def get_parametric_omega_curve(n, w, k, h, m, s_min, s_max, ds):
     '''Compute a parametric curve of the global synchronization frequency as a function of the delay.
@@ -139,6 +381,8 @@ def get_parametric_omega_curve(n, w, k, h, m, s_min, s_max, ds):
     tau  = s / omega
 
     return tau, omega, s
+
+
 
 
 def get_omega_implicit(n, nx, ny, w, k, tau, h, m, mx, my, topology):
