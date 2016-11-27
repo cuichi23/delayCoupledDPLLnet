@@ -447,8 +447,41 @@ def get_omega_curve(topo, twist_number, h, k, w, tau, ns=10000):
 
 
 
-def get_stability2(w, k, h, wc, tau, omega,topology, twist_number):
-    pass
+def get_stability2(w, k, h, wc, tau, omega, topology, twist_number):
+    d = topology.get_couling_derivate_matrix(h, twist_number, omega * tau)
+    em, vm = np.linalg.eig(d)
+    b = 2.0 * np.pi / wc
+    d_sum = np.sum(d[0, :])   # assumes that the sum of each row is the same for all rows
+    lambda_zeta = []
+    for i_eigen in range(len(em)):
+        zeta = em[i_eigen]
+        def func(l):
+            alpha = np.real(zeta)
+            beta  = np.imag(zeta)
+            x = np.zeros(2)
+            x[0] = l[0] + b * l[0]**2 - b * l[1]**2 + k * d_sum - k * alpha * np.exp(-l[0] * tau) * np.cos(l[1] * tau) - k * beta * np.exp(-l[0] * tau) * np.sin(l[1] * tau)
+            x[1] = l[1] + 2 * b * l[0] * l[1] + k * alpha * np.exp(-l[0] * tau) * np.sin(l[1] * tau) - k * beta * np.exp(-l[0] * tau) * np.cos(l[1] * tau)
+            return x
+
+        l_opt = optimize.root(func, np.array([1.0, 1.0]), tol=1e-14)
+        l_tmp = l_opt.x[0] + 1j * l_opt.x[1]
+
+        # Ignore solution for the eigenvector (a, a, a, ...)
+        if np.max(np.abs(np.diff(vm[:, i_eigen]))) >= 1e-9:
+            lambda_zeta.append(l_tmp)
+
+    lambda_zeta = np.array(lambda_zeta)
+    return lambda_zeta[np.argmax(np.real(lambda_zeta))]
+
+
+def get_stability_curve(w, k, h, wc, tau, omega, topology, twist_number):
+    l = np.zeros(len(tau), dtype=np.complex)
+    for i_tau in range(len(tau)):
+        l[i_tau] = get_stability2(w, k, h, wc, tau[i_tau], omega[i_tau], topology, twist_number)
+    print tau.shape
+    return tau, l
+
+
 
 
 # ##############################################################################
