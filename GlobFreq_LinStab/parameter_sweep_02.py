@@ -75,7 +75,7 @@ xlim = [0, 2]
 plt.subplot(gs[0])
 plt.title(r'System parameters: n = %i, k = %.f, $\omega$ = %.3f, $\omega_c$ = %.3f' % (n, k, w, wc))
 plt.scatter(tau2, omega2, c=c_l2, cmap=cmap, edgecolors='face', vmin=vmin, vmax=vmax)
-plt.colorbar()
+plt.colorbar(orientation='horizontal')
 plt.legend(fontsize=9)
 plt.xlim(xlim)
 plt.xlabel(r'Delay $\tau$')

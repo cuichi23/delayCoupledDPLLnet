@@ -478,7 +478,6 @@ def get_stability_curve(w, k, h, wc, tau, omega, topology, twist_number):
     l = np.zeros(len(tau), dtype=np.complex)
     for i_tau in range(len(tau)):
         l[i_tau] = get_stability2(w, k, h, wc, tau[i_tau], omega[i_tau], topology, twist_number)
-    print tau.shape
     return tau, l
 
 
