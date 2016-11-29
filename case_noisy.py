@@ -241,6 +241,10 @@ if __name__ == '__main__':
 	Tsim 		= float(sys.argv[8])											# provide the multiples of the intrinsic frequencies for which the simulations runs
 	c 			= float(sys.argv[9])											# provide diffusion constant for GWN process, bzw. sigma^2 = 2*c  --> c = 0.5 variance
 	Nsim 		= int(sys.argv[10])												# number of realizations for parameterset -- should be one here
+	# Nx			= int(sys.argv[11])												# number of oscillators in x-direction
+	# Ny			= int(sys.argv[12])												# number of oscillators in y-direction
+	# mx			= int(sys.argv[13])												# twist number in x-direction
+	# my			= int(sys.argv[14])												# twist number in y-direction
 	phiSr 		= np.asarray([float(phi) for phi in sys.argv[11:(11+N)]])		# this input allows to simulate specific points in !rotated phase space plane
 
 	noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, phiSr, True)

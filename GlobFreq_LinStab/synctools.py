@@ -838,11 +838,11 @@ class PllSystem(object):
         self.n        = n
         self.nx       = nx
         self.ny       = ny
-        self.w        = w
-        self.k        = k
+        self.w        = w                                                       # in radians
+        self.k        = k                                                       # in radians
         self.tau      = tau
         self.h        = h
-        self.wc       = wc
+        self.wc       = wc                                                      # in radians
         self.topology = topology
 
     def get_twist_state(self, m, mx, my, topology):
@@ -1112,10 +1112,6 @@ class FlatStateList(object):
            isRadians : bool
                        frequency is given in radians if True, otherwise in Hertz
         '''
-        if isRadians:
-            s = 1.0
-        else:
-            s = 1.0 / (2 * np.pi)
         if self.n > 0:
             x = np.zeros((self.n, 14))
             x[:, 0] = self.get_n_osci()
