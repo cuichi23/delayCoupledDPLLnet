@@ -450,7 +450,7 @@ def get_omega_curve(topo, twist_number, h, k, w, tau, ns=10000):
 def get_stability2(w, k, h, wc, tau, omega, topology, twist_number):
     d = topology.get_couling_derivate_matrix(h, twist_number, omega * tau)
     em, vm = np.linalg.eig(d)
-    b = 2.0 * np.pi / wc
+    b = 1.0 / wc
     d_sum = np.sum(d[0, :])   # assumes that the sum of each row is the same for all rows
     lambda_zeta = []
     for i_eigen in range(len(em)):
@@ -464,7 +464,7 @@ def get_stability2(w, k, h, wc, tau, omega, topology, twist_number):
             x[1] = l[1] + 2 * b * l[0] * l[1] + k * alpha * np.exp(-l[0] * tau) * np.sin(l[1] * tau) - k * beta * np.exp(-l[0] * tau) * np.cos(l[1] * tau)
             return x
 
-        l_opt = optimize.root(func, np.array([1.0, 1.0]), tol=1e-14)
+        l_opt = optimize.root(func, np.array([0.1, 0.1]), tol=1e-14)
         l_tmp = l_opt.x[0] + 1j * l_opt.x[1]
 
         # Ignore solution for the eigenvector (a, a, a, ...)
@@ -676,7 +676,7 @@ def calcTopoMatrix(n, nx, ny, w, k, h, m, mx, my, tau, omega, wc, topology):
 
     elif ( topology == 'ring' or topology == 'chain' ):
         # Determine help variables
-        print('topology:', topology)
+        #print('topology:', topology)
         deltaphi_m = (2.0 * np.pi * m) / n
         alpha_minus = 0.5 * np.pi * k * dhdt(-omega * tau + deltaphi_m)         # factor 0.5, since 2 neighbors in 1d
         alpha_plus  = 0.5 * np.pi * k * dhdt(-omega * tau - deltaphi_m)
@@ -737,7 +737,7 @@ def calcTopoMatrix(n, nx, ny, w, k, h, m, mx, my, tau, omega, wc, topology):
                                                      delta_phi_my *( np.floor(ic/float(nx))-np.floor(ir/float(nx)) ) )
         e_mat = d * a                                                           # element-wise multiplication
 
-    print('topology: ', topology, 'with coupling matrix: ', e_mat)
+    #print('topology: ', topology, 'with coupling matrix: ', e_mat)
     return e_mat, alpha_plus, alpha_minus
 
 def get_stability(n, nx, ny, w, k, h, m, mx, my, tau, omega, wc, topology):
@@ -777,7 +777,6 @@ def get_stability(n, nx, ny, w, k, h, m, mx, my, tau, omega, wc, topology):
     # obtain eigenvectors and eigenvalues
     em, vm = np.linalg.eig(e_mat)
     # print('EIGENVALUES:', em)
-
 
     b = 2.0*np.pi / wc
     # Solve characteristic equation for each eigenvalue
