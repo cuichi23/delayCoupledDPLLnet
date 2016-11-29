@@ -1,6 +1,6 @@
 for N=3 oscillators in a 1D ring topology,,,,,,,,,,,,,,,,
 coupling strength K  [Hz],filter_cutoff f_c  [Hz],delay [s],Omega [Hz],m-twist-state,Tsim ~= - 25 / Re(lambda),paramSet id,Re(\lambda),Zeitproxy 1. simulation [sek],topology,diff. const. c,# oscis,coupling function,Nx ,Ny,mx,my
-K,Fc,delay,Fomeg,m,Tsim,id,ReLambda,SimSeconds,topology,c,N,couplingfct,Nx ,Ny,mx,my
+K,Fc,delay,Fomeg,m,Tsim,id,ReLambda,SimSeconds,topology,c,N,couplingfct,Nx,Ny,mx,my
 0.25,0.1,0.44,1.2153071454,0,120,4,-0.2007,6,ring,0,3,triang,3,1,0,-999
 0.25,0.1,0.53,1.143846576,0,132,5,-0.1793,6.6,ring,0,3,triang,3,1,0,-999
 0.25,0.1,0.66,1.054242343,0,153,6,-0.1509,7.65,ring,0,3,triang,3,1,0,-999

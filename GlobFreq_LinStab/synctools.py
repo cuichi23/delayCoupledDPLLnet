@@ -455,6 +455,7 @@ def get_stability2(w, k, h, wc, tau, omega, topology, twist_number):
     lambda_zeta = []
     for i_eigen in range(len(em)):
         zeta = em[i_eigen]
+        print('\n\nzeta:', zeta, '\n\n')
         def func(l):
             alpha = np.real(zeta)
             beta  = np.imag(zeta)
@@ -1175,8 +1176,8 @@ class SweepFactory(object):
             self.topology = topology
         else:                                                                   # if parameters provided in Hz, multiply by 2pi, as needed in the phase model
             self.n    = n
-            self.nx   = ny
-            self.ny   = nx
+            self.nx   = nx
+            self.ny   = ny
             self.w    = 2.0*np.pi*w                                             # here, w = f
             self.k    = 2.0*np.pi*k                                             # here, k is given in Hz instead rad*Hz
             print('K:', k)

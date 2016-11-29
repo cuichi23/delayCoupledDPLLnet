@@ -259,14 +259,14 @@ def chooseCsvSaveOption(param_cases_csv, para_mat, topology, couplingfct, c):
 	exist_set=[]; para_mat_new=[];
 	for i in range (len(para_mat[:,0])):
 		temp = []																# reset temp container for every loop
-		print('csv-container: ', param_cases_csv, '\n\n')
-		print( '\nTEST\ntype(para_mat[i,12]):', type(para_mat[i,12]), '\ntype(param_cases_csv[`mx`]):', type(param_cases_csv['mx']),
-				'\nint(para_mat[i,12]):', int(para_mat[i,12]) , '\nparam_cases_csv[`mx`]:', (param_cases_csv['mx']), '\n\n' )
-		temp = param_cases_csv.loc[param_cases_csv['delay']==float(para_mat[i,4]) & param_cases_csv['Fc']==float(para_mat[i,3])
-									& param_cases_csv['K']==float(para_mat[i,2]) & param_cases_csv['N']==int(para_mat[i,0])
-									& param_cases_csv['c']==float(c) & param_cases_csv['topology']==str(topology)
-									& param_cases_csv['Nx']==int(para_mat[i,10]) & param_cases_csv['Ny']==int(para_mat[i,11])
-									& param_cases_csv['mx']==int(para_mat[i,12]) & param_cases_csv['my']==int(para_mat[i,13])].sort('K') # ,:].sort('K')
+		# print('csv-container: ', param_cases_csv, '\n\n')
+		# print('type(para_mat[0,:]): ', type(para_mat[0,:]), '\n\n')
+		# print( '\nTEST\ntype(para_mat[i,10]):', type(para_mat[i,10]), '\ntype(param_cases_csv[`mx`]):', type(param_cases_csv['mx']), '\nint(para_mat[i,10]):', int(para_mat[i,10]) , '\nparam_cases_csv[`mx`]:', (param_cases_csv['mx']), '\n\n' )
+		temp = param_cases_csv.loc[(param_cases_csv['delay']==float(para_mat[i,4])) & (param_cases_csv['Fc']==float(para_mat[i,3]))
+									& (param_cases_csv['K']==float(para_mat[i,2])) & (param_cases_csv['N']==int(para_mat[i,0]))
+									& (param_cases_csv['c']==float(c)) & (param_cases_csv['topology']==str(topology)) & (param_cases_csv['couplingfct']==str(couplingfct))
+									& (param_cases_csv['Nx']==int(para_mat[i,10])) & (param_cases_csv['Ny']==int(para_mat[i,11]))
+									& (param_cases_csv['mx']==int(para_mat[i,12])) & (param_cases_csv['my']==int(para_mat[i,13]))].sort('K') #guided_execution.py:270: FutureWarning: sort(columns=....) is deprecated, use sort_values(by=.....)
 		exist_set.append( temp )
 		if len(temp) == 0:														# if temp is not set/empty,
 			para_mat_new.append(para_mat[i,:])
@@ -831,7 +831,8 @@ def bruteForce(params, param_cases_csv):
 					print('Tsim: ', para_mat[i,9])
 					print('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '
-													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
+													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '
+													+' '.join(map(str, pert)))
 					# os.system('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					cbrut.bruteforceout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
@@ -889,7 +890,8 @@ def bruteForce(params, param_cases_csv):
 					print('Tsim: ', para_mat[i,9])
 					print('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '
-													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
+													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '
+													+' '.join(map(str, pert)))
 					# os.system('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					cbrut.bruteforceout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
@@ -947,7 +949,8 @@ def bruteForce(params, param_cases_csv):
 					print('Tsim: ', para_mat[i,9])
 					print('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '
-													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
+													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '
+													+' '.join(map(str, pert)))
 					# os.system('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					cbrut.bruteforceout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
@@ -965,9 +968,9 @@ if __name__ == '__main__':
 	''' MAIN: organizes the execution of the DPLL simulation modes '''
 
 	# load parameter param_cases_csv from file, specify delimiter and which line contains the colum description
-	param_cases_csv = pd.read_csv('GlobFreq_LinStab/DPLLParameters.csv', skipinitialspace=True, delimiter=",", header=2, dtype={'K': np.float, 'Fc': np.float, 'delay': np.float, 'F_Omeg': np.float,
-	 								'k': np.int, 'Tsim': np.int, 'id': np.int, 'SimSeconds': np.float, 'topology': np.str, 'c': np.float, 'N': np.int,
-									'Nx': np.int, 'Ny': np.int, 'mx': np.int, 'my': np.int})
+	param_cases_csv = pd.read_csv('GlobFreq_LinStab/DPLLParameters.csv', delimiter=",", header=2, dtype={'K': np.float, 'Fc': np.float, 'delay': np.float, 'F_Omeg': np.float,
+	 								'm': np.int, 'Tsim': np.int, 'id': np.int, 'ReLambda': np.float, 'SimSeconds': np.float, 'topology': np.str, 'c': np.float, 'N': np.int, 'coupFct': np.str,
+									'Nx': np.int, 'Ny': np.int, 'mx': np.int, 'my': np.int})#, skipinitialspace=True)
 	# load the configuration parameters
 	''' DATA CONTAINER NUMBER ONE '''
 	params = configparser.ConfigParser()										# initiate configparser object to load parts of the system parameters
