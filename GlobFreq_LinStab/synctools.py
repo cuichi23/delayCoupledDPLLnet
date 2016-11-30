@@ -439,6 +439,7 @@ def get_omega(topo, twist_number, h, k, w, tau, ns=10000):
 def get_omega_curve(topo, twist_number, h, k, w, tau, ns=10000):
     omega = []
     for el in tau:
+        print el
         omega_tmp = get_omega(topo, twist_number, h, k, w, el, ns=ns)
         omega.append(omega_tmp)
 
