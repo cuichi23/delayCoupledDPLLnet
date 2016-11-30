@@ -244,7 +244,7 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	return 0.0
 
 ''' EVALUATION MANY (noisy, dstributed parameters) REALIZATIONS '''
-def doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, domega, twistdelta, results, allPoints, dt, orderparam, r, phi, omega_0, K_0, delays_0, show_plot=True):
+def doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, c, domega, twistdelta, results, allPoints, dt, orderparam, r, phi, omega_0, K_0, delays_0, show_plot=True):
 	orderparam = np.array(orderparam)
 	r          = np.array(r)
 
@@ -277,7 +277,8 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, domega, twistdelta, results, 
 	now = datetime.datetime.now()												# provides me the current date and time
 	# print('data to be saved: \n', firstfreqsext)
 	print('{shape firstfreqsext, firstfreqsext}: ', firstfreqsext.shape, firstfreqsext)
-	np.savez('results/freqs_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), data=[firstfreqsext, firstfreq, lastfreq])
+	np.savez('results/freqs_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.2s_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, now.year, now.month, now.day),
+									data=[np.array(firstfreqsext), np.array(firstfreq), np.array(lastfreq]) )
 
 	'''PLOT TEST'''
 	dpi_value  = 300

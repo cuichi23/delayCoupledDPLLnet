@@ -122,8 +122,10 @@ class NoisyVoltageControlledOscillator(VoltageControlledOscillator):			# make a 
 	"""A voltage controlled oscillator class WITH noise (GWN)"""
 	def next(self,x_ctrl):														# compute change of phase per time-step due to intrinsic frequency and noise (if non-zero variance)
 																				# watch the separation of terms for order dt and the noise with order sqrt(dt)
+		tempSwitch = 1															# if tempSwitch = 1, then x_ctrl = x_ctrl + 0.0 and no noise on instantaneous freq.
+		x_ctrl = x_ctrl + ( 1 - tempSwitch ) * ( 2.0 * np.pi ) * np.random.normal(loc=0.0, scale=np.sqrt(2.0*self.c)) * np.sqrt(self.dt)
 		# self.d_phi = ( self.omega + self.K * x_ctrl ) * self.dt + ( 2.0 * np.pi ) * np.random.normal(loc=0.0, scale=np.sqrt(2.0*self.c*self.F)) * np.sqrt(self.dt) # scales with self.F
-		self.d_phi = ( self.omega + self.K * x_ctrl ) * self.dt + ( 2.0 * np.pi ) * np.random.normal(loc=0.0, scale=np.sqrt(2.0*self.c)) * np.sqrt(self.dt) # no scaling of noise with frequency
+		self.d_phi = ( self.omega + self.K * x_ctrl ) * self.dt + tempSwitch * ( 2.0 * np.pi ) * np.random.normal(loc=0.0, scale=np.sqrt(2.0*self.c)) * np.sqrt(self.dt) # no scaling of noise with frequency
 		self.phi = self.phi + self.d_phi
 		return self.phi, self.d_phi
 

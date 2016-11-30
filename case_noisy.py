@@ -183,7 +183,7 @@ def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, Nx=0, Ny=0, kx
 		orderparam.append(eva.oracle_mTwistOrderParameter(phi[i,:, :], k))			# calculate the m-twist order parameter for all times
 
 	''' EXTRA EVALUATION '''
-	out.doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, domega, twistdelta, results, allPoints, dt, orderparam, r, phi, omega_0, K_0,delays_0, show_plot)
+	out.doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, c, domega, twistdelta, results, allPoints, dt, orderparam, r, phi, omega_0, K_0,delays_0, show_plot)
 	# print(r'frequency of zeroth osci at the beginning and end of the simulation:, $\dot{\phi}_0(t_{start})=%.4f$, $\dot{\phi}_0(t_{end})=%.4f$  [rad/Hz]', ((phi[0][int(round(delay/dt))+2][0]-phi[0][int(round(delay/dt))+1][0])/(dt)), ((phi[0][-4][0]-phi[0][-5][0])/(dt)) )
 	# print('last values of the phases:\n', phi[0,-3:,0])
 
