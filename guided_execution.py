@@ -662,6 +662,7 @@ def noisyStatistics(params):
 			user_sweep_end	 = float(raw_input('\nPlease specify the range in which c should be simulated, end c_e in [Hz*Hz] = '))
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz*Hz] dc = '))
 			new_c_values	 = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
+			print('\nWill scan these c-values: ', new_c_values, '\n\n')
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
 			if ( topology == 'square-periodic' or topology == 'square-open' ):
@@ -698,8 +699,8 @@ def noisyStatistics(params):
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
 			if not ( para_mat == [] and new_c_values == [] ):
-				print( 'length of para_mat[:,0]:', len(para_mat[:,0]) )
-				print( 'length of new_c_values :', len(new_c_values)  )
+				# print( 'length of para_mat[:,0]:', len(para_mat[:,0]) )
+				# print( 'length of new_c_values :', len(new_c_values)  )
 				if ( len(para_mat[:,0]) > 1 or len(new_c_values) > 1 ):
 					plot_out = False
 				elif ( len(para_mat[:,0]) == 1 and new_c_values == 1 ):
