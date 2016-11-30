@@ -835,7 +835,7 @@ class PllSystem(object):
        topology : string
             determines the coupling topology of the network
     '''
-    def __init__(self, n, w, k, tau, h, wc, topology, nx, ny):
+    def __init__(self, n, w, k, tau, h, wc, topology, nx, ny, c):
         self.n        = n
         self.nx       = nx
         self.ny       = ny
@@ -845,6 +845,7 @@ class PllSystem(object):
         self.h        = h
         self.wc       = wc                                                      # in radians
         self.topology = topology
+        self.c        = c
 
     def get_twist_state(self, m, mx, my, topology):
         '''Determine the possible states of global synchronization for a specific m twist
@@ -872,7 +873,6 @@ class PllSystem(object):
             return s
         else:
             return None
-
 
 
 class TwistState(object):
@@ -1105,6 +1105,15 @@ class FlatStateList(object):
         else:
             return None
 
+    def get_noise_c(self):
+        '''Returns an array of noise strength'''
+        x = np.zeros(self.n)
+        if self.n > 0:
+            x[i] = s * self.states[i].system.c
+            return x
+        else:
+            return None
+
     def get_parameter_matrix(self, isRadians=True):
         '''Returns a matrix of the numeric parameters the states in the list
 
@@ -1159,7 +1168,7 @@ class SweepFactory(object):
        tsim : float
               simulation time
     '''
-    def __init__(self, n, ny, nx, w, k, tau, h, wc, m, mx, my, topology, tsim=0.0, isRadians=True):
+    def __init__(self, n, ny, nx, w, k, tau, h, wc, m, mx, my, topology, c, tsim=0.0, isRadians=True):
         if isRadians:                                                           # if parameters provided in rad*Hz
             self.n    = n
             self.nx   = nx
@@ -1174,6 +1183,7 @@ class SweepFactory(object):
             self.my   = my
             self.tsim = tsim
             self.topology = topology
+            self.c    = c
         else:                                                                   # if parameters provided in Hz, multiply by 2pi, as needed in the phase model
             self.n    = n
             self.nx   = nx
@@ -1189,6 +1199,7 @@ class SweepFactory(object):
             self.my   = my
             self.tsim = tsim
             self.topology = topology
+            self.c    = c                                                       #
 
     def _identify_swept_variable(self):
         '''Identify the swept variable
@@ -1210,6 +1221,8 @@ class SweepFactory(object):
             return 'tau'
         elif type(self.wc) is np.ndarray:
             return 'wc'
+        elif type(self.c) is np.ndarray:
+            return 'c'
         elif type(self.topology) is list:
             return 'topology'
         else:
@@ -1232,7 +1245,7 @@ class SweepFactory(object):
         key_sweep = self._identify_swept_variable()
         par_sweep = self[key_sweep]
         n_sweep = len(par_sweep)
-        key_sys = ['n', 'w', 'k', 'tau', 'h', 'wc', 'topology', 'nx', 'ny']
+        key_sys = ['n', 'w', 'k', 'tau', 'h', 'wc', 'topology', 'nx', 'ny', 'c']
         for i in range(n_sweep):
             args = []
             for key in key_sys:
