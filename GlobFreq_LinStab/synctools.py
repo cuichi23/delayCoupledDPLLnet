@@ -480,6 +480,7 @@ def get_stability_curve(w, k, h, wc, tau, omega, topology, twist_number):
     l = np.zeros(len(tau), dtype=np.complex)
     for i_tau in range(len(tau)):
         l[i_tau] = get_stability2(w, k, h, wc, tau[i_tau], omega[i_tau], topology, twist_number)
+        print('eigenvalues: ', l)
     return tau, l
 
 
@@ -777,7 +778,7 @@ def get_stability(n, nx, ny, w, k, h, m, mx, my, tau, omega, wc, topology):
 
     # obtain eigenvectors and eigenvalues
     em, vm = np.linalg.eig(e_mat)
-    # print('EIGENVALUES:', em)
+    print('in syncTools, eigenvalues coupling topology: ', em)
 
     b = 2.0*np.pi / wc
     # Solve characteristic equation for each eigenvalue
@@ -864,11 +865,12 @@ class PllSystem(object):
            s : list of twist states or None
         '''
         o = get_omega_implicit(self.n, self.nx, self.ny, self.w, self.k, self.tau, self.h, m, mx, my, topology)
-        print('Omega:', o)
+        print('in get_twist_state, Omega:', o)
         if o != None:
             s = []
             for el in o:
                 l = get_stability(self.n, self.nx, self.ny, self.w, self.k, self.h, m, mx, my, self.tau, el, self.wc, self.topology)
+                # l = get_stability2(self.w, self.k, self.h, self.wc, self.tau, self.w, self.topology, m)  ???
                 s.append(TwistState(self, m, mx, my, el, l))
             return s
         else:
@@ -1183,14 +1185,14 @@ class SweepFactory(object):
             self.my   = my
             self.tsim = tsim
             self.topology = topology
-            self.c    = c
+            self.c    = c                                                       # just dummy variable here
         else:                                                                   # if parameters provided in Hz, multiply by 2pi, as needed in the phase model
             self.n    = n
             self.nx   = nx
             self.ny   = ny
             self.w    = 2.0*np.pi*w                                             # here, w = f
             self.k    = 2.0*np.pi*k                                             # here, k is given in Hz instead rad*Hz
-            print('K:', k)
+            print('in SweepFactory, K in [rad*Hz] and [Hz]:', self.k, self.k/(2.0*np.pi))
             self.tau  = tau
             self.h    = h
             self.wc   = 2.0*np.pi*wc                                            # here, wc = fc
@@ -1199,7 +1201,7 @@ class SweepFactory(object):
             self.my   = my
             self.tsim = tsim
             self.topology = topology
-            self.c    = c                                                       #
+            self.c    = c                                                       # just dummy variable here
 
     def _identify_swept_variable(self):
         '''Identify the swept variable

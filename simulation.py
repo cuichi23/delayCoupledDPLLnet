@@ -55,8 +55,10 @@ class LowPass:
 		self.F_Omeg = F_Omeg													# provide freq. of synchronized state under investigation - here needed for x_k^C(0)
 		# here should be the value of K drawn for the VCO from the gaussian distribution, however it might also suffice to use the mean,
 		# since the history is given as the perfectly synched state... that does not imply that the K become the same however!
-		self.K_Hz = K
-		self.K = 2.0*np.pi*K													# provide coupling strength - here needed for x_k^C(0)
+		self.K_Hz	 = K
+		self.Kvco_Hz = 2.0 * self.K_Hz
+		self.K 	  	 = 2.0 * np.pi * K											# provide coupling strength - here needed for x_k^C(0)
+		self.Kvco 	 = 2.0 * K													# Kvco in [rad * Hz]
 		self.dt = dt															# set time-step
 		self.beta = (dt*Fc) / (dt*Fc + 1)
 		self.w_c = 2*np.pi*Fc													# angular cut-off frequency of the loop filter for a=1, filter of first order
@@ -93,22 +95,24 @@ class VoltageControlledOscillator:
 			self.omega = 2.0*np.pi*F											# set intrinsic frequency of the VCO
 		if diffconstK != 0:														# set input sensitivity of VCO [ok to do here, since this is only called when the PLL objects are created]
 			self.K = np.random.normal(loc=K, scale=np.sqrt(2.0*diffconstK))		# provide coupling strength - here needed for x_k^C(0)
-			self.K = 2.0*np.pi*self.K
+			self.K = 2.0*np.pi*self.K											# now in [rad * Hz]
+			self.Kvco = 2.0 * self.K
 			# print('2*pi*K from gaussian dist.:', self.K, 'for diffusion constant diffconstK:', self.diffconstK)
 		else:
 			self.K = 2.0*np.pi*K
+			self.Kvco = 2.0 * self.K
 
 		self.dt = dt															# set time step with which the equations are evolved
 		self.phi = phi															# this is the internal representation of phi, NOT the container in simulateNetwork
 		self.c = c																# noise strength -- chose something like variance or std here!
 
 	def next(self,x_ctrl):														# compute change of phase per time-step due to intrinsic frequency and noise (if non-zero variance)
-		self.d_phi = self.omega + self.K * x_ctrl
+		self.d_phi = self.omega + self.Kvco * x_ctrl
 		self.phi = self.phi + self.d_phi * self.dt
 		return self.phi, self.d_phi
 
 	def delta_perturbation(self, phi, phiS, x_ctrl):							# sets a delta-like perturbation 0-dt, the last time-step of the history
-		self.d_phi = phiS + ( self.omega + self.K * x_ctrl ) * self.dt
+		self.d_phi = phiS + ( self.omega + self.Kvco * x_ctrl ) * self.dt
 		self.phi = self.phi + self.d_phi
 		return self.phi, self.d_phi
 
@@ -122,11 +126,19 @@ class NoisyVoltageControlledOscillator(VoltageControlledOscillator):			# make a 
 	"""A voltage controlled oscillator class WITH noise (GWN)"""
 	def next(self,x_ctrl):														# compute change of phase per time-step due to intrinsic frequency and noise (if non-zero variance)
 																				# watch the separation of terms for order dt and the noise with order sqrt(dt)
+		tempnoi = np.random.normal(loc=0.0, scale=np.sqrt(2.0*self.c)) * np.sqrt(self.dt)
+
+		# # self.d_phi = ( self.omega + self.Kvco * x_ctrl ) * self.dt + ( 2.0 * np.pi ) * np.random.normal(loc=0.0, scale=np.sqrt(2.0*self.c*self.F)) * np.sqrt(self.dt) # scales with self.F
+		# temp_d_phi = ( self.omega + self.Kvco * x_ctrl ) * self.dt + ( 2.0 * np.pi ) * tempnoi
+		# tempphi = self.phi + temp_d_phi
+
 		tempSwitch = 1															# if tempSwitch = 1, then x_ctrl = x_ctrl + 0.0 and no noise on instantaneous freq.
-		x_ctrl = x_ctrl + ( 1 - tempSwitch ) * ( 2.0 * np.pi ) * np.random.normal(loc=0.0, scale=np.sqrt(2.0*self.c)) * np.sqrt(self.dt)
-		# self.d_phi = ( self.omega + self.K * x_ctrl ) * self.dt + ( 2.0 * np.pi ) * np.random.normal(loc=0.0, scale=np.sqrt(2.0*self.c*self.F)) * np.sqrt(self.dt) # scales with self.F
-		self.d_phi = ( self.omega + self.K * x_ctrl ) * self.dt + tempSwitch * ( 2.0 * np.pi ) * np.random.normal(loc=0.0, scale=np.sqrt(2.0*self.c)) * np.sqrt(self.dt) # no scaling of noise with frequency
+																				# 0: Shamik Fokker-Planck-Eq. case, 1: DPLL case
+		x_ctrl = x_ctrl + ( 1 - tempSwitch ) * ( 2.0 * np.pi ) * tempnoi
+		# self.d_phi = ( self.omega + self.Kvco * x_ctrl ) * self.dt + ( 2.0 * np.pi ) * np.random.normal(loc=0.0, scale=np.sqrt(2.0*self.c*self.F)) * np.sqrt(self.dt) # scales with self.F
+		self.d_phi = ( self.omega + self.K * x_ctrl ) * self.dt + tempSwitch * ( 2.0 * np.pi ) * tempnoi # no scaling of noise with frequency
 		self.phi = self.phi + self.d_phi
+		# print('Difference noise term placement: ', tempphi-self.phi, '\n')
 		return self.phi, self.d_phi
 
 	def delta_perturbation(self, phi, phiS, x_ctrl):							# sets a delta-like perturbation 0-dt, the last time-step of the history
