@@ -417,8 +417,8 @@ def singleRealization(params):
 		# get user input to know which parameter should be analyzed
 		user_input = raw_input('\nPlease specify which parameters dependencies to be analyzed {[K] in [Hz], [Fc] in [Hz], [delay] in [s]} : ')
 		if user_input == 'K':
-			user_sweep_start = float(raw_input('\nPlease specify the range in which K should be simulated, start K_s in [Hz] = '))
-			user_sweep_end	 = float(raw_input('\nPlease specify the range in which K should be simulated, end K_e in [Hz] = '))
+			user_sweep_start = float(raw_input('\nPlease specify the range in which K (K=0.5*Kvco) should be simulated, start K_s in [Hz] = '))
+			user_sweep_end	 = float(raw_input('\nPlease specify the range in which K (K=0.5*Kvco) should be simulated, end K_e in [Hz] = '))
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz] dK = '))
 			new_K_values	 = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
 
@@ -474,7 +474,7 @@ def singleRealization(params):
 
 		elif user_input == 'Fc':
 			user_sweep_start = float(raw_input('\nPlease specify the range in which Fc should be simulated, start Fc_s in [Hz] = '))
-			user_sweep_end	 = float(raw_input('\nPlease specify the range in which K should be simulated, end Fc_e in [Hz] = '))
+			user_sweep_end	 = float(raw_input('\nPlease specify the range in which Fc should be simulated, end Fc_e in [Hz] = '))
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz] dFc = '))
 			new_Fc_values	 = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
 
@@ -530,7 +530,7 @@ def singleRealization(params):
 
 		elif user_input == 'delay':
 			user_sweep_start = float(raw_input('\nPlease specify the range in which delays should be simulated, start delay_s in [s] = '))
-			user_sweep_end	 = float(raw_input('\nPlease specify the range in which K should be simulated, end delay_e in [s] = '))
+			user_sweep_end	 = float(raw_input('\nPlease specify the range in which delays should be simulated, end delay_e in [s] = '))
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [s] ddelay = '))
 			new_delay_values = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
 
@@ -596,8 +596,8 @@ def noisyStatistics(params):
 		# get user input to know which parameter should be analyzed
 		user_input = raw_input('\nPlease specify which parameters dependencies to be analyzed {[K] in [Hz], [Fc] in [Hz], [delay] in [s], or [c] the diffusion constant (sigma^2=2*c).} : ')
 		if user_input == 'K':
-			user_sweep_start = float(raw_input('\nPlease specify the range in which K should be simulated, start K_s in [Hz] = '))
-			user_sweep_end	 = float(raw_input('\nPlease specify the range in which K should be simulated, end K_e in [Hz] = '))
+			user_sweep_start = float(raw_input('\nPlease specify the range in which K (K=0.5*Kvco) should be simulated, start K_s in [Hz] = '))
+			user_sweep_end	 = float(raw_input('\nPlease specify the range in which K (K=0.5*Kvco) should be simulated, end K_e in [Hz] = '))
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz] dK = '))
 			new_K_values	 = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
 
@@ -721,7 +721,7 @@ def noisyStatistics(params):
 
 		elif user_input == 'Fc':
 			user_sweep_start = float(raw_input('\nPlease specify the range in which Fc should be simulated, start Fc_s in [Hz] = '))
-			user_sweep_end	 = float(raw_input('\nPlease specify the range in which K should be simulated, end Fc_e in [Hz] = '))
+			user_sweep_end	 = float(raw_input('\nPlease specify the range in which Fc should be simulated, end Fc_e in [Hz] = '))
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz] dFc = '))
 			new_Fc_values	 = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
 
@@ -778,7 +778,7 @@ def noisyStatistics(params):
 
 		elif user_input == 'delay':
 			user_sweep_start = float(raw_input('\nPlease specify the range in which delays should be simulated, start delay_s in [s] = '))
-			user_sweep_end	 = float(raw_input('\nPlease specify the range in which K should be simulated, end delay_e in [s] = '))
+			user_sweep_end	 = float(raw_input('\nPlease specify the range in which delays should be simulated, end delay_e in [s] = '))
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [s] ddelay = '))
 			new_delay_values = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
 
@@ -845,8 +845,8 @@ def bruteForce(params, param_cases_csv):
 		# get user input to know which parameter should be analyzed
 		user_input = raw_input('\nPlease specify which parameters dependencies to be analyzed {[K] in [Hz], [Fc] in [Hz], [delay] in [s]} : ')
 		if user_input == 'K':
-			user_sweep_start = float(raw_input('\nPlease specify the range in which K should be simulated, start K_s in [Hz] = '))
-			user_sweep_end	 = float(raw_input('\nPlease specify the range in which K should be simulated, end K_e in [Hz] = '))
+			user_sweep_start = float(raw_input('\nPlease specify the range in which K (K=0.5*Kvco) should be simulated, start K_s in [Hz] = '))
+			user_sweep_end	 = float(raw_input('\nPlease specify the range in which K (K=0.5*Kvco) should be simulated, end K_e in [Hz] = '))
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz] dK = '))
 			new_K_values	 = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
 			# print('new K-values: ', new_K_values)
@@ -906,7 +906,7 @@ def bruteForce(params, param_cases_csv):
 
 		elif user_input == 'Fc':
 			user_sweep_start = float(raw_input('\nPlease specify the range in which Fc should be simulated, start Fc_s in [Hz] = '))
-			user_sweep_end	 = float(raw_input('\nPlease specify the range in which K should be simulated, end Fc_e in [Hz] = '))
+			user_sweep_end	 = float(raw_input('\nPlease specify the range in which Fc should be simulated, end Fc_e in [Hz] = '))
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz] dFc = '))
 			new_Fc_values	 = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
 
@@ -965,7 +965,7 @@ def bruteForce(params, param_cases_csv):
 
 		elif user_input == 'delay':
 			user_sweep_start = float(raw_input('\nPlease specify the range in which delays should be simulated, start delay_s in [s] = '))
-			user_sweep_end	 = float(raw_input('\nPlease specify the range in which K should be simulated, end delay_e in [s] = '))
+			user_sweep_end	 = float(raw_input('\nPlease specify the range in which delays should be simulated, end delay_e in [s] = '))
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [s] ddelay = '))
 			new_delay_values = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
 
