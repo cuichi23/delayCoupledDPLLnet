@@ -865,7 +865,7 @@ class PllSystem(object):
            s : list of twist states or None
         '''
         o = get_omega_implicit(self.n, self.nx, self.ny, self.w, self.k, self.tau, self.h, m, mx, my, topology)
-        print('in get_twist_state, Omega:', o)
+        print('in get_twist_state, Omega in [rad*Hz] and [Hz]:', 2.0*np.pi*o, o)
         if o != None:
             s = []
             for el in o:
