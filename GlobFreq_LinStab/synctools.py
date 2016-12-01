@@ -680,8 +680,8 @@ def calcTopoMatrix(n, nx, ny, w, k, h, m, mx, my, tau, omega, wc, topology):
         # Determine help variables
         #print('topology:', topology)
         deltaphi_m = (2.0 * np.pi * m) / n
-        alpha_minus = 0.5 * np.pi * k * dhdt(-omega * tau + deltaphi_m)         # factor 0.5, since 2 neighbors in 1d
-        alpha_plus  = 0.5 * np.pi * k * dhdt(-omega * tau - deltaphi_m)
+        alpha_minus = 0.5 * k * dhdt(-omega * tau + deltaphi_m)                 # factor 0.5, since 2 neighbors in 1d
+        alpha_plus  = 0.5 * k * dhdt(-omega * tau - deltaphi_m)
         if topology == 'ring':
             ''' 1d ring topology, periodic boundary conditions '''
             e_mat = np.zeros((n, n))
@@ -865,12 +865,12 @@ class PllSystem(object):
            s : list of twist states or None
         '''
         o = get_omega_implicit(self.n, self.nx, self.ny, self.w, self.k, self.tau, self.h, m, mx, my, topology)
-        print('in get_twist_state, Omega in [rad*Hz] and [Hz]:', 2.0*np.pi*o, o)
+        print('in get_twist_state, Omega in [rad*Hz]:', o, ', Omega[0]/2pi in [Hz]', o[0]/(2.0*np.pi))
         if o != None:
             s = []
             for el in o:
                 l = get_stability(self.n, self.nx, self.ny, self.w, self.k, self.h, m, mx, my, self.tau, el, self.wc, self.topology)
-                # l = get_stability2(self.w, self.k, self.h, self.wc, self.tau, self.w, self.topology, m)  ???
+                # l = get_stability2(self.w, self.k, self.h, self.wc, self.tau, self.w, self.topology, m)  ??? Lucas...
                 s.append(TwistState(self, m, mx, my, el, l))
             return s
         else:

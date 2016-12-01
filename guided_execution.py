@@ -352,7 +352,7 @@ def setDeltaPertubation(N, case):
 				perturbation_vec = loopUserInputPert(N)
 				break
 			elif case == '2':													# case for which no delta-perturbations are added
-				print('No delta-perturbations, all set to zero!')
+				print('No delta-perturbations, all set to zero!\n')
 				phiS = np.zeros(N)
 				perturbation_vec = phiS											# transform perturbations into rotated phase space of phases, as required by case_noisy, case_singleout
 				break
@@ -382,7 +382,7 @@ def setDeltaPertubation(N, case):
 				perturbation_vec = eva.rotate_phases(phiS, isInverse=True)		# transform perturbations into rotated phase space of phases, as required by case_noisy, case_singleout
 				break
 			elif case == '2':													# case for which no delta-perturbations are added
-				print('No delta-perturbations, all set to zero!')
+				print('No delta-perturbations, all set to zero!\n')
 				phiS = np.zeros(N)
 				perturbation_vec = eva.rotate_phases(phiS, isInverse=True)		# transform perturbations into rotated phase space of phases, as required by case_noisy, case_singleout
 				break
