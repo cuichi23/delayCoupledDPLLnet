@@ -455,6 +455,10 @@ def singleRealization(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
+			for i in range (len(para_mat[:,0])):
+				if para_mat[i,9]<10:
+					para_mat[i,9]=50
+
 			if not para_mat == []:
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
@@ -511,6 +515,10 @@ def singleRealization(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
+			for i in range (len(para_mat[:,0])):
+				if para_mat[i,9]<10:
+					para_mat[i,9]=50
+
 			if not para_mat == []:
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
@@ -566,6 +574,10 @@ def singleRealization(params):
 			print('New parameter combinations with {N, F, K, Fc, delay, m, F_Omeg, ReLambda, ImLambda, Tsim, Nx, Ny, mx, my}: \n', para_mat)
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
+
+			for i in range (len(para_mat[:,0])):
+				if para_mat[i,9]<10:
+					para_mat[i,9]=50
 
 			if not para_mat == []:
 				if len(para_mat[:,0]) > 1:
@@ -637,6 +649,10 @@ def noisyStatistics(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
+			for i in range (len(para_mat[:,0])):
+				if para_mat[i,9]<10:
+					para_mat[i,9]=50
+
 			if not para_mat == []:
 				print('length of para_mat[:,0]:', len(para_mat[:,0]))
 				if len(para_mat[:,0]) > 1:
@@ -697,6 +713,15 @@ def noisyStatistics(params):
 			print('New parameter combinations with {N, F, K, Fc, delay, m, F_Omeg, ReLambda, ImLambda, Tsim, Nx, Ny, mx, my}: \n', para_mat)
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
+
+			for i in range (len(para_mat[:,0])):
+				if para_mat[i,9]<10:
+					para_mat[i,9]=50
+
+			# print('sum pert: ', np.sum(pert))
+			# if np.sum(pert) == 0.0:
+			# 	print('limit Tsim since there is no perturbation and the system is set up in the synced state')
+			# 	para_mat[i,9]=50
 
 			if not ( para_mat == [] and new_c_values == [] ):
 				# print( 'length of para_mat[:,0]:', len(para_mat[:,0]) )
@@ -759,6 +784,10 @@ def noisyStatistics(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
+			for i in range (len(para_mat[:,0])):
+				if para_mat[i,9]<10:
+					para_mat[i,9]=50
+
 			if not para_mat == []:
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
@@ -814,6 +843,10 @@ def noisyStatistics(params):
 			print('New parameter combinations with {N, F, K, Fc, delay, m, F_Omeg, ReLambda, ImLambda, Tsim, Nx, Ny, mx, my}: \n', para_mat)
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
+
+			for i in range (len(para_mat[:,0])):
+				if para_mat[i,9]<10:
+					para_mat[i,9]=50
 
 			if not para_mat == []:
 				if len(para_mat[:,0]) > 1:

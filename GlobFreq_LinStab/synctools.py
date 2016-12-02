@@ -780,7 +780,7 @@ def get_stability(n, nx, ny, w, k, h, m, mx, my, tau, omega, wc, topology):
     em, vm = np.linalg.eig(e_mat)
     print('in syncTools, eigenvalues coupling topology: ', em)
 
-    b = 2.0*np.pi / wc
+    b = 1 / wc                                                                  # this must be of units of [ 1 / (rad Hz) ]
     # Solve characteristic equation for each eigenvalue
     lambda_nu = []
     for inu in range(len(em)):

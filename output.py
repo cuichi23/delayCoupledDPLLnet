@@ -90,23 +90,24 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, coupFct, Tsi
 	plt.savefig('results/freq_histo_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day))
 	plt.savefig('results/freq_histo_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), dpi=300)
 
-	plt.figure('histogram of phases at TSim')									# plot a histogram of the frequencies of the oscillators over time
-	plt.clf()
-	phasesTSim = phi[-2, :].flatten(); maxPhaseTsim=phasesTSim.max(); minPhaseTsim=phasesTSim.min();
-	plt.hist(lastfreqs, bins=np.linspace(2*np.pi*(minPhaseTsim), 2*np.pi*(maxPhaseTsim), num=21), rwidth=0.75 )
-	# plt.xlim((2*np.pi*(), 2*np.pi*()))
-	plt.title(r'mean phase [rad] $\bar{\phi}=$%.3f and std $\bar{\sigma}_{\phi}=$%.4f' %( np.mean(phasesTSim), np.std(phasesTSim) ), fontdict = titlefont)
-	plt.xlabel(r'$\phi(t=TSim)$ $[rad]$', fontdict = labelfont)
-	plt.ylabel(r'histogram', fontdict = labelfont)
-	plt.savefig('results/phase_histo_TSim_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day))
-	plt.savefig('results/phase_histo_TSim_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), dpi=300)
+	if ( len(phi[0, :])>100 ):
+		plt.figure('histogram of phases at TSim')								# plot a histogram of the frequencies of the oscillators over time
+		plt.clf()
+		phasesTSim = phi[-2, :].flatten(); maxPhaseTsim=phasesTSim.max(); minPhaseTsim=phasesTSim.min();
+		plt.hist(lastfreqs, bins=np.linspace(2*np.pi*(minPhaseTsim), 2*np.pi*(maxPhaseTsim), num=21), rwidth=0.75 )
+		# plt.xlim((2*np.pi*(), 2*np.pi*()))
+		plt.title(r'mean phase [rad] $\bar{\phi}=$%.3f and std $\bar{\sigma}_{\phi}=$%.4f' %( np.mean(phasesTSim), np.std(phasesTSim) ), fontdict = titlefont)
+		plt.xlabel(r'$\phi(t=TSim)$ $[rad]$', fontdict = labelfont)
+		plt.ylabel(r'histogram', fontdict = labelfont)
+		plt.savefig('results/phase_histo_TSim_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day))
+		plt.savefig('results/phase_histo_TSim_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), dpi=300)
 
 	plt.figure('phases over time')
 	plt.clf()
 	plt.plot((t*dt),phi)
 	plt.plot(delay, phi[int(round(delay/dt)),0], 'yo', ms=5)
 	plt.axvspan(t[-int(2*1.0/(F*dt))]*dt, t[-1]*dt, color='b', alpha=0.3)
-	plt.title(r'time series phases, $\dot{\phi}_0(t_{start})=%.4f$, $\dot{\phi}_0(t_{end})=%.4f$  [rad/Hz]' %( (phi[int(2*1.0/(F*dt))][0]-phi[1][0])/(2*1.0/F-dt), (phi[-4][0]-phi[-4-int(2*1.0/(F*dt))][0])/(2*1.0/F-dt) ), fontdict = titlefont)
+	plt.title(r'time series phases, $\dot{\phi}_0(t_{start})=%.4f$, $\dot{\phi}_0(t_{end})=%.4f$  [rad/Hz]' %( (phi[int(2*1.0/(F*dt))][0]-phi[1][0])/(2*1.0/F-dt), (phi[-4][0]-phi[-3-int(2*1.0/(F*dt))][0])/(2*1.0/F-dt) ), fontdict = titlefont)
 	plt.xlabel(r'$t$ $[s]$', fontdict = labelfont)
 	plt.ylabel(r'$\phi(t)$', fontdict = labelfont)
 	plt.savefig('results/phases-vs-time_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day))

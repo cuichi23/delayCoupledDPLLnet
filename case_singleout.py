@@ -89,6 +89,7 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, Nx=0, Ny=0, k
 		phiS=phiSValues
 
 	Tsim 	= 2.0*Tsim*(1.0/F)			  										# simulation time in multiples of the period of the uncoupled oscillators
+	print('in case_singleout.singleout, F_Omeg:', F_Omeg)
 	print('NOTE: single realizations will be simulated for 2*Tsim to have enough waveforms after transients have decayed to plot spectral density.')
 	Nsteps 	= int(round(Tsim*Fsim))												# calculate number of iterations -- add output?
 	Nsim 	= 1

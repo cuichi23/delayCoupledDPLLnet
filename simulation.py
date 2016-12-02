@@ -33,7 +33,7 @@ class PhaseLockedLoop:
 
 	def set_delta_pertubation(self,idx_time,phi,phiS,inst_Freq):
 		x_ctrl = self.lf.set_initial_control_signal(phi,idx_time,inst_Freq)		# the filtering at the loop filter is applied to the phase detector signal
-		#print('x =', x, ', x_delayed =', x_delayed, ', x_comb =', x_comb, ', x_ctrl =', x_ctrl)
+		# print('x =', x, ', x_delayed =', x_delayed, ', x_comb =', x_comb, ', x_ctrl =', x_ctrl)
 		phi = self.vco.delta_perturbation(phi,phiS,x_ctrl)[0]
 		return phi
 
@@ -53,6 +53,7 @@ class LowPass:
 		self.Fc = Fc															# set cut-off frequency
 		self.F = F																# intrinsic frequency of VCO - here needed for x_k^C(0)
 		self.F_Omeg = F_Omeg													# provide freq. of synchronized state under investigation - here needed for x_k^C(0)
+		self.sOmeg = 2.0*np.pi*F_Omeg
 		# here should be the value of K drawn for the VCO from the gaussian distribution, however it might also suffice to use the mean,
 		# since the history is given as the perfectly synched state... that does not imply that the K become the same however!
 		self.K_Hz	 = K
@@ -69,6 +70,7 @@ class LowPass:
 		#self.y = (self.F_Omeg - self.F) / (self.K)								# calculate the state of the LF at the last time step of the history, it is needed for the simulation of the network
 		if self.K!=0:															# this if-call is fine, since it will only be evaluated once
 			self.y = (self.inst_Freq - self.F) / (self.K_Hz)					# calculate the state of the LF at the last time step of the history, it is needed for the simulation of the network
+			print('initial control signal x_ctrl=', self.y)
 			# self.y = (2.0 * np.pi * (self.inst_Freq - self.F)) / (self.K)
 		else:
 			self.y = 0.0
@@ -108,6 +110,7 @@ class VoltageControlledOscillator:
 
 	def next(self,x_ctrl):														# compute change of phase per time-step due to intrinsic frequency and noise (if non-zero variance)
 		self.d_phi = self.omega + self.K * x_ctrl
+		# print('self.dphi=', self.d_phi)
 		self.phi = self.phi + self.d_phi * self.dt
 		return self.phi, self.d_phi
 
@@ -117,6 +120,7 @@ class VoltageControlledOscillator:
 		return self.phi, self.d_phi
 
 	def set_initial(self):														# sets the phase history of the VCO with the frequency of the synchronized state under investigation
+		# print('sOmeg:', self.sOmeg)
 		self.d_phi = self.sOmeg * self.dt
 		self.phi = self.phi + self.d_phi
 		return self.phi, self.d_phi
@@ -132,7 +136,7 @@ class NoisyVoltageControlledOscillator(VoltageControlledOscillator):			# make a 
 		# temp_d_phi = ( self.omega + self.K * x_ctrl ) * self.dt + ( 2.0 * np.pi ) * tempnoi
 		# tempphi = self.phi + temp_d_phi
 
-		tempSwitch = 1															# if tempSwitch = 1, then x_ctrl = x_ctrl + 0.0 and no noise on instantaneous freq.
+		tempSwitch = 0															# if tempSwitch = 1, then x_ctrl = x_ctrl + 0.0 and no noise on instantaneous freq.
 																				# 0: Shamik Fokker-Planck-Eq. case, 1: DPLL case
 		x_ctrl = x_ctrl + ( 1 - tempSwitch ) * ( 2.0 * np.pi ) * tempnoi
 		# self.d_phi = ( self.omega + self.K * x_ctrl ) * self.dt + ( 2.0 * np.pi ) * np.random.normal(loc=0.0, scale=np.sqrt(2.0*self.c*self.F)) * np.sqrt(self.dt) # scales with self.F
@@ -204,7 +208,7 @@ class Delayer:
 		# print('Delayer set to identical transmission delays')
 		self. delay = delay
 		self.delay_steps = int(round(delay/dt))									# when initialized, the delay in time-steps is set to delay_steps
-		#print('\ndelay steps:', self.delay_steps, '\n')
+		# print('\ndelay steps:', self.delay_steps, '\n')
 
 	def next(self,idx_time,x):
 		idx_delayed = idx_time - self.delay_steps								# delayed index is calculated
@@ -289,7 +293,15 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,coupling
 			#print('number of oscis:', Nplls)
 			phi[idx_time+1,:] = [pll.set_delta_pertubation(idx_time, phi, phiS[i], inst_Freq[i]) for i,pll in enumerate(pll_list)]
 			#print('new   [step =', idx_time+1 ,'] entry phi-container simulateNetwork-fct:', phi[idx_time+1][:], 'difference: ', phi[idx_time+1][:] - phi[idx_time][:])
-		if idx_time > (delay_steps-1):
+		if (idx_time == 0 and delay_steps == 0):								# the delta perturbation has to be set for the first time point
+			print('initial phi[0,:]:', phi[0,:])
+																				# set the instantaneous frequency to F_Omeg
+			phi[idx_time+1,:]  = [pll.set_delta_pertubation(idx_time, phi, phiS[i], F_Omeg) for i,pll in enumerate(pll_list)]  # NOTE: phi[idx_time,:] is already set
+			startindex       = idx_time+1
+			print('initial phi[1,:]:', phi[1,:])
+		else:
+			startindex		 = (delay_steps-1)
+		if idx_time > startindex:
 			#if idx_time == delay_steps:
 			#	print('\n\nSIMULATION STARTS HERE, phase histories are set\n')
 			#if idx_time < delay_steps+10:
