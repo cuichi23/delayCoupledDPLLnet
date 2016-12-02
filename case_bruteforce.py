@@ -248,6 +248,7 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, Nx=0, Ny=
 	''' EXTRA EVALUATION '''
 	out.doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints, initPhiPrime0, paramDiscretization, delays_0, show_plot)
 
+	del results; del allPoints; del initPhiPrime0; del K_0;						# emtpy data container to free memory
 	return None
 
 ''' MAIN '''

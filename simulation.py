@@ -70,7 +70,7 @@ class LowPass:
 		#self.y = (self.F_Omeg - self.F) / (self.K)								# calculate the state of the LF at the last time step of the history, it is needed for the simulation of the network
 		if self.K!=0:															# this if-call is fine, since it will only be evaluated once
 			self.y = (self.inst_Freq - self.F) / (self.K_Hz)					# calculate the state of the LF at the last time step of the history, it is needed for the simulation of the network
-			print('initial control signal x_ctrl=', self.y)
+			# print('initial control signal x_ctrl=', self.y)
 			# self.y = (2.0 * np.pi * (self.inst_Freq - self.F)) / (self.K)
 		else:
 			self.y = 0.0
@@ -107,6 +107,7 @@ class VoltageControlledOscillator:
 		self.dt = dt															# set time step with which the equations are evolved
 		self.phi = phi															# this is the internal representation of phi, NOT the container in simulateNetwork
 		self.c = c																# noise strength -- chose something like variance or std here!
+		print('\nin constructor VCO, c=', c)
 
 	def next(self,x_ctrl):														# compute change of phase per time-step due to intrinsic frequency and noise (if non-zero variance)
 		self.d_phi = self.omega + self.K * x_ctrl
@@ -131,6 +132,7 @@ class NoisyVoltageControlledOscillator(VoltageControlledOscillator):			# make a 
 	def next(self,x_ctrl):														# compute change of phase per time-step due to intrinsic frequency and noise (if non-zero variance)
 																				# watch the separation of terms for order dt and the noise with order sqrt(dt)
 		tempnoi = np.random.normal(loc=0.0, scale=np.sqrt(2.0*self.c)) * np.sqrt(self.dt)
+		# print('tempnoi: ', tempnoi/np.sqrt(self.dt))
 
 		# # self.d_phi = ( self.omega + self.K * x_ctrl ) * self.dt + ( 2.0 * np.pi ) * np.random.normal(loc=0.0, scale=np.sqrt(2.0*self.c*self.F)) * np.sqrt(self.dt) # scales with self.F
 		# temp_d_phi = ( self.omega + self.K * x_ctrl ) * self.dt + ( 2.0 * np.pi ) * tempnoi
@@ -293,12 +295,13 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,coupling
 			#print('number of oscis:', Nplls)
 			phi[idx_time+1,:] = [pll.set_delta_pertubation(idx_time, phi, phiS[i], inst_Freq[i]) for i,pll in enumerate(pll_list)]
 			#print('new   [step =', idx_time+1 ,'] entry phi-container simulateNetwork-fct:', phi[idx_time+1][:], 'difference: ', phi[idx_time+1][:] - phi[idx_time][:])
+		''' This is a temporary solution for delay_steps == 0 - this could also be achieved by setting delay_steps = 2 to fit into this evolution scheme! however think and check '''
 		if (idx_time == 0 and delay_steps == 0):								# the delta perturbation has to be set for the first time point
-			print('initial phi[0,:]:', phi[0,:])
+			# print('initial phi[0,:]:', phi[0,:])
 																				# set the instantaneous frequency to F_Omeg
 			phi[idx_time+1,:]  = [pll.set_delta_pertubation(idx_time, phi, phiS[i], F_Omeg) for i,pll in enumerate(pll_list)]  # NOTE: phi[idx_time,:] is already set
 			startindex       = idx_time+1
-			print('initial phi[1,:]:', phi[1,:])
+			# print('initial phi[1,:]:', phi[1,:])
 		else:
 			startindex		 = (delay_steps-1)
 		if idx_time > startindex:

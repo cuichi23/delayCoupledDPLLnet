@@ -1246,7 +1246,10 @@ class SweepFactory(object):
         fsl = FlatStateList(tsim=self.tsim)
         key_sweep = self._identify_swept_variable()
         par_sweep = self[key_sweep]
-        n_sweep = len(par_sweep)
+        if not key_sweep=='c':
+            n_sweep = len(par_sweep)
+        else:
+            n_sweep = 1
         key_sys = ['n', 'w', 'k', 'tau', 'h', 'wc', 'topology', 'nx', 'ny', 'c']
         for i in range(n_sweep):
             args = []

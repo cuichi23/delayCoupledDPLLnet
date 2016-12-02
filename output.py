@@ -288,9 +288,8 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, c, domega, twistdelta, result
 	''' SAVE FREQUENCIES '''
 	now = datetime.datetime.now()												# provides me the current date and time
 	# print('data to be saved: \n', firstfreqsext)
-	print('{shape firstfreqsext, firstfreqsext}: ', firstfreqsext.shape, firstfreqsext)
-	np.savez('results/freqs_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, now.year, now.month, now.day),
-									firstfreqsext=np.array(firstfreqsext), firstfreq=np.array(firstfreq), lastfreq=np.array(lastfreq) )
+	# print('{shape firstfreqsext, firstfreqsext}: ', firstfreqsext.shape, firstfreqsext)
+	# np.savez('results/freqs_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, now.year, now.month, now.day), firstfreqsext=np.array(firstfreqsext), firstfreq=np.array(firstfreq), lastfreq=np.array(lastfreq) )
 
 	'''PLOT TEST'''
 	dpi_value  = 300
