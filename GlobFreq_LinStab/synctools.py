@@ -780,7 +780,7 @@ def get_stability(n, nx, ny, w, k, h, m, mx, my, tau, omega, wc, topology):
     em, vm = np.linalg.eig(e_mat)
     print('in syncTools, eigenvalues coupling topology: ', em)
 
-    b = 1 / wc                                                                  # this must be of units of [ 1 / (rad Hz) ]
+    b = (2.0*np.pi) / wc                                                        # this must be of units of [ 1 / (rad Hz) ]
     # Solve characteristic equation for each eigenvalue
     lambda_nu = []
     for inu in range(len(em)):
@@ -798,6 +798,8 @@ def get_stability(n, nx, ny, w, k, h, m, mx, my, tau, omega, wc, topology):
                     x[0] = b * l[0]**2 - b * l[1]**2 + l[0] + np.sum(e_mat[0,:]) - mu * np.exp(-l[0] * tau) * np.cos(l[1] * tau) - gamma * np.exp(-l[0] * tau) * np.sin(l[1] * tau)
                     x[1] = 2 * b * l[0] * l[1] + l[1] + mu * np.exp(-l[0] * tau) * np.sin(l[1] * tau) - gamma * np.exp(-l[0] * tau) * np.cos(l[1] * tau)
             else:
+                # x[0] = b * l[0]**2 - b * l[1]**2 + l[0] + 0.5 * (alpha_plus + alpha_minus) - 0.5 * mu * np.exp(-l[0] * tau) * np.cos(l[1] * tau) - 0.5 * gamma * np.exp(-l[0] * tau) * np.sin(l[1] * tau)
+                # x[1] = 2 * b * l[0] * l[1] + l[1] + 0.5 * mu * np.exp(-l[0] * tau) * np.sin(l[1] * tau) - 0.5 * gamma * np.exp(-l[0] * tau) * np.cos(l[1] * tau)
                 x[0] = b * l[0]**2 - b * l[1]**2 + l[0] + 0.5 * (alpha_plus + alpha_minus) - 0.5 * mu * np.exp(-l[0] * tau) * np.cos(l[1] * tau) - 0.5 * gamma * np.exp(-l[0] * tau) * np.sin(l[1] * tau)
                 x[1] = 2 * b * l[0] * l[1] + l[1] + 0.5 * mu * np.exp(-l[0] * tau) * np.sin(l[1] * tau) - 0.5 * gamma * np.exp(-l[0] * tau) * np.cos(l[1] * tau)
             return x

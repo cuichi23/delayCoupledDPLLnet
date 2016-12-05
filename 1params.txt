@@ -11,7 +11,7 @@ couplingfct = sin
 #5: free-running frequency of the plls [hz]
 f = 997
 #6: sample phases with fsim [hz] multiples of the intrinsic frequency -> goal: about 100 samples per period
-fsim = 10000
+fsim = 100000
 #7: diffusion constant [variance=2*diffconst] of the gaussian distribution for the intrinsic frequencies
 domega = 0
 #8: diffusion constant [variance=2*diffconst] of the gaussian distribution for the coupling strength
