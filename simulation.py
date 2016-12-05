@@ -6,6 +6,8 @@ import numpy as np
 import networkx as nx
 from scipy.signal import sawtooth
 
+import datetime
+
 ''' CLASSES
 
 authors: Alexandros Pollakis, Lucas Wetzel [emails]
@@ -107,7 +109,11 @@ class VoltageControlledOscillator:
 		self.dt = dt															# set time step with which the equations are evolved
 		self.phi = phi															# this is the internal representation of phi, NOT the container in simulateNetwork
 		self.c = c																# noise strength -- chose something like variance or std here!
-		print('\nin constructor VCO, c=', c)
+		# print('\nin constructor VCO, c=', c)
+		if c==8.0:
+			now = datetime.datetime.now()
+			rand_numb_test = np.random.normal(loc=0.0, scale=np.sqrt(2.0*c), size=10000)
+			np.savez('results/randnumb_test_c%.7e_%d_%d_%d.npz' %(c, now.year, now.month, now.day), rand_numb_test=rand_numb_test)
 
 	def next(self,x_ctrl):														# compute change of phase per time-step due to intrinsic frequency and noise (if non-zero variance)
 		self.d_phi = self.omega + self.K * x_ctrl
@@ -132,13 +138,14 @@ class NoisyVoltageControlledOscillator(VoltageControlledOscillator):			# make a 
 	def next(self,x_ctrl):														# compute change of phase per time-step due to intrinsic frequency and noise (if non-zero variance)
 																				# watch the separation of terms for order dt and the noise with order sqrt(dt)
 		tempnoi = np.random.normal(loc=0.0, scale=np.sqrt(2.0*self.c)) * np.sqrt(self.dt)
-		# print('tempnoi: ', tempnoi/np.sqrt(self.dt))
 
 		# # self.d_phi = ( self.omega + self.K * x_ctrl ) * self.dt + ( 2.0 * np.pi ) * np.random.normal(loc=0.0, scale=np.sqrt(2.0*self.c*self.F)) * np.sqrt(self.dt) # scales with self.F
 		# temp_d_phi = ( self.omega + self.K * x_ctrl ) * self.dt + ( 2.0 * np.pi ) * tempnoi
 		# tempphi = self.phi + temp_d_phi
 
 		tempSwitch = 0															# if tempSwitch = 1, then x_ctrl = x_ctrl + 0.0 and no noise on instantaneous freq.
+		# print('{tempnoi, tempnoi*sqrt(dt)}: ', tempnoi/np.sqrt(self.dt), tempnoi)
+		# print(( 1 - tempSwitch ) * ( 2.0 * np.pi ) * tempnoi, tempSwitch * ( 2.0 * np.pi ) * tempnoi)
 																				# 0: Shamik Fokker-Planck-Eq. case, 1: DPLL case
 		x_ctrl = x_ctrl + ( 1 - tempSwitch ) * ( 2.0 * np.pi ) * tempnoi
 		# self.d_phi = ( self.omega + self.K * x_ctrl ) * self.dt + ( 2.0 * np.pi ) * np.random.normal(loc=0.0, scale=np.sqrt(2.0*self.c*self.F)) * np.sqrt(self.dt) # scales with self.F

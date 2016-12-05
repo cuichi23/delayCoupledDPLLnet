@@ -18,6 +18,7 @@ from itertools import combinations as combi
 import time
 import datetime
 
+
 ''' SIMULATION CALL '''
 def simulatePllNetwork(mode,topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, Nx=0, Ny=0, kx=0, ky=0, isPlottingTimeSeries=False):
 	''' SIMULATION OF NETWORK '''

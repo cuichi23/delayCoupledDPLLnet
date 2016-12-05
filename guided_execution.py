@@ -466,6 +466,8 @@ def singleRealization(params):
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:
 					plot_out = True
+				else:
+					plot_out = False
 
 				for i in range (len(para_mat[:,0])):
 					print('\nSTART: python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
@@ -527,6 +529,8 @@ def singleRealization(params):
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:
 					plot_out = True
+				else:
+					plot_out = False
 
 				for i in range (len(para_mat[:,0])):
 					print('\nSTART: python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
@@ -588,6 +592,8 @@ def singleRealization(params):
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:
 					plot_out = True
+				else:
+					plot_out = False
 
 				for i in range (len(para_mat[:,0])):
 					print('\nSTART: python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
@@ -656,7 +662,7 @@ def noisyStatistics(params):
 
 			for i in range (len(para_mat[:,0])):
 				if para_mat[i,9]<10:
-					para_mat[i,9]=50
+					para_mat[i,9]=80
 
 			if not para_mat == []:
 				print('length of para_mat[:,0]:', len(para_mat[:,0]))
@@ -664,6 +670,8 @@ def noisyStatistics(params):
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:
 					plot_out = True
+				else:
+					plot_out = False
 
 				for i in range (len(para_mat[:,0])):
 					print('\nSTART: python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
@@ -722,7 +730,7 @@ def noisyStatistics(params):
 
 			for i in range (len(para_mat[:,0])):
 				if para_mat[i,9]<10:
-					para_mat[i,9]=50
+					para_mat[i,9]=80
 
 			# print('sum pert: ', np.sum(pert))
 			# if np.sum(pert) == 0.0:
@@ -736,6 +744,8 @@ def noisyStatistics(params):
 					plot_out = False
 				elif ( len(para_mat[:,0]) == 1 and new_c_values == 1 ):
 					plot_out = True
+				else:
+					plot_out = False
 
 				print('length para_mat[:,6], para_mat[:,6] (Omegas for the value of tau):', len(para_mat[:,6]), para_mat[:,6])
 				for i in range (len(para_mat[:,0])):
@@ -801,6 +811,8 @@ def noisyStatistics(params):
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:
 					plot_out = True
+				else:
+					plot_out = False
 
 				for i in range (len(para_mat[:,0])):
 					print('\nSTART: python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
@@ -861,6 +873,8 @@ def noisyStatistics(params):
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:
 					plot_out = True
+				else:
+					plot_out = False
 
 				for i in range (len(para_mat[:,0])):
 					print('\nSTART: python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
@@ -931,6 +945,8 @@ def bruteForce(params, param_cases_csv):
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:
 					plot_out = True
+				else:
+					plot_out = False
 
 				for i in range (len(para_mat[:,0])):
 					print('Tsim: ', para_mat[i,9])
@@ -990,6 +1006,8 @@ def bruteForce(params, param_cases_csv):
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:
 					plot_out = True
+				else:
+					plot_out = False
 
 				for i in range (len(para_mat[:,0])):
 					print('Tsim: ', para_mat[i,9])
@@ -1049,6 +1067,8 @@ def bruteForce(params, param_cases_csv):
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:
 					plot_out = True
+				else:
+					plot_out = False
 
 				for i in range (len(para_mat[:,0])):
 					print('Tsim: ', para_mat[i,9])
