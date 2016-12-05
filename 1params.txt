@@ -7,11 +7,11 @@ paramdiscretization = 3
 #3: number of processors that can be used --> with intel ht: 2*number of cores of proc.
 numbercores = 7
 #4: type of coupling function -- choose from {triang(ular), cos(ine), sin(e)}
-couplingfct = sin
-#5: free-running frequency of the plls [hz]
-f = 997
-#6: sample phases with fsim [hz] multiples of the intrinsic frequency -> goal: about 100 samples per period
-fsim = 100000
+couplingfct = triang
+#5: free-running frequency of the plls [hz] test-997
+f = 1
+#6: sample phases with fsim [hz] multiples of the intrinsic frequency -> goal: about 100 samples per period test-100000
+fsim = 125
 #7: diffusion constant [variance=2*diffconst] of the gaussian distribution for the intrinsic frequencies
 domega = 0
 #8: diffusion constant [variance=2*diffconst] of the gaussian distribution for the coupling strength

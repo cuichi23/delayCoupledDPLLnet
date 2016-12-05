@@ -457,9 +457,13 @@ def singleRealization(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
+			upper_TSim = 2000
+			lower_TSim = 50
 			for i in range (len(para_mat[:,0])):
 				if para_mat[i,9]<10:
-					para_mat[i,9]=50
+					para_mat[i,9]=lower_TSim
+				if para_mat[i,9]>upper_TSim:
+					para_mat[i,9]=upper_TSim
 
 			if not para_mat == []:
 				if len(para_mat[:,0]) > 1:
@@ -520,9 +524,13 @@ def singleRealization(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
+			upper_TSim = 2000
+			lower_TSim = 50
 			for i in range (len(para_mat[:,0])):
 				if para_mat[i,9]<10:
-					para_mat[i,9]=50
+					para_mat[i,9]=lower_TSim
+				if para_mat[i,9]>upper_TSim:
+					para_mat[i,9]=upper_TSim
 
 			if not para_mat == []:
 				if len(para_mat[:,0]) > 1:
@@ -583,9 +591,13 @@ def singleRealization(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
+			upper_TSim = 2000
+			lower_TSim = 50
 			for i in range (len(para_mat[:,0])):
 				if para_mat[i,9]<10:
-					para_mat[i,9]=50
+					para_mat[i,9]=lower_TSim
+				if para_mat[i,9]>upper_TSim:
+					para_mat[i,9]=upper_TSim
 
 			if not para_mat == []:
 				if len(para_mat[:,0]) > 1:
@@ -660,6 +672,8 @@ def noisyStatistics(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
+			upper_TSim = 2000
+			lower_TSim = 50
 			for i in range (len(para_mat[:,0])):
 				if para_mat[i,9]<10:
 					para_mat[i,9]=80
@@ -728,6 +742,8 @@ def noisyStatistics(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
+			upper_TSim = 2000
+			lower_TSim = 50
 			for i in range (len(para_mat[:,0])):
 				if para_mat[i,9]<10:
 					para_mat[i,9]=80
@@ -735,7 +751,7 @@ def noisyStatistics(params):
 			# print('sum pert: ', np.sum(pert))
 			# if np.sum(pert) == 0.0:
 			# 	print('limit Tsim since there is no perturbation and the system is set up in the synced state')
-			# 	para_mat[i,9]=50
+			# 	para_mat[i,9]=lower_TSim
 
 			if not ( para_mat == [] and new_c_values == [] ):
 				# print( 'length of para_mat[:,0]:', len(para_mat[:,0]) )
@@ -802,9 +818,13 @@ def noisyStatistics(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
+			upper_TSim = 2000
+			lower_TSim = 50
 			for i in range (len(para_mat[:,0])):
 				if para_mat[i,9]<10:
-					para_mat[i,9]=50
+					para_mat[i,9]=lower_TSim
+				if para_mat[i,9]>upper_TSim:
+					para_mat[i,9]=upper_TSim
 
 			if not para_mat == []:
 				if len(para_mat[:,0]) > 1:
@@ -864,9 +884,13 @@ def noisyStatistics(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
+			upper_TSim = 2000
+			lower_TSim = 50
 			for i in range (len(para_mat[:,0])):
 				if para_mat[i,9]<10:
-					para_mat[i,9]=50
+					para_mat[i,9]=lower_TSim
+				if para_mat[i,9]>upper_TSim:
+					para_mat[i,9]=upper_TSim
 
 			if not para_mat == []:
 				if len(para_mat[:,0]) > 1:
