@@ -77,8 +77,6 @@ if __name__ == '__main__':
 
 	''' SIMULATION PARAMETER'''
 
-	print('Note: here the cases with 2d-twist solutions still needs to be implemented!')
-
 	mode = int(0);																# mode=0 -> algorithm usage mode, mode=1 -> single realization mode,
 																				# mode=2 -> brute force scanning mode for parameter interval scans
 																				# mode=3 -> calculate many noisy realization for the same parameter set
@@ -109,6 +107,11 @@ if __name__ == '__main__':
 	Tsim 		= float(sys.argv[8])											# provide the multiples of the intrinsic frequencies for which the simulations runs
 	c 			= float(sys.argv[9])											# provide diffusion constant for GWN process, bzw. sigma^2 = 2*c  --> c = 0.5 variance
 	Nsim 		= int(sys.argv[10])												# number of realizations for parameterset -- should be one here
+
+
+	# print('Note: here the cases with 2d-twist solutions still needs to be implemented!')
+
+
 	# Nx			= int(sys.argv[11])												# number of oscillators in x-direction
 	# Ny			= int(sys.argv[12])												# number of oscillators in y-direction
 	# mx			= int(sys.argv[13])												# twist number in x-direction
