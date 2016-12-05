@@ -110,10 +110,10 @@ class VoltageControlledOscillator:
 		self.phi = phi															# this is the internal representation of phi, NOT the container in simulateNetwork
 		self.c = c																# noise strength -- chose something like variance or std here!
 		# print('\nin constructor VCO, c=', c)
-		if c==8.0:
-			now = datetime.datetime.now()
-			rand_numb_test = np.random.normal(loc=0.0, scale=np.sqrt(2.0*c), size=10000)
-			np.savez('results/randnumb_test_c%.7e_%d_%d_%d.npz' %(c, now.year, now.month, now.day), rand_numb_test=rand_numb_test)
+		# if c==8.0:
+		# 	now = datetime.datetime.now()
+		# 	rand_numb_test = np.random.normal(loc=0.0, scale=np.sqrt(2.0*c), size=10000)
+		# 	np.savez('results/randnumb_test_c%.7e_%d_%d_%d.npz' %(c, now.year, now.month, now.day), rand_numb_test=rand_numb_test)
 
 	def next(self,x_ctrl):														# compute change of phase per time-step due to intrinsic frequency and noise (if non-zero variance)
 		self.d_phi = self.omega + self.K * x_ctrl
@@ -229,7 +229,9 @@ class Delayer:
 class DistDelayDelayer(Delayer):
 	"""A delayer class"""
 	def __init__(self,delay,dt,std_dist_delay,std_dyn_delay_noise):
-		print('Delayer: FOR THIS CASE YOU HAVE TO FIND A SOLUTION FOR THE FREQUENCIES AND HISTORIES! -- take the mean delay to approximate the global frequency, also return distribution of delays')
+
+		# print('Delayer: FOR THIS CASE YOU HAVE TO FIND A SOLUTION FOR THE FREQUENCIES AND HISTORIES! -- take the mean delay to approximate the global frequency, also return distribution of delays')
+
 		if std_dist_delay != 0:
 			self.delay = np.random.normal(loc=delay, scale=std_dist_delay)		# process variation, the delays in the network are gaussian distributed about the mean delay
 		else:
@@ -248,7 +250,9 @@ class DistDelayDelayer(Delayer):
 class DistDelayDelayerWithDynNoise(Delayer):
 	"""A delayer class"""
 	def __init__(self,delay,dt,std_dist_delay,std_dyn_delay_noise):
-		print('Delayer: FOR THIS CASE YOU HAVE TO FIND A SOLUTION FOR THE FREQUENCIES AND HISTORIES! -- take the mean delay to approximate the global frequency, also return distribution of delays')
+
+		# print('Delayer: FOR THIS CASE YOU HAVE TO FIND A SOLUTION FOR THE FREQUENCIES AND HISTORIES! -- take the mean delay to approximate the global frequency, also return distribution of delays')
+
 		if std_dist_delay != 0:
 			self.delay = np.random.normal(loc=delay, scale=std_dist_delay)		# process variation, the delays in the network are gaussian distributed about the mean delay
 		else:																	# NOTE: static distribution of transmission delays - t
