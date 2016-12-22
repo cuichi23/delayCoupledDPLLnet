@@ -176,7 +176,7 @@ def calcSpectrum(phi,Fsample,waveform=None):
 	Pxx_db=[]; f=[];
 	windowset='boxcar' #'hamming'
 	print('current window option is', windowset, 'for waveform', waveform)
-	window = scipy.signal.get_window(windowset, Fsample, fftbins=True)			# choose window from: boxcar, triang, blackman, hamming, hann, bartlett, flattop, parzen, bohman, blackmanharris, nuttall,
+	window = scipy.signal.get_window(windowset, int(Fsample), fftbins=True)		# choose window from: boxcar, triang, blackman, hamming, hann, bartlett, flattop, parzen, bohman, blackmanharris, nuttall,
 																				# barthann, kaiser (needs beta), gaussian (needs std), general_gaussian (needs power, width), slepian (needs width), chebwin (needs attenuation)
 	print('calculate spectrum for signals with waveform:', waveform)
 	for i in range ( len(phi[0,0,:]) ):

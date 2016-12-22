@@ -20,8 +20,8 @@ if not os.environ.get('SGE_ROOT') == None:										# this environment variable 
 	print('NOTE: \"matplotlib.use(\'Agg\')\"-mode active, plots are not shown on screen, just saved to results folder!\n')
 	matplotlib.use('Agg') #'%pylab inline'
 import matplotlib.pyplot as plt
-import evaluation as eva
 
+import evaluation as eva
 import case_noisy as cnois
 import case_bruteforce as cbrut
 import case_singleout as csing
@@ -71,7 +71,7 @@ def chooseK(mean_int_freq):														# ask user-input for coupling strength
 	while a_true:
 		# get user input on number of oscis in the network
 		K = float(raw_input('\nPlease specify as [float] the coupling strength [Hz]: '))
-		if np.abs( float(K) ) < 5.0 * mean_int_freq:
+		if np.abs( float(K) ) < 5.0 * mean_int_freq or mean_int_freq == 0:
 			break
 		else:
 			print('Please provide input as an [float] in [0, 5*f_intrinsic]!')
@@ -133,24 +133,36 @@ def chooseDeltaPert(N):															# ask user-input for delta-perturbation
 		# get user input on delta-perturbation type
 		choice_history = raw_input('\nPlease specify type delta-perturbation from {[1] manual, [2] all zero, [3] 1 of N perturbed, or [4] all perturbed according to a distribution}: ')
 		if ( type(choice_history) == str and int(choice_history) > 0):
-			pert = setDeltaPertubation(N, choice_history)				# sets the delta perturbation, ATTENTION: should here be given in rotated phase space
+			rot_vs_orig = chooseRotOrig()
 			break
 		else:
 			print('Please provide integer input from [1, 2, 3,...]!')
 
-	return pert
+	return choice_history, rot_vs_orig
 
-def chooseDiffConst():															# ask user-input for diffusion constant GWN dynamic noise process
+def chooseDiffConst():															# ask user-input for diffusion constant GWN dynamic noise process on the VCO
 	b_true = True
 	while b_true:
 		# get user input on dynamic frequency noise -- provide diffusion constant for GWN process -> results in Wiener process for the phases (integrated instantaneous freqs)
-		c = raw_input('\nPlease specify the diffusion constant [float] for the GWN process on the frequencies of the DPLLs from the range [0, 10*K]: ')
+		c = raw_input('\nPlease specify the diffusion constant [float, in Hz**2] for the GWN process on the frequencies of the DPLLs from the range [0, 10*K]: ')
 		if ( float(c) >= 0.0 ):
 			break
 		else:
 			print('Please provide [float] input from [0, 10*K]!')
 
 	return float(c)
+
+def chooseLF_DiffConst():														# ask user-input for diffusion constant GWN dynamic noise process on the control signal
+	b_true = True
+	while b_true:
+		# get user input on dynamic frequency noise -- provide diffusion constant for GWN process -> results in Wiener process for the phases (integrated instantaneous freqs)
+		cLF = raw_input('\nPlease specify the diffusion constant [float, in Hz**2] for the GWN process on CONTROL SIGNAL of the DPLLs from the range [0, 10*K]: ')
+		if ( float(cLF) >= 0.0 ):
+			break
+		else:
+			print('Please provide [float] input from [0, 10*K]!')
+
+	return float(cLF)
 
 def chooseNsim():																# ask user-input for number of realizations for the noisy statistics
 	b_true = True
@@ -164,64 +176,72 @@ def chooseNsim():																# ask user-input for number of realizations for
 
 	return int(Nsim)
 
-def chooseDeltaPertDistAndBounds(N, isRotatedPhaseSpace):
+def chooseDistribution():
 	b_true = True
 	while b_true:
 		# get user input on type of distributed perturbations
-		distrib  = raw_input('\nPlease specify whether perturbations are uniformly [iid], [normal] or [gamma]-distributed: ')
-		if distrib == 'iid':
-			c_true = True
-			while c_true:
-				# get user input on interval of iid dist. perturbations
-				min_pert = raw_input('\nPlease provide LOWER bound of interval from which iid dist. perturbations are drawn as [float] from interval [-pi, pi): ')
-				max_pert = raw_input('Please provide UPPER bound of interval from which iid dist. perturbations are drawn as [float] from interval [min_pert, pi): ')
-				if ( float(min_pert) <= float(max_pert) and float(max_pert) < np.pi and float(min_pert) >= -np.pi ):
-					print('Draw pseudo random numbers, iid-distributed for the the delta-perturbations at t=-dt in from the interval: [%0.3f, %0.3f]' %(float(min_pert), float(max_pert)) )
-					iid_delta_pert = np.random.uniform(float(min_pert), float(max_pert), size=N)
-					perturbation_vec = iid_delta_pert
-					if isRotatedPhaseSpace == False:
-						perturbation_vec = eva.rotate_phases(perturbation_vec, isInverse=True)	# transform perturbations into rotated phase space of phases, as required by case_noisy, case_singleout
-					print('iid-dist. perturbation vector: ', perturbation_vec)
-					break
-				else:
-					print('Please provide inputs as [floats] from the interval [-pi, pi)!')
-			break
-		elif distrib == 'normal':
-			c_true = True
-			while c_true:
-				# get user input on shape and scale of the gamma-dist. perturbations
-				meanvaluePert = raw_input('\nPlease provide the mean-value of the gaussian distribution as [float] from (-infty, infty): ')
-				diffconstPert = raw_input('Please provide the standard-deviation of the gaussian distribution as [float] from (0, infty): ')
-				if ( float(diffconstPert) > 0 ):
-					print('Draw pseudo random numbers, normal-distributed for the the delta-perturbations at t=-dt with mean and diffusion constant: [%0.2f, %0.4g]' %(float(meanvaluePert), float(diffconstPert)) )
-					normal_delta_pert = np.random.normal(float(meanvaluePert), float(diffconstPert), size=N)
-					perturbation_vec = normal_delta_pert
-					if isRotatedPhaseSpace == False:
-						perturbation_vec = eva.rotate_phases(perturbation_vec, isInverse=True)	# transform perturbations into rotated phase space of phases, as required by case_noisy, case_singleout
-					print('normal-dist. perturbation vector: ', perturbation_vec)
-					break
-				else:
-					print('Please provide inputs as [floats] with a standard-deviation larger than zero!')
-			break
-		elif distrib == 'gamma':
-			c_true = True
-			while c_true:
-				# get user input on shape and scale of the gamma-dist. perturbations
-				shape = raw_input('\nPlease provide the SHAPE parameter of the gamma-dist. as [integer] in [1, infty): ')
-				scale = raw_input('Please provide the SCALE parameter of the gamma-dist. as [float] in (0, infty): ')
-				if ( int(shape) >= 1 and float(scale) > 0 ):
-					print('Draw pseudo random numbers, gamma-distributed for the the delta-perturbations at t=-dt with shape and scale parameter: [%d, %0.4g]' %(int(shape), float(scale)) )
-					gamma_delta_pert = np.random.gamma(int(shape), float(scale), size=N)
-					perturbation_vec = gamma_delta_pert
-					if isRotatedPhaseSpace == False:
-						perturbation_vec = eva.rotate_phases(perturbation_vec, isInverse=True)	# transform perturbations into rotated phase space of phases, as required by case_noisy, case_singleout
-					print('gamma-dist. perturbation vector: ', perturbation_vec)
-					break
-				else:
-					print('Please provide inputs as follows, shape-parameter: [integer] and scale-parameter: [float]!')
+		distrib  = raw_input('\nPlease specify whether initial delta-perturbations are uniformly [iid], [normal] or [gamma]-distributed: ')
+		if (distrib == 'gamma' or distrib == 'normal' or distrib == 'iid' ):
 			break
 		else:
 			print('Please provide as input-string either [iid], [normal] or [gamma] as the distribution from which the delta-perturbations at t = -dt are drawn!')
+
+	if distrib == 'iid':
+		c_true = True
+		while c_true:
+			# get user input on interval of iid dist. perturbations
+			min_pert = raw_input('\nPlease provide LOWER bound of interval from which iid dist. perturbations are drawn as [float] from interval [-pi, pi): ')
+			max_pert = raw_input('Please provide UPPER bound of interval from which iid dist. perturbations are drawn as [float] from interval [min_pert, pi): ')
+			if ( float(min_pert) <= float(max_pert) and float(max_pert) < np.pi and float(min_pert) >= -np.pi ):
+				print('Draw pseudo random numbers, iid-distributed for the the delta-perturbations at t=-dt in from the interval: [%0.3f, %0.3f]' %(float(min_pert), float(max_pert)) )
+				return distrib, min_pert, max_pert, 0, 0, 0, 0
+				break
+			else:
+				print('Please provide inputs as [floats] from the interval [-pi, pi)!')
+	elif distrib == 'normal':
+		d_true = True
+		while d_true:
+			# get user input on shape and scale of the gamma-dist. perturbations
+			meanvaluePert = raw_input('\nPlease provide the mean-value of the gaussian distribution as [float] from (-infty, infty): ')
+			diffconstPert = raw_input('Please provide the standard-deviation of the gaussian distribution as [float] from (0, infty): ')
+			if ( float(diffconstPert) > 0 ):
+				print('Draw pseudo random numbers, normal-distributed for the the delta-perturbations at t=-dt with mean and diffusion constant: [%0.2f, %0.4g]' %(float(meanvaluePert), float(diffconstPert)) )
+				return distrib, 0, 0, meanvaluePert, diffconstPert, 0, 0
+				break
+			else:
+				print('Please provide inputs as [floats] with a standard-deviation larger than zero!')
+	elif distrib == 'gamma':
+		e_true = True
+		while e_true:
+			# get user input on shape and scale of the gamma-dist. perturbations
+			shape = raw_input('\nPlease provide the SHAPE parameter of the gamma-dist. as [integer] in [1, infty): ')
+			scale = raw_input('Please provide the SCALE parameter of the gamma-dist. as [float] in (0, infty): ')
+			if ( int(shape) >= 1 and float(scale) > 0 ):
+				print('Draw pseudo random numbers, gamma-distributed for the the delta-perturbations at t=-dt with shape and scale parameter: [%d, %0.4g]' %(int(shape), float(scale)) )
+				return distrib, 0, 0, 0, 0, shape, scale
+				break
+			else:
+				print('Please provide inputs as follows, shape-parameter: [integer] and scale-parameter: [float]!')
+
+def chooseDeltaPertDistAndBounds(N, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, isRotatedPhaseSpace):
+	if distrib == 'iid':
+				iid_delta_pert = np.random.uniform(float(min_pert), float(max_pert), size=N)
+				perturbation_vec = iid_delta_pert
+				if isRotatedPhaseSpace == False:
+					perturbation_vec = eva.rotate_phases(perturbation_vec, isInverse=True)	# transform perturbations into rotated phase space of phases, as required by case_noisy, case_singleout
+				print('iid-dist. perturbation vector: ', perturbation_vec)
+	elif distrib == 'normal':
+				normal_delta_pert = np.random.normal(float(meanvaluePert), float(diffconstPert), size=N)
+				perturbation_vec = normal_delta_pert
+				if isRotatedPhaseSpace == False:
+					perturbation_vec = eva.rotate_phases(perturbation_vec, isInverse=True)	# transform perturbations into rotated phase space of phases, as required by case_noisy, case_singleout
+				print('normal-dist. perturbation vector: ', perturbation_vec)
+	elif distrib == 'gamma':
+				gamma_delta_pert = np.random.gamma(int(shape), float(scale), size=N)
+				perturbation_vec = gamma_delta_pert
+				if isRotatedPhaseSpace == False:
+					perturbation_vec = eva.rotate_phases(perturbation_vec, isInverse=True)	# transform perturbations into rotated phase space of phases, as required by case_noisy, case_singleout
+				print('gamma-dist. perturbation vector: ', perturbation_vec)
 
 	return perturbation_vec
 
@@ -343,73 +363,77 @@ def loopUserInputPert(N):														# ask N times for the value of the pertur
 
 	return perturb_user_set
 
-def setDeltaPertubation(N, case):
+def chooseRotOrig():
 	a_true = True
 	while a_true:
 		# get user input on whether to input perturbation in rotated or original phase space
 		rot_vs_orig = raw_input('\nPlease specify whether perturbation is provided in original [o] or rotated [r] phase space: ')
-		if rot_vs_orig == 'r':													# perturbation provided in rotated phase space
-
-			if case == '1':														# case in which the user provides all pertubations manually
-				perturbation_vec = loopUserInputPert(N)
-				break
-			elif case == '2':													# case for which no delta-perturbations are added
-				print('No delta-perturbations, all set to zero!\n')
-				phiS = np.zeros(N)
-				perturbation_vec = phiS											# transform perturbations into rotated phase space of phases, as required by case_noisy, case_singleout
-				break
-			elif case == '3':													# case in which only one of the oscillators is perturbed
-				phiS = np.zeros(N);
-				b_true = True
-				while b_true:
-					# get user input on number of oscis in the network
-					number 	   = int(raw_input('\nWhich oscillator id [integer] in [1, %d] should be perturbed: ' %(N-1) ))
-					pert_value = float(raw_input('Please provide perturbation as float in (0, 2pi] to be added to oscillator id=%d' %number))
-					if (type(number) == int and number > 0  and number < N and pert_value>0 and pert_value<2.0*np.pi ):
-						phiS[number] = pert_value
-						break
-					else:
-						print('Please provide id as an [integer] in [1, %d] and the perturbation as a [float] in (0,2pi]!' %(N-1) )
-				perturbation_vec = phiS											# no transformation necessary, since the modules expect to get the values in rotated phase space
-				break
-			elif case == '4':													# case in which all the oscillators are perturbed randomly from either iid dist. in
-																				# [min_pert, max_pert] or a gamma-distribution with shape and scale parameter
-				perturbation_vec = chooseDeltaPertDistAndBounds(N, True)
-				break
-
-		elif rot_vs_orig == 'o':												# perturbation provided in original phase space
-
-			if case == '1':														# case in which the user provides all pertubations manually
-				phiS = loopUserInputPert(N)
-				perturbation_vec = eva.rotate_phases(phiS, isInverse=True)		# transform perturbations into rotated phase space of phases, as required by case_noisy, case_singleout
-				break
-			elif case == '2':													# case for which no delta-perturbations are added
-				print('No delta-perturbations, all set to zero!\n')
-				phiS = np.zeros(N)
-				perturbation_vec = eva.rotate_phases(phiS, isInverse=True)		# transform perturbations into rotated phase space of phases, as required by case_noisy, case_singleout
-				break
-			elif case == '3':													# case in which only one the the oscillators is perturbed
-				phiS = np.zeros(N);
-				b_true = True
-				while b_true:
-					# get user input on number of oscis in the network
-					number 	   = int(raw_input('\nWhich oscillator id [integer] in [1, %d] should be perturbed: ' %(N-1) ))
-					pert_value = float(raw_input('Please provide perturbation as float in (0, 2pi] to be added to oscillator id=%d: ' %number))
-					if (type(number) == int and number > 0  and number < N and pert_value>0 and pert_value<2.0*np.pi ):
-						phiS[number] = pert_value
-						break
-					else:
-						print('Please provide id as an [integer] in [1, %d] and the perturbation as a [float] in (0,2pi]!' %(N-1) )
-				perturbation_vec = eva.rotate_phases(phiS, isInverse=True)		# transform perturbations into rotated phase space of phases, as required by case_noisy, case_singleout
-				break
-			elif case == '4':													# case in which all the oscillators are perturbed randomly from either iid dist. in
-																				# [min_pert, max_pert] or a gamma-distribution with shape and scale parameter
-				perturbation_vec = chooseDeltaPertDistAndBounds(N, False)		# call with 'False' flag in order to get perturbations returned in rotated phase space as needed
-				break
-
+		if (rot_vs_orig == 'o' or rot_vs_orig == 'r'):
+			a_true = False; break
 		else:
 			print('Please provide one of these input-strings: [o]riginal (small letter \"O\") or [r]otated!')
 
+	return rot_vs_orig
+
+def setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k):
+	if rot_vs_orig == 'r':														# perturbation provided in rotated phase space
+
+		if case == '1':															# case in which the user provides all pertubations manually
+			perturbation_vec = loopUserInputPert(N)
+
+		elif case == '2':														# case for which no delta-perturbations are added
+			print('No delta-perturbations, all set to zero!\n')
+			phiS = np.zeros(N)
+			perturbation_vec = phiS												# transform perturbations into rotated phase space of phases, as required by case_noisy, case_singleout
+			# break
+		elif case == '3':														# case in which only one of the oscillators is perturbed
+			phiS = np.zeros(N);
+			b_true = True
+			while b_true:
+				# get user input on number of oscis in the network
+				number 	   = int(raw_input('\nWhich oscillator id [integer] in [1, %d] should be perturbed: ' %(N-1) ))
+				pert_value = float(raw_input('Please provide perturbation as float in (0, 2pi] to be added to oscillator id=%d' %number))
+				if (type(number) == int and number > 0  and number < N and pert_value>0 and pert_value<2.0*np.pi ):
+					phiS[number] = pert_value
+					break
+				else:
+					print('Please provide id as an [integer] in [1, %d] and the perturbation as a [float] in (0,2pi]!' %(N-1) )
+			perturbation_vec = phiS												# no transformation necessary, since the modules expect to get the values in rotated phase space
+
+		elif case == '4':														# case in which all the oscillators are perturbed randomly from either iid dist. in
+																				# [min_pert, max_pert] or a gamma-distribution with shape and scale parameter
+			perturbation_vec = chooseDeltaPertDistAndBounds(N, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, True)
+
+	elif rot_vs_orig == 'o':													# perturbation provided in original phase space
+
+		if case == '1':															# case in which the user provides all pertubations manually
+			phiS = loopUserInputPert(N)
+			perturbation_vec = eva.rotate_phases(phiS, isInverse=True)			# transform perturbations into rotated phase space of phases, as required by case_noisy, case_singleout
+			# break
+		elif case == '2':														# case for which no delta-perturbations are added
+			print('No delta-perturbations, all set to zero!\n')
+			phiS = np.zeros(N)
+			perturbation_vec = eva.rotate_phases(phiS, isInverse=True)			# transform perturbations into rotated phase space of phases, as required by case_noisy, case_singleout
+
+		elif case == '3':														# case in which only one the the oscillators is perturbed
+			phiS = np.zeros(N);
+			b_true = True
+			while b_true:
+				# get user input on number of oscis in the network
+				number 	   = int(raw_input('\nWhich oscillator id [integer] in [1, %d] should be perturbed: ' %(N-1) ))
+				pert_value = float(raw_input('Please provide perturbation as float in (0, 2pi] to be added to oscillator id=%d: ' %number))
+				if (type(number) == int and number > 0  and number < N and pert_value>0 and pert_value<2.0*np.pi ):
+					phiS[number] = pert_value
+					break
+				else:
+					print('Please provide id as an [integer] in [1, %d] and the perturbation as a [float] in (0,2pi]!' %(N-1) )
+			perturbation_vec = eva.rotate_phases(phiS, isInverse=True)			# transform perturbations into rotated phase space of phases, as required by case_noisy, case_singleout
+
+		elif case == '4':														# case in which all the oscillators are perturbed randomly from either iid dist. in
+																				# [min_pert, max_pert] or a gamma-distribution with shape and scale parameter
+			perturbation_vec = chooseDeltaPertDistAndBounds(N, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, False)		# call with 'False' flag in order to get perturbations returned in rotated phase space as needed
+
+	print( '\norder parameter for system after delta-perturbation: ', eva.oracle_mTwistOrderParameter(perturbation_vec, k), ' and twist number: ', k, '\n' )
 	return perturbation_vec
 
 ''' SINGLE REALIZATION '''
@@ -417,7 +441,7 @@ def singleRealization(params):
 	x_true = True
 	while x_true:
 		# get user input to know which parameter should be analyzed
-		user_input = raw_input('\nPlease specify which parameters dependencies to be analyzed {[K] in [Hz], [Fc] in [Hz], [delay] in [s]} : ')
+		user_input = raw_input('\nPlease specify which parameters dependencies to be analyzed {coupling strength [K] in [Hz], LF cut-off freq [Fc] in [Hz], transmission [delay] in [s], loop filter GWN noise diff. const. [cLF] in [Hz^2]} : ')
 		if user_input == 'K':
 			user_sweep_start = float(raw_input('\nPlease specify the range in which K (K=0.5*Kvco) should be simulated, start K_s in [Hz] = '))
 			user_sweep_end	 = float(raw_input('\nPlease specify the range in which K (K=0.5*Kvco) should be simulated, end K_e in [Hz] = '))
@@ -436,9 +460,18 @@ def singleRealization(params):
 				kx = k; ky = -999; Nx = N; Ny = 1;
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
-			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
-			pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
-			# Nsim    = chooseNsim()												# calls function that asks user for input for number of realizations
+			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
+			cLF		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
+			Nsim    = 1															# calls function that asks user for input for number of realizations
+			case, rot_vs_orig = chooseDeltaPert(N)								# calls function that asks user for input for delta-like perturbation
+			if case == '4':
+				distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale = chooseDistribution()
+			else:
+				distrib='NONE'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
+			pert = []
+			for i in range (Nsim):
+				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
+
 			if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
 				h = synctools.Triangle(1.0 / (2.0 * np.pi))
 			elif str(params['DEFAULT']['couplingfct']) == 'cos':
@@ -476,12 +509,12 @@ def singleRealization(params):
 				for i in range (len(para_mat[:,0])):
 					print('\nSTART: python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 							+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-							+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+' '.join(map(str, pert)))
+							+str(c)+' '+str(cLF)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+' '.join(map(str, pert)))
 					print('Tsim: ', para_mat[i,9])
 					# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					csing.singleout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
-									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(1), str(int(Nx)), str(int(Ny)), str(int(kx)), str(int(ky)),
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cLF), int(1), str(int(Nx)), str(int(Ny)), str(int(kx)), str(int(ky)),
 									pert, plot_out)
 			break
 
@@ -503,9 +536,18 @@ def singleRealization(params):
 				kx = k; ky = -999; Nx = N; Ny = 1;
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
-			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
-			pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
-			# Nsim    = chooseNsim()												# calls function that asks user for input for number of realizations
+			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
+			cLF		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
+			Nsim    = 1														# calls function that asks user for input for number of realizations
+			case, rot_vs_orig = chooseDeltaPert(N)								# calls function that asks user for input for delta-like perturbation
+			if case == '4':
+				distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale = chooseDistribution()
+			else:
+				distrib='gamma'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
+			pert = []
+			for i in range (Nsim):
+				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
+
 			if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
 				h = synctools.Triangle(1.0 / (2.0 * np.pi))
 			elif str(params['DEFAULT']['couplingfct']) == 'cos':
@@ -543,12 +585,12 @@ def singleRealization(params):
 				for i in range (len(para_mat[:,0])):
 					print('\nSTART: python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-													+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+' '.join(map(str, pert)))
+													+str(c)+' '+str(cLF)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+' '.join(map(str, pert)))
 					print('Tsim: ', para_mat[i,9])
 					# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					csing.singleout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
-									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(1), str(int(Nx)), str(int(Ny)), str(int(kx)), str(int(ky)),
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cLF), int(1), str(int(Nx)), str(int(Ny)), str(int(kx)), str(int(ky)),
 									pert, plot_out)
 			break
 
@@ -570,9 +612,18 @@ def singleRealization(params):
 				kx = k; ky = -999; Nx = N; Ny = 1;
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
-			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
-			pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
-			# Nsim    = chooseNsim()												# calls function that asks user for input for number of realizations
+			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
+			cLF		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
+			Nsim    = 1														# calls function that asks user for input for number of realizations
+			case, rot_vs_orig = chooseDeltaPert(N)								# calls function that asks user for input for delta-like perturbation
+			if case == '4':
+				distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale = chooseDistribution()
+			else:
+				distrib='gamma'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
+			pert = []
+			for i in range (Nsim):
+				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
+
 			if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
 				h = synctools.Triangle(1.0 / (2.0 * np.pi))
 			elif str(params['DEFAULT']['couplingfct']) == 'cos':
@@ -610,17 +661,100 @@ def singleRealization(params):
 				for i in range (len(para_mat[:,0])):
 					print('\nSTART: python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-													+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+' '.join(map(str, pert)))
+													+str(c)+' '+str(cLF)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+' '.join(map(str, pert)))
 					print('Tsim: ', para_mat[i,9])
 					# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					csing.singleout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
-									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(1), str(int(Nx)), str(int(Ny)), str(int(kx)), str(int(ky)),
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cLF), int(1), str(int(Nx)), str(int(Ny)), str(int(kx)), str(int(ky)),
 									pert, plot_out)
 			break
 
+		elif user_input == 'cLF':
+			user_sweep_start = float(raw_input('\nPlease specify the range in which cLF should be simulated, start cLF_s in [Hz*Hz] = '))
+			user_sweep_end	 = float(raw_input('\nPlease specify the range in which cLF should be simulated, end cLF_e in [Hz*Hz] = '))
+			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz*Hz] dc = '))
+			new_cLF_values = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
+			print('\nWill scan these cLF-values: ', new_cLF_values, '\n\n')
+
+			topology= chooseTopology()											# calls function that asks user for input of type of network topology
+			if ( topology == 'square-periodic' or topology == 'square-open' ):
+				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
+				N = Nx*Ny
+				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
+				k = kx															# set to dummy value
+			else:
+				N = chooseNumber()												# calls function that asks user for input of number of oscis
+				k = chooseTwistNumber(N)										# choose twist under investigation
+				kx = k; ky = -999; Nx = N; Ny = 1;
+			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
+			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
+			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
+			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
+			Nsim    = 1															# calls function that asks user for input for number of realizations
+			case, rot_vs_orig = chooseDeltaPert(N)								# calls function that asks user for input for delta-like perturbation
+			if case == '4':
+				distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale = chooseDistribution()
+			else:
+				distrib='gamma'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
+			pert = []
+			for i in range (Nsim):
+				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
+
+			if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
+				h = synctools.Triangle(1.0 / (2.0 * np.pi))
+			elif str(params['DEFAULT']['couplingfct']) == 'cos':
+				h = synctools.Cos(1.0 / (2.0 * np.pi))
+			elif str(params['DEFAULT']['couplingfct']) == 'sin':
+				h = synctools.Sin(1.0 / (2.0 * np.pi))
+			print('params', params)
+
+			# perform a delay sweep
+			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
+			sf = synctools.SweepFactory(N, Ny, Nx, F, K, delay, h, Fc, k, kx, ky,topology, new_cLF_values, isRadians=isRadian)
+			print('\n\nAdjust code Daniel to fit cLF!!!!')
+
+			fsl = sf.sweep()
+			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
+			print('New parameter combinations with {N, F, K, Fc, delay, m, F_Omeg, ReLambda, ImLambda, Tsim, Nx, Ny, mx, my}: \n', para_mat)
+
+			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
+
+			upper_TSim = 2000
+			lower_TSim = 50
+			for i in range (len(para_mat[:,0])):
+				if para_mat[i,9]<10:
+					para_mat[i,9]=lower_TSim
+				if para_mat[i,9]>upper_TSim:
+					para_mat[i,9]=upper_TSim
+
+
+			if not ( para_mat == [] and new_cLF_values == [] ):
+				# print( 'length of para_mat[:,0]:', len(para_mat[:,0]) )
+				# print( 'length of new_c_values :', len(new_c_values)  )
+				if ( len(para_mat[:,0]) > 1 or len(new_cLF_values) > 1 ):
+					plot_out = False
+				elif ( len(para_mat[:,0]) == 1 and new_cLF_values == 1 ):
+					plot_out = True
+				else:
+					plot_out = False
+
+				for i in range (len(para_mat[:,0])):
+					for j in range (len(new_cLF_values)):
+						print('\nSTART: python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
+														+str(float(delay))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
+														+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(float(new_cLF_values[j]))+' '.join(map(str, pert)))
+						print('Tsim: ', para_mat[i,9])
+						# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
+						# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
+						csing.singleout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float(delay), float(para_mat[i,6]),
+										int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(new_cLF_values[j]), int(1), str(int(Nx)), str(int(Ny)), str(int(kx)), str(int(ky)),
+										pert, plot_out)
+				gc.collect()
+			break
+
 		else:
-			print('Please provide input from the following options: [K, Fc , delay]: ')
+			print('Please provide input from the following options: [K, Fc , delay, cLF]: ')
 
 	return None
 
@@ -629,7 +763,7 @@ def noisyStatistics(params):
 	x_true = True
 	while x_true:
 		# get user input to know which parameter should be analyzed
-		user_input = raw_input('\nPlease specify which parameters dependencies to be analyzed {[K] in [Hz], [Fc] in [Hz], [delay] in [s], or [c] the diffusion constant (sigma^2=2*c).} : ')
+		user_input = raw_input('\nPlease specify which parameters dependencies to be analyzed {coupling strength [K] in [Hz], LF cut-off freq [Fc] in [Hz], transmission [delay] in [s], loop filter GWN noise diff. const. cLF in [Hz^2], or [c] the diffusion constant (sigma^2=2*c).} : ')
 		if user_input == 'K':
 			user_sweep_start = float(raw_input('\nPlease specify the range in which K (K=0.5*Kvco) should be simulated, start K_s in [Hz] = '))
 			user_sweep_end	 = float(raw_input('\nPlease specify the range in which K (K=0.5*Kvco) should be simulated, end K_e in [Hz] = '))
@@ -648,9 +782,18 @@ def noisyStatistics(params):
 				kx = k; ky = -999; Nx = N; Ny = 1;
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
-			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
-			pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
+			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
+			cLF		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
 			Nsim    = chooseNsim()												# calls function that asks user for input for number of realizations
+			case, rot_vs_orig = chooseDeltaPert(N)								# calls function that asks user for input for delta-like perturbation
+			if case == '4':
+				distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale = chooseDistribution()
+			else:
+				distrib='gamma'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
+			pert = []
+			for i in range (Nsim):
+				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
+
 			if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
 				h = synctools.Triangle(1.0 / (2.0 * np.pi))
 			elif str(params['DEFAULT']['couplingfct']) == 'cos':
@@ -690,14 +833,14 @@ def noisyStatistics(params):
 				for i in range (len(para_mat[:,0])):
 					print('\nSTART: python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 												+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-												+str(c)+' '+str(Nsim)+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky))
+												+str(c)+' '+str(cLF)+' '+str(Nsim)+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky))
 					print('Tsim: ', para_mat[i,9])
 					# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)ky.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					# def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, Nx=0, Ny=0, kx=0, ky=0, phiSr=[], show_plot=True):
 					cnois.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
-									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(Nsim), str(int(Nx)), str(int(Ny)), str(int(kx)), str(int(ky)),
-									pert, plot_out)
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cLF), int(Nsim), str(int(Nx)), str(int(Ny)), str(int(kx)), str(int(ky)),
+									pert[i], plot_out)
 			break
 
 		elif user_input == 'c':
@@ -721,8 +864,17 @@ def noisyStatistics(params):
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
-			pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
 			Nsim    = chooseNsim()												# calls function that asks user for input for number of realizations
+			case, rot_vs_orig = chooseDeltaPert(N)								# calls function that asks user for input for delta-like perturbation
+			if case == '4':
+				distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale = chooseDistribution()
+			else:
+				distrib='gamma'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
+			pert = []
+			for i in range (Nsim):
+				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
+
+
 			if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
 				h = synctools.Triangle(1.0 / (2.0 * np.pi))
 			elif str(params['DEFAULT']['couplingfct']) == 'cos':
@@ -763,7 +915,7 @@ def noisyStatistics(params):
 				else:
 					plot_out = False
 
-				print('length para_mat[:,6], para_mat[:,6] (Omegas for the value of tau):', len(para_mat[:,6]), para_mat[:,6])
+				# print('length para_mat[:,6], para_mat[:,6] (Omegas for the value of tau):', len(para_mat[:,6]), para_mat[:,6])
 				for i in range (len(para_mat[:,0])):
 					for j in range (len(new_c_values)):
 						print('\nSTART: python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
@@ -774,8 +926,8 @@ def noisyStatistics(params):
 						# def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, Nx=0, Ny=0, kx=0, ky=0, phiSr=[], show_plot=True):
 						cnois.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
 										int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(new_c_values[j]), int(Nsim), str(int(Nx)), str(int(Ny)), str(int(kx)), str(int(ky)),
-										pert, plot_out)
-						gc.collect()
+										pert[i], plot_out)
+				gc.collect()
 			break
 
 		elif user_input == 'Fc':
@@ -797,9 +949,19 @@ def noisyStatistics(params):
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
-			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
-			pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
+			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
+			cLF		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
 			Nsim    = chooseNsim()												# calls function that asks user for input for number of realizations
+			case, rot_vs_orig = chooseDeltaPert(N)								# calls function that asks user for input for delta-like perturbation
+			if case == '4':
+				distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale = chooseDistribution()
+			else:
+				distrib='gamma'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
+			pert = []
+			for i in range (Nsim):
+				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
+
+
 			if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
 				h = synctools.Triangle(1.0 / (2.0 * np.pi))
 			elif str(params['DEFAULT']['couplingfct']) == 'cos':
@@ -837,12 +999,95 @@ def noisyStatistics(params):
 				for i in range (len(para_mat[:,0])):
 					print('\nSTART: python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 												+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-												+str(c)+' '+str(Nsim)+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
+												+str(c)+' '+str(cLF)+' '+str(Nsim)+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					cnois.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
-									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(Nsim), str(int(Nx)), str(int(Ny)), str(int(kx)), str(int(ky)),
-									pert, plot_out)
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cLF), int(Nsim), str(int(Nx)), str(int(Ny)), str(int(kx)), str(int(ky)),
+									pert[i], plot_out)
+					gc.collect()
+			break
+
+		elif user_input == 'cLF':
+			user_sweep_start = float(raw_input('\nPlease specify the range in which cLF should be simulated, start cLF_s in [Hz*Hz] = '))
+			user_sweep_end	 = float(raw_input('\nPlease specify the range in which cLF should be simulated, end cLF_e in [Hz*Hz] = '))
+			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz*Hz] dc = '))
+			new_cLF_values = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
+			print('\nWill scan these cLF-values: ', new_cLF_values, '\n\n')
+
+			topology= chooseTopology()											# calls function that asks user for input of type of network topology
+			if ( topology == 'square-periodic' or topology == 'square-open' ):
+				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
+				N = Nx*Ny
+				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
+				k = kx															# set to dummy value
+			else:
+				N = chooseNumber()												# calls function that asks user for input of number of oscis
+				k = chooseTwistNumber(N)										# choose twist under investigation
+				kx = k; ky = -999; Nx = N; Ny = 1;
+			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
+			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
+			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
+			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
+			Nsim    = chooseNsim()												# calls function that asks user for input for number of realizations
+			case, rot_vs_orig = chooseDeltaPert(N)								# calls function that asks user for input for delta-like perturbation
+			if case == '4':
+				distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale = chooseDistribution()
+			else:
+				distrib='gamma'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
+			pert = []
+			for i in range (Nsim):
+				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
+
+
+			if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
+				h = synctools.Triangle(1.0 / (2.0 * np.pi))
+			elif str(params['DEFAULT']['couplingfct']) == 'cos':
+				h = synctools.Cos(1.0 / (2.0 * np.pi))
+			elif str(params['DEFAULT']['couplingfct']) == 'sin':
+				h = synctools.Sin(1.0 / (2.0 * np.pi))
+			print('params', params)
+
+			# perform a Fc sweep
+			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
+			sf = synctools.SweepFactory(N, Ny, Nx, F, K, delay, h, Fc, k, kx, ky,topology, new_cLF_values, isRadians=isRadian)
+			print('\n\nAdjust code Daniel to fit cLF!!!!')
+
+			fsl = sf.sweep()
+			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
+			print('New parameter combinations with {N, F, K, Fc, delay, m, F_Omeg, ReLambda, ImLambda, Tsim, Nx, Ny, mx, my}: \n', para_mat)
+
+			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
+
+			upper_TSim = 2000
+			lower_TSim = 50
+			for i in range (len(para_mat[:,0])):
+				if para_mat[i,9]<10:
+					para_mat[i,9]=lower_TSim
+				if para_mat[i,9]>upper_TSim:
+					para_mat[i,9]=upper_TSim
+
+			if not ( para_mat == [] and new_cLF_values == [] ):
+				# print( 'length of para_mat[:,0]:', len(para_mat[:,0]) )
+				# print( 'length of new_c_values :', len(new_c_values)  )
+				if ( len(para_mat[:,0]) > 1 or len(new_cLF_values) > 1 ):
+					plot_out = False
+				elif ( len(para_mat[:,0]) == 1 and new_cLF_values == 1 ):
+					plot_out = True
+				else:
+					plot_out = False
+
+				for i in range (len(para_mat[:,0])):
+					for j in range (len(new_cLF_values)):
+						print('\nSTART: python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float(Fc))+' '
+													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
+													+str(c)+' '+str(Nsim)+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+str(new_cLF_values[j])+' '.join(map(str, pert)))
+						# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
+						# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
+						cnois.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float(Fc), float((para_mat[i,4])), float(para_mat[i,6]),
+										int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(new_cLF_values[j]), int(Nsim), str(int(Nx)), str(int(Ny)), str(int(kx)), str(int(ky)),
+										pert[i], plot_out)
+				gc.collect()
 			break
 
 		elif user_input == 'delay':
@@ -863,9 +1108,18 @@ def noisyStatistics(params):
 				kx = k; ky = -999; Nx = N; Ny = 1;
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
-			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
-			pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
+			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
+			cLF		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
 			Nsim    = chooseNsim()												# calls function that asks user for input for number of realizations
+			case, rot_vs_orig = chooseDeltaPert(N)								# calls function that asks user for input for delta-like perturbation
+			if case == '4':
+				distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale = chooseDistribution()
+			else:
+				distrib='gamma'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
+			pert = []
+			for i in range (Nsim):
+				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
+
 			if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
 				h = synctools.Triangle(1.0 / (2.0 * np.pi))
 			elif str(params['DEFAULT']['couplingfct']) == 'cos':
@@ -903,13 +1157,13 @@ def noisyStatistics(params):
 				for i in range (len(para_mat[:,0])):
 					print('\nSTART: python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 												+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-												+str(c)+' '+str(Nsim)+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '
+												+str(c)+' '+str(cLF)+' '+str(Nsim)+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '
 												.join(map(str, pert)))
 					# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					cnois.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
-									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(Nsim), str(int(Nx)), str(int(Ny)), str(int(kx)), str(int(ky)),
-									pert, plot_out)
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cLF), int(Nsim), str(int(Nx)), str(int(Ny)), str(int(kx)), str(int(ky)),
+									pert[i], plot_out)
 			break
 
 		else:
@@ -942,7 +1196,8 @@ def bruteForce(params, param_cases_csv):
 				kx = k; ky = -999; Nx = N; Ny = 1;
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
-			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
+			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
+			cLF		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
 			# pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
 			pert = []
 			# Nsim    = chooseNsim()											# calls function that asks user for input for number of realizations
@@ -976,12 +1231,12 @@ def bruteForce(params, param_cases_csv):
 					print('Tsim: ', para_mat[i,9])
 					print('\nSTART: python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '
-													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '
+													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(cLF)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '
 													.join(map(str, pert)))
 					# os.system('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					cbrut.bruteforceout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
-									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(1), str(int(Nx)), str(int(Ny)), str(int(kx)), str(int(ky)),
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cLF), int(1), str(int(Nx)), str(int(Ny)), str(int(kx)), str(int(ky)),
 									pert, plot_out)
 			break
 
@@ -1003,7 +1258,8 @@ def bruteForce(params, param_cases_csv):
 				kx = k; ky = -999; Nx = N; Ny = 1;
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
-			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
+			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
+			cLF		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
 			# pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
 			pert = []
 			# Nsim    = chooseNsim()												# calls function that asks user for input for number of realizations
@@ -1037,12 +1293,12 @@ def bruteForce(params, param_cases_csv):
 					print('Tsim: ', para_mat[i,9])
 					print('\nSTART: python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '
-													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '
+													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(cLF)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '
 													.join(map(str, pert)))
 					# os.system('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					cbrut.bruteforceout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
-									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(1), str(int(Nx)), str(int(Ny)), str(int(kx)), str(int(ky)),
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cLF), int(1), str(int(Nx)), str(int(Ny)), str(int(kx)), str(int(ky)),
 									pert, plot_out)
 			break
 
@@ -1064,7 +1320,8 @@ def bruteForce(params, param_cases_csv):
 				kx = k; ky = -999; Nx = N; Ny = 1;
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
-			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise
+			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
+			cLF		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
 			# pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
 			pert = []
 			# Nsim    = chooseNsim()												# calls function that asks user for input for number of realizations
@@ -1098,12 +1355,12 @@ def bruteForce(params, param_cases_csv):
 					print('Tsim: ', para_mat[i,9])
 					print('\nSTART: python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '
-													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '
+													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(cLF)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '
 													+' '.join(map(str, pert)))
 					# os.system('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					cbrut.bruteforceout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
-									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), int(1), str(int(Nx)), str(int(Ny)), str(int(kx)), str(int(ky)),
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cLF), int(1), str(int(Nx)), str(int(Ny)), str(int(kx)), str(int(ky)),
 									pert, plot_out)
 			break
 

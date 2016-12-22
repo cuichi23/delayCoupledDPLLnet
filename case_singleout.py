@@ -19,9 +19,9 @@ import time
 import datetime
 
 ''' SIMULATION CALL '''
-def simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, Nx=0, Ny=0, kx=0, ky=0, isPlottingTimeSeries=False):
+def simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, cLF, Nx=0, Ny=0, kx=0, ky=0, isPlottingTimeSeries=False):
 	''' SIMULATION OF NETWORK '''
-	simresult = sim.simulateNetwork(mode,N,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,couplingfct,phiS,phiM,domega,diffconstK,Nx,Ny)
+	simresult = sim.simulateNetwork(mode,N,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,couplingfct,phiS,phiM,domega,diffconstK,cLF,Nx,Ny)
 	phi     = simresult['phases']
 	omega_0 = simresult['intrinfreq']
 	K_0     = simresult['coupling_strength']
@@ -29,7 +29,11 @@ def simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg
 	# print('type phi:', type(phi), 'phi:', phi)
 
 	''' KURAMOTO ORDER PARAMETER '''
-	r = eva.oracle_mTwistOrderParameter(phi[-int(2*1.0/(F*dt)):, :], k)			# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
+	if F > 0:																	# for f=0, there would otherwies be a float division by zero
+		F1=F
+	else:
+		F1=F+1E-3
+	r = eva.oracle_mTwistOrderParameter(phi[-int(2*1.0/(F1*dt)):, :], k)			# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
 	orderparam = eva.oracle_mTwistOrderParameter(phi[:, :], k)					# calculate the m-twist order parameter for all times
 	#print('mean of modulus of the order parameter, R, over 2T:', np.mean(r), ' last value of R', r[-1])
 
@@ -47,7 +51,7 @@ def simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg
 # def multihelper_star(dynparam_fixparam):
 # 	return multihelper(*dynparam_fixparam)
 
-def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, Nx=0, Ny=0, kx=0, ky=0, phiSr=[], show_plot=True):
+def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny=1, kx=0, ky=0, phiSr=[], show_plot=True):
 
 	mode = int(1);																# mode=0 -> algorithm usage mode, mode=1 -> single realization mode,
 																				# mode=2 -> brute force scanning mode for parameter interval scans
@@ -71,24 +75,48 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, Nx=0, Ny=0, k
 	plot_Phases_Freq = True										  				# plot phase time series for this realization
 
 	phiS=[]
-	if len(phiSr)==N:
-		print('Parameters set, perturbations provided manually in rotated phase space of phases.')
-		# choose the value of phi'_0, i.e., where the plane, rectangular to the axis phi'_0 in the rotated phase space, is placed
-		# this direction corresponds to the case where all phi_k in the original phase space are equal phi_0==phi_1==...==phi_N-1 or (all) have constant phase differences
-		initPhiPrime0 = 0.0
-		print('shift along the first axis in rotated phase space, equivalent to phase kick of all oscillators before simulation starts: phi`_0=', initPhiPrime0)
-		phiSr[0] = initPhiPrime0							  					# set value of the first dimension, phi'_0, the axis along which all phase differences are preserved
-		print('\nvalues of the initial phases in ROTATED phase space, i.e., last time-step of history set as initial condition:', phiSr)
-		phiS = eva.rotate_phases(phiSr, isInverse=False)		  				# rotate back into physical phase space for simulation
-		print('values of initial phase in ORIGINAL phase space:', phiS, '\n')
+	phiSrtemp = np.array(phiSr)
+	# print('\n\nlen(phiSr):', len(temp[0,:]), 'type(phiSr)', type(phiSr), '\nphiSr:', phiSr)
+	if len(phiSrtemp.shape)==1 and len(phiSrtemp) > 0:
+		if len(phiSrtemp)==N:
+			print('Parameters set, perturbations provided manually in rotated phase space of phases.')
+			# choose the value of phi'_0, i.e., where the plane, rectangular to the axis phi'_0 in the rotated phase space, is placed
+			# this direction corresponds to the case where all phi_k in the original phase space are equal phi_0==phi_1==...==phi_N-1 or (all) have constant phase differences
+			initPhiPrime0 = 0.0
+			print('shift along the first axis in rotated phase space, equivalent to phase kick of all oscillators before simulation starts: phi`_0=', initPhiPrime0)
+			phiSrtemp[0] = initPhiPrime0						  					# set value of the first dimension, phi'_0, the axis along which all phase differences are preserved
+			phiSr = phiSrtemp; del phiSrtemp
+			print('\nvalues of the initial phases in ROTATED phase space, i.e., last time-step of history set as initial condition:', phiSr)
+			phiS = eva.rotate_phases(phiSr.flatten(), isInverse=False)		  		# rotate back into physical phase space for simulation
+			print('values of initial phase in ORIGINAL phase space:', phiS, '\n')
+	elif len(phiSrtemp.shape)==2:
+		if len(phiSrtemp[0,:])==N:
+			print('Parameters set, perturbations provided manually in rotated phase space of phases.')
+			# choose the value of phi'_0, i.e., where the plane, rectangular to the axis phi'_0 in the rotated phase space, is placed
+			# this direction corresponds to the case where all phi_k in the original phase space are equal phi_0==phi_1==...==phi_N-1 or (all) have constant phase differences
+			initPhiPrime0 = 0.0
+			print('shift along the first axis in rotated phase space, equivalent to phase kick of all oscillators before simulation starts: phi`_0=', initPhiPrime0)
+			phiSrtemp[:,0] = initPhiPrime0						  					# set value of the first dimension, phi'_0, the axis along which all phase differences are preserved
+			phiSr = phiSrtemp; del phiSrtemp
+			print('\nvalues of the initial phases in ROTATED phase space, i.e., last time-step of history set as initial condition:', phiSr)
+			phiS = eva.rotate_phases(phiSr.flatten(), isInverse=False)		  		# rotate back into physical phase space for simulation
+			print('values of initial phase in ORIGINAL phase space:', phiS, '\n')
 	else:
-		print('Error in parameters - supply: \ncase_[sim_mode].py [topology] [#osci] [K] [F_c] [delay] [F_Omeg] [k] [Tsim] [c] [Nsim] [N entries for the value of the perturbation to oscis]')
+		print('phiSr: ', phiSr)
+		print('Either no initial perturbations given, or Error in parameters - supply: \ncase_[sim_mode].py [topology] [#osci] [K] [F_c] [delay] [F_Omeg] [k] [Tsim] [c] [Nsim] [N entries for the value of the perturbation to oscis]')
 		# sys.exit(0)
-		phiSValues = np.zeros((Nsim, N), dtype=np.float)						# create vector that will contain the initial perturbation (in the history) for each realizations
+		phiSValues = np.zeros(N, dtype=np.float)								# create vector that will contain the initial perturbation (in the history) for each realizations
 		print('\nNo perturbation set, hence all perturbations have the default value zero (in original phase space of phases)!')
 		phiS=phiSValues
 
-	Tsim 	= 2.0*Tsim*(1.0/F)			  										# simulation time in multiples of the period of the uncoupled oscillators
+	if F > 0.0:
+		Tsim   = Tsim*(1.0/F)				  									# simulation time in multiples of the period of the uncoupled oscillators
+		print('total simulation time in multiples of the eigentfrequency:', int(Tsim*F),'\n')
+	else:
+		print('Tsim Not in multiples of T_omega, since F=0')
+		Tsim   = Tsim*2.0														# in case F = 0 Hz
+		print('total simulation time in Tsim*2.0:', int(Tsim*2.0),'\n')
+
 	print('in case_singleout.singleout, F_Omeg:', F_Omeg)
 	print('NOTE: single realizations will be simulated for 2*Tsim to have enough waveforms after transients have decayed to plot spectral density.')
 	Nsteps 	= int(round(Tsim*Fsim))												# calculate number of iterations -- add output?
@@ -118,8 +146,9 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, Nx=0, Ny=0, k
 			phiM = np.arange(0.0, N*twistdelta, twistdelta)						# vector mit N entries from 0 increasing by twistdelta for every element, i.e., the phase-configuration
 			# print('phiM: ', phiM)												# in the original phase space of an m-twist solution
 
+	# print('time-step dt=', dt)
 	t0 = time.time()
-	data = simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, Nx, Ny, kx, ky, plot_Phases_Freq) # initiates simulation and saves result in results container
+	data = simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, cLF, Nx, Ny, kx, ky, plot_Phases_Freq) # initiates simulation and saves result in results container
 	print('time needed for execution of simulation: ', (time.time()-t0), ' seconds')
 
 	''' evaluate dictionaries '''
@@ -136,12 +165,12 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, Nx=0, Ny=0, k
 
 	''' PLOT PHASE & FREQUENCY TIME SERIES '''
 	if plot_Phases_Freq:
-		out.plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, couplingfct, Tsim, Fsim, show_plot)
+		out.plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, couplingfct, Tsim, Fsim, show_plot)
 
 	''' SAVE RESULTS '''
-	np.savez('results/orderparam_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), results=results)
-	np.savez('results/initialperturb_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), phiS=phiS)
-	np.savez('results/phases_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), phases=phi)
+	np.savez('results/orderparam_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cLF%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), results=results)
+	np.savez('results/initialperturb_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cLF%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), phiS=phiS)
+	np.savez('results/phases_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cLF%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, c, cLF, now.month, now.day), phases=phi)
 
 	return None
 
@@ -192,10 +221,11 @@ if __name__ == '__main__':
 	Tsim 		= float(sys.argv[8])											# provide the multiples of the intrinsic frequencies for which the simulations runs
 	c 			= float(sys.argv[9])											# provide diffusion constant for GWN process, bzw. sigma^2 = 2*c  --> c = 0.5 variance
 	Nsim 		= int(sys.argv[10])												# number of realizations for parameterset -- should be one here
-	# Nx			= int(sys.argv[11])												# number of oscillators in x-direction
-	# Ny			= int(sys.argv[12])												# number of oscillators in y-direction
-	# mx			= int(sys.argv[13])												# twist number in x-direction
-	# my			= int(sys.argv[14])												# twist number in y-direction
-	phiSr 		= np.asarray([float(phi) for phi in sys.argv[11:(11+N)]])		# this input allows to simulate specific points in !rotated phase space plane
+	Nx			= int(sys.argv[11])												# number of oscillators in x-direction
+	Ny			= int(sys.argv[12])												# number of oscillators in y-direction
+	mx			= int(sys.argv[13])												# twist number in x-direction
+	my			= int(sys.argv[14])												# twist number in y-direction
+	cLF			= float(sys.argv[15])											# diff constant of GWN in LF
+	phiSr 		= np.asarray([float(phi) for phi in sys.argv[16:(16+N)]])		# this input allows to simulate specific points in !rotated phase space plane
 
-	singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, phiSr, True)
+	singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx, Ny, mx, my, phiSr, True)

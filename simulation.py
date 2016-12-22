@@ -51,20 +51,31 @@ class PhaseLockedLoop:
 # LF: y = integral du x(t) * p(t-u)												# this can be expressed in terms of a differential equation with the help of the Laplace transform
 class LowPass:
 	"""A lowpass filter class"""
-	def __init__(self,Fc,dt,K,F_Omeg,F,y=0,y_old=0):
+	def __init__(self,Fc,dt,K,F_Omeg,F,cLF=0,y=0,y_old=0):
 		self.Fc = Fc															# set cut-off frequency
-		self.F = F																# intrinsic frequency of VCO - here needed for x_k^C(0)
+		self.wc = 2.0*np.pi*self.Fc												# angular cut-off frequency of the loop filter for a=1, filter of first order
+		self.F  = F																# intrinsic frequency of VCO - here needed for x_k^C(0)
 		self.F_Omeg = F_Omeg													# provide freq. of synchronized state under investigation - here needed for x_k^C(0)
-		self.sOmeg = 2.0*np.pi*F_Omeg
+		self.sOmeg  = 2.0*np.pi*F_Omeg
 		# here should be the value of K drawn for the VCO from the gaussian distribution, however it might also suffice to use the mean,
 		# since the history is given as the perfectly synched state... that does not imply that the K become the same however!
-		self.K_Hz	 = K
+		self.K_Hz	= K
 		# self.Kvco_Hz = 2.0 * self.K_Hz
-		self.K 	  	 = 2.0 * np.pi * K											# provide coupling strength - here needed for x_k^C(0)
-		# self.Kvco 	 = 2.0 * K													# Kvco in [rad * Hz]
-		self.dt = dt															# set time-step
-		self.beta = (dt*Fc) / (dt*Fc + 1)
-		self.w_c = 2*np.pi*Fc													# angular cut-off frequency of the loop filter for a=1, filter of first order
+		self.K 	  	= 2.0*np.pi*K												# provide coupling strength - here needed for x_k^C(0)
+		# self.Kvco    = 2.0 * K													# Kvco in [rad * Hz]
+		self.cLF	= cLF														# sets the variance of the noise process on the control signal sigma^2=2cLF
+		self.dt     = dt														# set time-step
+
+		if cLF>0:
+			print('Simulate system with LF noise!')
+		else:
+			print('Simulate system withOUT LF noise!')
+		''' TEST CASES '''
+		# self.beta = (dt*2.0*np.pi*Fc) / (dt*2.0*np.pi*Fc + 1)
+		# self.beta = (dt*Fc) / (dt*Fc + 1)
+		# self.beta = (dt*self.wc)
+		self.beta = self.dt*self.Fc
+
 		self.y = y																# denotes the control signal, output of the LF
 
 	def set_initial_control_signal(self,phi,idx_time,inst_Freq):				# set the control signal for the last time step of the history, in the case the history is a synched state
@@ -80,17 +91,38 @@ class LowPass:
 
 	def next(self,xPD):							      							# this updates y=x_k^{C}(t), the control signal, using the input x=x_k^{PD}(t), the phase-detector signal
 		y_ctrl0 = 0.0															# since y_ctrl0 = x_k^C(t=0) * \delta(t-0), t=0 is set in function above already!
-		self.y = (1-self.beta)*self.y + self.beta*(xPD-y_ctrl0/self.Fc)			# the difference to the old version is the non-zero initial condition x_k^C(t=0)=[\dot{\theta}_k(0)-\omega] / K
-		#print('state of filter AFTER update:', self.y)
+		# self.y = (1-self.beta)*self.y + self.beta*(xPD-y_ctrl0/self.Fc)			# the difference to the old version is the non-zero initial condition x_k^C(t=0)=[\dot{\theta}_k(0)-\omega] / K
+		self.y = (1.0-self.beta)*self.y + self.beta*xPD
+		# print('deterministic state of filter AFTER update:', self.y)
+		return self.y
+
+class NoisyLowPass(LowPass):
+	def set_initial_control_signal(self,phi,idx_time,inst_Freq):				# set the control signal for the last time step of the history, in the case the history is a synched state
+		self.inst_Freq = inst_Freq												# calculate the instantaneous frequency for the last time step of the history
+		#self.y = (self.F_Omeg - self.F) / (self.K)								# calculate the state of the LF at the last time step of the history, it is needed for the simulation of the network
+		if self.K!=0:															# this if-call is fine, since it will only be evaluated once
+			self.y = (self.inst_Freq - self.F) / (self.K_Hz)					# calculate the state of the LF at the last time step of the history, it is needed for the simulation of the network
+			# print('initial control signal x_ctrl=', self.y)
+			# self.y = (2.0 * np.pi * (self.inst_Freq - self.F)) / (self.K)
+		else:
+			self.y = 0.0
+		return self.y
+
+	def next(self,xPD):							      							# this updates y=x_k^{C}(t), the control signal, using the input x=x_k^{PD}(t), the phase-detector signal
+		y_ctrl0 = 0.0															# since y_ctrl0 = x_k^C(t=0) * \delta(t-0), t=0 is set in function above already!
+		# self.y = (1-self.beta)*self.y + self.beta*(xPD-y_ctrl0/self.Fc)			# the difference to the old version is the non-zero initial condition x_k^C(t=0)=[\dot{\theta}_k(0)-\omega] / K
+		self.y = (1.0-self.beta)*self.y + self.beta*xPD + np.random.normal(loc=0.0, scale=np.sqrt(2*self.cLF*self.dt))
+		# print('state of filter AFTER update:', self.y)
 		return self.y
 
 # VCO: d_phi / d_t = omega + K * x
 class VoltageControlledOscillator:
 	"""A voltage controlled oscillator class"""
-	def __init__(self,F,F_Omeg,K,dt,domega,diffconstK,c=None,phi=None):
+	def __init__(self,F,Fc,F_Omeg,K,dt,domega,diffconstK,c=None,phi=None):
 		self.sOmeg = 2.0*np.pi*F_Omeg											# set angular frequency of synchronized state under investigation (sOmeg)
 		self.diffconstK = diffconstK
 		self.domega = domega
+		self.Fc = Fc
 		if domega != 0.0:
 			self.F = np.random.normal(loc=F, scale=np.sqrt(2.0*domega))			# set intrinsic frequency of the VCO plus gaussian dist. random variable from a distribution
 			self.omega = 2.0*np.pi*self.F										# set intrinsic angular frequency of the VCO plus gaussian dist. random variable from a distribution
@@ -110,6 +142,7 @@ class VoltageControlledOscillator:
 		self.phi = phi															# this is the internal representation of phi, NOT the container in simulateNetwork
 		self.c = c																# noise strength -- chose something like variance or std here!
 		# print('\nin constructor VCO, c=', c)
+		''' CAN OUTPUT RANDOM NUMBERS TO FILE FOR CHECK '''
 		# if c==8.0:
 		# 	now = datetime.datetime.now()
 		# 	rand_numb_test = np.random.normal(loc=0.0, scale=np.sqrt(2.0*c), size=10000)
@@ -119,6 +152,7 @@ class VoltageControlledOscillator:
 		self.d_phi = self.omega + self.K * x_ctrl
 		# print('self.dphi=', self.d_phi)
 		self.phi = self.phi + self.d_phi * self.dt
+		# print('phi:', phi)
 		return self.phi, self.d_phi
 
 	def delta_perturbation(self, phi, phiS, x_ctrl):							# sets a delta-like perturbation 0-dt, the last time-step of the history
@@ -137,19 +171,8 @@ class NoisyVoltageControlledOscillator(VoltageControlledOscillator):			# make a 
 	"""A voltage controlled oscillator class WITH noise (GWN)"""
 	def next(self,x_ctrl):														# compute change of phase per time-step due to intrinsic frequency and noise (if non-zero variance)
 																				# watch the separation of terms for order dt and the noise with order sqrt(dt)
-		tempnoi = np.random.normal(loc=0.0, scale=np.sqrt(2.0*self.c)) * np.sqrt(self.dt)
-
-		# # self.d_phi = ( self.omega + self.K * x_ctrl ) * self.dt + ( 2.0 * np.pi ) * np.random.normal(loc=0.0, scale=np.sqrt(2.0*self.c*self.F)) * np.sqrt(self.dt) # scales with self.F
-		# temp_d_phi = ( self.omega + self.K * x_ctrl ) * self.dt + ( 2.0 * np.pi ) * tempnoi
-		# tempphi = self.phi + temp_d_phi
-
-		tempSwitch = 0															# if tempSwitch = 1, then x_ctrl = x_ctrl + 0.0 and no noise on instantaneous freq.
-		# print('{tempnoi, tempnoi*sqrt(dt)}: ', tempnoi/np.sqrt(self.dt), tempnoi)
-		# print(( 1 - tempSwitch ) * ( 2.0 * np.pi ) * tempnoi, tempSwitch * ( 2.0 * np.pi ) * tempnoi)
-																				# 0: Shamik Fokker-Planck-Eq. case, 1: DPLL case
-		x_ctrl = x_ctrl + ( 1 - tempSwitch ) * ( 2.0 * np.pi ) * tempnoi
 		# self.d_phi = ( self.omega + self.K * x_ctrl ) * self.dt + ( 2.0 * np.pi ) * np.random.normal(loc=0.0, scale=np.sqrt(2.0*self.c*self.F)) * np.sqrt(self.dt) # scales with self.F
-		self.d_phi = ( self.omega + self.K * x_ctrl ) * self.dt + tempSwitch * ( 2.0 * np.pi ) * tempnoi # no scaling of noise with frequency
+		self.d_phi = ( self.omega + self.K * x_ctrl ) * self.dt + np.random.normal(loc=0.0, scale=np.sqrt(2.0*self.c*self.dt)) # no scaling of noise with frequency
 		self.phi = self.phi + self.d_phi
 		# print('Difference noise term placement: ', tempphi-self.phi, '\n')
 		return self.phi, self.d_phi
@@ -178,6 +201,7 @@ class PhaseDetectorCombiner:													# this class creates PD objects, these 
 		self.h = lambda x: sawtooth(x,width=0.5)								# set the type of coupling function, here a sawtooth since we consider digital PLLs (rectangular signals)
 		self.idx_self = idx_self												# assigns the index
 		self.idx_neighbours = idx_neighbours									# assigns the neighbors according to the coupling topology
+		print('Osci ',idx_self,', my neighbors are:', idx_neighbours)
 
 	def next(self,x,x_delayed,idx_time=0):										# gets time-series results at delayed time and current time to calculate phase differences
 		try:
@@ -268,14 +292,14 @@ class DistDelayDelayerWithDynNoise(Delayer):
 		return np.asarray(x[idx_time,:]), np.asarray(x[idx_delayed,:])			# x is is the time-series from which the values at t-dt and t-tau are returned
 
 ''' SIMULATE NETWORK '''
-def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,couplingfct,phiS,phiM,domega,diffconstK,Nx=0,Ny=0):
+def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,couplingfct,phiS,phiM,domega,diffconstK,cLF,Nx=0,Ny=0):
 	y0 = 0																		# inital filter status:
 	''' for the last step of the initial history, the filter status has to be set if one uses the second order (inertia) type description of the model;
  		this avoids performing the integration of the filter and reduces the dependence on an entiry history to a ODE of first order for the control signal;
 		it is important however, to get the details associated to this transformation, concerning initial condition for the condtrol signal in the case of the ODE first order
 		or instead the continuous history in case of the integration '''
 	np.random.seed()															# restart pseudo random-number generator
-	pll_list = generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,y0,phiM,domega,diffconstK,Nx,Ny)	# create object lists of PLL objects of the network
+	pll_list = generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,y0,phiM,domega,diffconstK,Nx,Ny,cLF)	# create object lists of PLL objects of the network
 
 	delay_steps = pll_list[0].delayer.delay_steps       						# get the number of steps representing the delay at a given time-step from delayer of PLL_0
 	phi = np.empty([Nsteps+delay_steps,Nplls])									# prepare container for phase time series
@@ -287,6 +311,8 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,coupling
 	delays_0 = [pll.delayer.delay for pll in pll_list]							# obtain the randomly distributed (gaussian) values for the transmission delays
 	# print('omega_0 ->', omega_0)
 	# this is the for-loop that iterates the system, first the initial conditions is set, then the dynamics are computed
+	if delay_steps == 0:
+		print('No delay case, iteration scheme carried out differently.')
 	for idx_time in range(Nsteps+delay_steps-1):									# iterate over Nsteps from 0 to "Nsteps + delay_steps" -> of that "delay_steps+1" is history
 		''' Important note: the container for the phase variables [phi] is indexed from 0 onwards, i.e., idx_time==delay_steps-1 corresponds to the entry in the container
 		 	with index delay_steps-1, and hence the container then has "delay_steps" number of entries.
@@ -310,11 +336,11 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,coupling
 		if (idx_time == 0 and delay_steps == 0):								# the delta perturbation has to be set for the first time point
 			# print('initial phi[0,:]:', phi[0,:])
 																				# set the instantaneous frequency to F_Omeg
-			phi[idx_time+1,:]  = [pll.set_delta_pertubation(idx_time, phi, phiS[i], F_Omeg) for i,pll in enumerate(pll_list)]  # NOTE: phi[idx_time,:] is already set
-			startindex       = idx_time+1
+			phi[idx_time,:] = [pll.set_delta_pertubation(idx_time, phi, phiS[i], F_Omeg) for i,pll in enumerate(pll_list)]  # NOTE: phi[idx_time,:] is already set
+			startindex        = idx_time-1
 			# print('initial phi[1,:]:', phi[1,:])
 		else:
-			startindex		 = (delay_steps-1)
+			startindex		  = (delay_steps-1)
 		if idx_time > startindex:
 			#if idx_time == delay_steps:
 			#	print('\n\nSIMULATION STARTS HERE, phase histories are set\n')
@@ -327,7 +353,7 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,coupling
 	return {'phases': phi, 'intrinfreq': omega_0, 'coupling_strength': K_0, 'transdelays': delays_0}
 
 ''' CREATE PLL LIST '''
-def generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,y0,phiM,domega,diffconstK,Nx,Ny):
+def generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,y0,phiM,domega,diffconstK,Nx,Ny,cLF):
 	if topology == 'global':
 		G = nx.complete_graph(Nplls)
 	elif topology == 'ring':
@@ -379,58 +405,113 @@ def generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,
 	# 	print('Coupling strengths are identical, i.e., not distributed. diffconstK=', diffconstK)
 	# else:
 	# 	print('Coupling strengths are not identical, i.e., distributed with diffusion constant diffconstK=', diffconstK)
-	if c==0:																	# case of no dynamical noise (GWN)
-		# print('Initiate (digital) PLL objects. Simulate without additive noise, triangular coupling function.')
-		if couplingfct == 'sin':
-			# print('Initiate (phase shifted) PLL objects. Simulate with additive noise, sinusoidal coupling function.')
-			pll_list = [ PhaseLockedLoop(										# setup PLLs and storage in a list as PLL class objects
-								Delayer(delay,dt),								# delayer takes a time series and returns values at t and t-tau
-								SinPhaseDetectComb(idx_pll, G.neighbors(idx_pll)),
-								LowPass(Fc,dt,K,F_Omeg,F,y=y0),
-								VoltageControlledOscillator(F,F_Omeg,K,dt,domega,diffconstK,c,phi=phiM[idx_pll]) # set intrinsic frequency of VCO, frequency of synchronized state under investigation, coupling strength
-								)  for idx_pll in range(Nplls) ]				# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
+	if cLF==0:
+		if c==0:																	# case of no dynamical noise (GWN)
+			# print('Initiate (digital) PLL objects. Simulate without additive noise, triangular coupling function.')
+			if couplingfct == 'sin':
+				# print('Initiate (phase shifted) PLL objects. Simulate with additive noise, sinusoidal coupling function.')
+				pll_list = [ PhaseLockedLoop(										# setup PLLs and storage in a list as PLL class objects
+									Delayer(delay,dt),								# delayer takes a time series and returns values at t and t-tau
+									SinPhaseDetectComb(idx_pll, G.neighbors(idx_pll)),
+									LowPass(Fc,dt,K,F_Omeg,F,cLF,y=y0),
+									VoltageControlledOscillator(F,Fc,F_Omeg,K,dt,domega,diffconstK,c,phi=phiM[idx_pll]) # set intrinsic frequency of VCO, frequency of synchronized state under investigation, coupling strength
+									)  for idx_pll in range(Nplls) ]				# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
 
-		if couplingfct == 'cos':
-			# print('Initiate (phase shifted) PLL objects. Simulate with additive noise, cosinusoidal coupling function.')
-			pll_list = [ PhaseLockedLoop(										# setup PLLs and storage in a list as PLL class objects
-								Delayer(delay,dt),								# delayer takes a time series and returns values at t and t-tau
-								CosPhaseDetectComb(idx_pll, G.neighbors(idx_pll)),
-								LowPass(Fc,dt,K,F_Omeg,F,y=y0),
-								VoltageControlledOscillator(F,F_Omeg,K,dt,domega,diffconstK,c,phi=phiM[idx_pll]) # set intrinsic frequency of VCO, frequency of synchronized state under investigation, coupling strength
-								)  for idx_pll in range(Nplls) ]				# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
-		if couplingfct == 'triang':
-			# print('Initiate (phase shifted) PLL objects. Simulate with additive noise, triangular coupling function.')
-			pll_list = [ PhaseLockedLoop(										# setup PLLs and storage in a list as PLL class objects
-								Delayer(delay,dt),								# delayer takes a time series and returns values at t and t-tau
-								PhaseDetectorCombiner(idx_pll, G.neighbors(idx_pll)),
-								LowPass(Fc,dt,K,F_Omeg,F,y=y0),
-								VoltageControlledOscillator(F,F_Omeg,K,dt,domega,diffconstK,c,phi=phiM[idx_pll]) # set intrinsic frequency of VCO, frequency of synchronized state under investigation, coupling strength
-								)  for idx_pll in range(Nplls) ]				# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
+			if couplingfct == 'cos':
+				# print('Initiate (phase shifted) PLL objects. Simulate with additive noise, cosinusoidal coupling function.')
+				pll_list = [ PhaseLockedLoop(										# setup PLLs and storage in a list as PLL class objects
+									Delayer(delay,dt),								# delayer takes a time series and returns values at t and t-tau
+									CosPhaseDetectComb(idx_pll, G.neighbors(idx_pll)),
+									LowPass(Fc,dt,K,F_Omeg,F,cLF,y=y0),
+									VoltageControlledOscillator(F,Fc,F_Omeg,K,dt,domega,diffconstK,c,phi=phiM[idx_pll]) # set intrinsic frequency of VCO, frequency of synchronized state under investigation, coupling strength
+									)  for idx_pll in range(Nplls) ]				# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
+			if couplingfct == 'triang':
+				# print('Initiate (phase shifted) PLL objects. Simulate with additive noise, triangular coupling function.')
+				pll_list = [ PhaseLockedLoop(										# setup PLLs and storage in a list as PLL class objects
+									Delayer(delay,dt),								# delayer takes a time series and returns values at t and t-tau
+									PhaseDetectorCombiner(idx_pll, G.neighbors(idx_pll)),
+									LowPass(Fc,dt,K,F_Omeg,F,cLF,y=y0),
+									VoltageControlledOscillator(F,Fc,F_Omeg,K,dt,domega,diffconstK,c,phi=phiM[idx_pll]) # set intrinsic frequency of VCO, frequency of synchronized state under investigation, coupling strength
+									)  for idx_pll in range(Nplls) ]				# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
+		else:
+			if couplingfct == 'sin':
+				# print('Initiate (phase shifted) PLL objects. Simulate with additive noise, sinusoidal coupling function.')
+				pll_list = [ PhaseLockedLoop(										# setup PLLs and storage in a list as PLL class objects
+									Delayer(delay,dt),								# delayer takes a time series and returns values at t and t-tau
+									SinPhaseDetectComb(idx_pll, G.neighbors(idx_pll)),
+									LowPass(Fc,dt,K,F_Omeg,F,cLF,y=y0),
+									NoisyVoltageControlledOscillator(F,Fc,F_Omeg,K,dt,domega,diffconstK,c,phi=phiM[idx_pll]) # set intrinsic frequency of VCO, frequency of synchronized state under investigation, coupling strength
+									)  for idx_pll in range(Nplls) ]				# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
+
+			if couplingfct == 'cos':
+				# print('Initiate (phase shifted) PLL objects. Simulate with additive noise, cosinusoidal coupling function.')
+				pll_list = [ PhaseLockedLoop(										# setup PLLs and storage in a list as PLL class objects
+									Delayer(delay,dt),								# delayer takes a time series and returns values at t and t-tau
+									CosPhaseDetectComb(idx_pll, G.neighbors(idx_pll)),
+									LowPass(Fc,dt,K,F_Omeg,F,cLF,y=y0),
+									NoisyVoltageControlledOscillator(F,Fc,F_Omeg,K,dt,domega,diffconstK,c,phi=phiM[idx_pll]) # set intrinsic frequency of VCO, frequency of synchronized state under investigation, coupling strength
+									)  for idx_pll in range(Nplls) ]			# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
+			if couplingfct == 'triang':
+				# print('Initiate (phase shifted) PLL objects. Simulate with additive noise, triangular coupling function.')
+				pll_list = [ PhaseLockedLoop(										# setup PLLs and storage in a list as PLL class objects
+									Delayer(delay,dt),								# delayer takes a time series and returns values at t and t-tau
+									PhaseDetectorCombiner(idx_pll, G.neighbors(idx_pll)),
+									LowPass(Fc,dt,K,F_Omeg,F,cLF,y=y0),
+									NoisyVoltageControlledOscillator(F,Fc,F_Omeg,K,dt,domega,diffconstK,c,phi=phiM[idx_pll]) # set intrinsic frequency of VCO, frequency of synchronized state under investigation, coupling strength
+									)  for idx_pll in range(Nplls) ]				# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
 	else:
-		if couplingfct == 'sin':
-			# print('Initiate (phase shifted) PLL objects. Simulate with additive noise, sinusoidal coupling function.')
-			pll_list = [ PhaseLockedLoop(										# setup PLLs and storage in a list as PLL class objects
-								Delayer(delay,dt),								# delayer takes a time series and returns values at t and t-tau
-								SinPhaseDetectComb(idx_pll, G.neighbors(idx_pll)),
-								LowPass(Fc,dt,K,F_Omeg,F,y=y0),
-								NoisyVoltageControlledOscillator(F,F_Omeg,K,dt,domega,diffconstK,c,phi=phiM[idx_pll]) # set intrinsic frequency of VCO, frequency of synchronized state under investigation, coupling strength
-								)  for idx_pll in range(Nplls) ]				# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
+		if c==0:																	# case of no dynamical noise (GWN)
+			# print('Initiate (digital) PLL objects. Simulate without additive noise, triangular coupling function.')
+			if couplingfct == 'sin':
+				# print('Initiate (phase shifted) PLL objects. Simulate with additive noise, sinusoidal coupling function.')
+				pll_list = [ PhaseLockedLoop(										# setup PLLs and storage in a list as PLL class objects
+									Delayer(delay,dt),								# delayer takes a time series and returns values at t and t-tau
+									SinPhaseDetectComb(idx_pll, G.neighbors(idx_pll)),
+									NoisyLowPass(Fc,dt,K,F_Omeg,F,cLF,y=y0),
+									VoltageControlledOscillator(F,Fc,F_Omeg,K,dt,domega,diffconstK,c,phi=phiM[idx_pll]) # set intrinsic frequency of VCO, frequency of synchronized state under investigation, coupling strength
+									)  for idx_pll in range(Nplls) ]				# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
 
-		if couplingfct == 'cos':
-			# print('Initiate (phase shifted) PLL objects. Simulate with additive noise, cosinusoidal coupling function.')
-			pll_list = [ PhaseLockedLoop(										# setup PLLs and storage in a list as PLL class objects
-								Delayer(delay,dt),								# delayer takes a time series and returns values at t and t-tau
-								CosPhaseDetectComb(idx_pll, G.neighbors(idx_pll)),
-								LowPass(Fc,dt,K,F_Omeg,F,y=y0),
-								NoisyVoltageControlledOscillator(F,F_Omeg,K,dt,domega,diffconstK,c,phi=phiM[idx_pll]) # set intrinsic frequency of VCO, frequency of synchronized state under investigation, coupling strength
-								)  for idx_pll in range(Nplls) ]			# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
-		if couplingfct == 'triang':
-			# print('Initiate (phase shifted) PLL objects. Simulate with additive noise, triangular coupling function.')
-			pll_list = [ PhaseLockedLoop(										# setup PLLs and storage in a list as PLL class objects
-								Delayer(delay,dt),								# delayer takes a time series and returns values at t and t-tau
-								PhaseDetectorCombiner(idx_pll, G.neighbors(idx_pll)),
-								LowPass(Fc,dt,K,F_Omeg,F,y=y0),
-								NoisyVoltageControlledOscillator(F,F_Omeg,K,dt,domega,diffconstK,c,phi=phiM[idx_pll]) # set intrinsic frequency of VCO, frequency of synchronized state under investigation, coupling strength
-								)  for idx_pll in range(Nplls) ]				# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
+			if couplingfct == 'cos':
+				# print('Initiate (phase shifted) PLL objects. Simulate with additive noise, cosinusoidal coupling function.')
+				pll_list = [ PhaseLockedLoop(										# setup PLLs and storage in a list as PLL class objects
+									Delayer(delay,dt),								# delayer takes a time series and returns values at t and t-tau
+									CosPhaseDetectComb(idx_pll, G.neighbors(idx_pll)),
+									NoisyLowPass(Fc,dt,K,F_Omeg,F,cLF,y=y0),
+									VoltageControlledOscillator(F,Fc,F_Omeg,K,dt,domega,diffconstK,c,phi=phiM[idx_pll]) # set intrinsic frequency of VCO, frequency of synchronized state under investigation, coupling strength
+									)  for idx_pll in range(Nplls) ]				# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
+			if couplingfct == 'triang':
+				# print('Initiate (phase shifted) PLL objects. Simulate with additive noise, triangular coupling function.')
+				pll_list = [ PhaseLockedLoop(										# setup PLLs and storage in a list as PLL class objects
+									Delayer(delay,dt),								# delayer takes a time series and returns values at t and t-tau
+									PhaseDetectorCombiner(idx_pll, G.neighbors(idx_pll)),
+									NoisyLowPass(Fc,dt,K,F_Omeg,F,cLF,y=y0),
+									VoltageControlledOscillator(F,Fc,F_Omeg,K,dt,domega,diffconstK,c,phi=phiM[idx_pll]) # set intrinsic frequency of VCO, frequency of synchronized state under investigation, coupling strength
+									)  for idx_pll in range(Nplls) ]				# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
+		else:
+			if couplingfct == 'sin':
+				# print('Initiate (phase shifted) PLL objects. Simulate with additive noise, sinusoidal coupling function.')
+				pll_list = [ PhaseLockedLoop(										# setup PLLs and storage in a list as PLL class objects
+									Delayer(delay,dt),								# delayer takes a time series and returns values at t and t-tau
+									SinPhaseDetectComb(idx_pll, G.neighbors(idx_pll)),
+									NoisyLowPass(Fc,dt,K,F_Omeg,F,cLF,y=y0),
+									NoisyVoltageControlledOscillator(F,Fc,F_Omeg,K,dt,domega,diffconstK,c,phi=phiM[idx_pll]) # set intrinsic frequency of VCO, frequency of synchronized state under investigation, coupling strength
+									)  for idx_pll in range(Nplls) ]				# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
+
+			if couplingfct == 'cos':
+				# print('Initiate (phase shifted) PLL objects. Simulate with additive noise, cosinusoidal coupling function.')
+				pll_list = [ PhaseLockedLoop(										# setup PLLs and storage in a list as PLL class objects
+									Delayer(delay,dt),								# delayer takes a time series and returns values at t and t-tau
+									CosPhaseDetectComb(idx_pll, G.neighbors(idx_pll)),
+									NoisyLowPass(Fc,dt,K,F_Omeg,F,cLF,y=y0),
+									NoisyVoltageControlledOscillator(F,Fc,F_Omeg,K,dt,domega,diffconstK,c,phi=phiM[idx_pll]) # set intrinsic frequency of VCO, frequency of synchronized state under investigation, coupling strength
+									)  for idx_pll in range(Nplls) ]			# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
+			if couplingfct == 'triang':
+				# print('Initiate (phase shifted) PLL objects. Simulate with additive noise, triangular coupling function.')
+				pll_list = [ PhaseLockedLoop(										# setup PLLs and storage in a list as PLL class objects
+									Delayer(delay,dt),								# delayer takes a time series and returns values at t and t-tau
+									PhaseDetectorCombiner(idx_pll, G.neighbors(idx_pll)),
+									NoisyLowPass(Fc,dt,K,F_Omeg,F,cLF,y=y0),
+									NoisyVoltageControlledOscillator(F,Fc,F_Omeg,K,dt,domega,diffconstK,c,phi=phiM[idx_pll]) # set intrinsic frequency of VCO, frequency of synchronized state under investigation, coupling strength
+									)  for idx_pll in range(Nplls) ]				# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
 
 	return pll_list
