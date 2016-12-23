@@ -75,10 +75,10 @@ def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny=
 
 	dt					= 1.0/Fsim												# [ dt = T / #samples ] -> #samples per period... with [ T = 1 / F -> dt = 1 / ( #samples * F ) ]
 
-	print('\n\nc:', c)
+	print('\nnoise instant. freq., diffconst c:', c, '\nnoise control signal, diffconst. cLF:', cLF)
 
 	now = datetime.datetime.now()
-	print('many noisy realizations mode with evaluation -- ATTENTION TO SCALING OF NOISE WITH RESPECT TO INTRINSIC FREQUENCIES')
+	print('many noisy realizations mode with evaluation')						# -- ATTENTION TO SCALING OF NOISE WITH RESPECT TO INTRINSIC FREQUENCIES')
 
 	initPhiPrime0 = 0															# here, this is just set to be handed over to the next modules
 	if len(phiSr)==N:
