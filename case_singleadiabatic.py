@@ -26,6 +26,8 @@ def simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg
 	omega_0 = simresult['intrinfreq']
 	K_0     = simresult['coupling_strength']
 	delays_0= simresult['transdelays']
+	cLF_t   = simresult['cLF']
+	# print('cLF_t:',cLF_t)
 	# print('type phi:', type(phi), 'phi:', phi)
 
 	''' KURAMOTO ORDER PARAMETER '''
@@ -39,7 +41,7 @@ def simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg
 
 	''' RETURN '''																# return value of mean order parameter, last order parameter, and the variance of r during the last 2T_{\omega}
 	return {'mean_order':np.mean(r), 'last_orderP':r[len(r)-1], 'stdev_orderP':np.var(r), 'phases': phi,
-			'intrinfreq': omega_0, 'coupling_strength': K_0, 'transdelays': delays_0, 'orderparameter': orderparam}
+			'intrinfreq': omega_0, 'coupling_strength': K_0, 'transdelays': delays_0, 'orderparameter': orderparam, 'cLF': cLF_t}
 
 # def multihelper(phiSr, initPhiPrime0, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiM, domega, diffconstK, plot_Phases_Freq, mode):
 # 	if N > 2:
@@ -109,16 +111,16 @@ def singleadiabatic(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Trelax, 
 		print('\nNo perturbation set, hence all perturbations have the default value zero (in original phase space of phases)!')
 		phiS=phiSValues
 
-	if F > 0.0:
-		Tsim   = Tsim*(1.0/F)				  									# simulation time in multiples of the period of the uncoupled oscillators
-		print('total simulation time in multiples of the eigentfrequency:', int(Tsim*F),'\n')
-	else:
-		print('Tsim Not in multiples of T_omega, since F=0')
-		Tsim   = Tsim*2.0														# in case F = 0 Hz
-		print('total simulation time in Tsim*2.0:', int(Tsim*2.0),'\n')
+	# if F > 0.0:
+	# 	Tsim   = Tsim*(1.0/F)				  									# simulation time in multiples of the period of the uncoupled oscillators
+	# 	print('total simulation time in multiples of the eigentfrequency:', int(Tsim*F),'\n')
+	# else:
+	# 	print('Tsim Not in multiples of T_omega, since F=0')
+	# 	Tsim   = Tsim*2.0														# in case F = 0 Hz
+	# 	print('total simulation time in Tsim*2.0:', int(Tsim*2.0),'\n')
+	# print('NOTE: single realizations will be simulated for 2*Tsim to have enough waveforms after transients have decayed to plot spectral density.')
 
-	print('in case_singleout.singleout, F_Omeg:', F_Omeg)
-	print('NOTE: single realizations will be simulated for 2*Tsim to have enough waveforms after transients have decayed to plot spectral density.')
+	print('in case_singleadiabatic.singleout, F_Omeg:', F_Omeg)
 	Nsteps 	= int(round(Tsim*Fsim))												# calculate number of iterations -- add output?
 	Nsim 	= 1
 	print('Test single evaluation and plot phase and frequency time series, PROVIDE initial condition in ROTATED phase space!')
@@ -152,20 +154,21 @@ def singleadiabatic(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Trelax, 
 	print('time needed for execution of simulation: ', (time.time()-t0), ' seconds')
 
 	''' evaluate dictionaries '''
-	results=[]; phi=[]; omega_0=[]; K_0=[]; delays_0=[]; orderparam=[];			# prepare container for results of simulatePllNetwork
+	results=[]; phi=[]; omega_0=[]; K_0=[]; delays_0=[]; orderparam=[];	cLF_t=[]# prepare container for results of simulatePllNetwork
 	results.append( [ data['mean_order'],  data['last_orderP'], data['stdev_orderP'] ] )
 	phi.append( data['phases'] )
 	omega_0.append( data['intrinfreq'] )
 	K_0.append( data['coupling_strength'] )
 	delays_0.append( data['transdelays'] )
 	orderparam.append( data['orderparameter'] )
+	cLF_t.append( data['cLF'] )
 
 	phi=np.array(phi); omega_0=np.array(omega_0); K_0=np.array(K_0); delays_0=np.array(delays_0);
 	results=np.array(results); orderparam=np.array(orderparam);
 
 	''' PLOT PHASE & FREQUENCY TIME SERIES '''
 	if plot_Phases_Freq:
-		out.plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, couplingfct, Tsim, Fsim, show_plot)
+		out.plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, cLF_t, couplingfct, Tsim, Fsim, show_plot)
 
 	''' SAVE RESULTS '''
 	np.savez('results/orderparam_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cLF%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), results=results)

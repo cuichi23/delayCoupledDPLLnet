@@ -308,4 +308,4 @@ if __name__ == '__main__':
 	my			= int(sys.argv[14])												# twist number in y-direction
 	cLF			= float(sys.argv[15])											# diff constant of GWN in LF
 
-	bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, cLF, Nx, Ny, mx, my, [], False)
+	bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx, Ny, mx, my, [], False)

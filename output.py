@@ -47,8 +47,9 @@ annotationfont = {
         }
 
 ''' EVALUATION SINGLE REALIZATION '''
-def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, coupFct='triang', Tsim=53, Fsim=None, show_plot=True):
+def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, cLF_t=[], coupFct='triang', Tsim=53, Fsim=None, show_plot=True):
 
+	# print('cLF_t:', cLF_t)
 	if F > 0:																	# for f=0, there would otherwies be a float division by zero
 		F1=F
 	else:
@@ -135,18 +136,44 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, coup
 	plt.savefig('results/freq-vs-time_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
 	plt.savefig('results/freq-vs-time_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=300)
 
-	plt.figure('order parameter over time')										# plot the order parameter in dependence of time
-	plt.clf()
-	plt.plot((t*dt), orderparam)
-	plt.plot(delay, orderparam[int(round(delay/dt))], 'yo', ms=5)				# mark where the simulation starts
-	plt.axvspan(t[-int(2*1.0/(F1*dt))]*dt, t[-1]*dt, color='b', alpha=0.3)
-	plt.title(r'mean order parameter $\bar{R}=$%.2f, and $\bar{\sigma}=$%.4f' %(np.mean(orderparam[-int(round(2*1.0/(F1*dt))):]), np.std(orderparam[-int(round(2*1.0/(F1*dt))):])), fontdict = titlefont)
-	plt.xlabel(r'$t$ $[s]$', fontdict = labelfont)
-	plt.ylabel(r'$R( t,m = %d )$' % k, fontdict = labelfont)
-	plt.savefig('results/orderP-vs-time_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
-	plt.savefig('results/orderP-vs-time_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=300)
-	#print('\nlast entry order parameter: R-1 = %.3e' % (orderparam[-1]-1) )
-	#print('\nlast entries order parameter: R = ', orderparam[-25:])
+	if len(cLF_t) > 0:
+		plt.figure('order parameter over time, adiabatic change cLF')			# plot the order parameter in dependence of time
+		cLF_t=np.array(cLF_t)
+		cLF_t=cLF_t.flatten()
+		plt.clf()
+		plt.plot((t[0:(len(t)-1):10*int(1/dt)]*dt), orderparam[0:(len(t)-1):10*int(1/dt)])
+		plt.plot((t*dt), cLF_t)
+		plt.plot(delay, orderparam[int(round(delay/dt))], 'yo', ms=5)			# mark where the simulation starts
+		plt.axvspan(t[-int(2*1.0/(F1*dt))]*dt, t[-1]*dt, color='b', alpha=0.3)
+		plt.title(r'mean order parameter $\bar{R}=$%.2f, and $\bar{\sigma}=$%.4f' %(np.mean(orderparam[-int(round(2*1.0/(F1*dt))):]), np.std(orderparam[-int(round(2*1.0/(F1*dt))):])), fontdict = titlefont)
+		plt.xlabel(r'$t$ $[s]$', fontdict = labelfont)
+		plt.ylabel(r'$R( t,m = %d )$' % k, fontdict = labelfont)
+		plt.savefig('results/orderP-vs-time_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
+		plt.savefig('results/orderP-vs-time_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=300)
+		#print('\nlast entry order parameter: R-1 = %.3e' % (orderparam[-1]-1) )
+		#print('\nlast entries order parameter: R = ', orderparam[-25:])
+
+		plt.figure('order parameter over time, adiabatic change cLF')			# plot the order parameter in dependence of time
+		plt.clf()
+		plt.plot(cLF_t[0:(len(t)-1):10*int(1/dt)], orderparam[0:(len(t)-1):10*int(1/dt)])
+		plt.title(r'order parameter as a function of cLF(t) after Trelax', fontdict = titlefont)
+		plt.xlabel(r'$cLF(t)$', fontdict = labelfont)
+		plt.ylabel(r'$R( t,m = %d )$' % k, fontdict = labelfont)
+		plt.savefig('results/orderP-vs-cLF_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
+		plt.savefig('results/orderP-vs-cLF_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=300)
+	else:
+		plt.figure('order parameter over time')									# plot the order parameter in dependence of time
+		plt.clf()
+		plt.plot((t*dt), orderparam)
+		plt.plot(delay, orderparam[int(round(delay/dt))], 'yo', ms=5)			# mark where the simulation starts
+		plt.axvspan(t[-int(2*1.0/(F1*dt))]*dt, t[-1]*dt, color='b', alpha=0.3)
+		plt.title(r'mean order parameter $\bar{R}=$%.2f, and $\bar{\sigma}=$%.4f' %(np.mean(orderparam[-int(round(2*1.0/(F1*dt))):]), np.std(orderparam[-int(round(2*1.0/(F1*dt))):])), fontdict = titlefont)
+		plt.xlabel(r'$t$ $[s]$', fontdict = labelfont)
+		plt.ylabel(r'$R( t,m = %d )$' % k, fontdict = labelfont)
+		plt.savefig('results/orderP-vs-time_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
+		plt.savefig('results/orderP-vs-time_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=300)
+		#print('\nlast entry order parameter: R-1 = %.3e' % (orderparam[-1]-1) )
+		#print('\nlast entries order parameter: R = ', orderparam[-25:])
 
 	plt.draw()
 	if show_plot:
@@ -161,8 +188,8 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	alltwistP = []
 	now = datetime.datetime.now()
 
-	if F > 0:																	# for f=0, there would otherwies be a float division by zero
-		F1=F
+	if F_Omeg > 0:																# for f=0, there would otherwies be a float division by zero
+		F1=F_Omeg
 	else:
 		F1=1.1
 

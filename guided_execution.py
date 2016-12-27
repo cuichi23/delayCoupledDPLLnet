@@ -25,6 +25,7 @@ import evaluation as eva
 import case_noisy as cnois
 import case_bruteforce as cbrut
 import case_singleout as csing
+import case_singleadiabatic as cadiab
 
 sys.path.append(os.path.abspath('./GlobFreq_LinStab'))
 import synctools
@@ -288,7 +289,7 @@ def chooseCsvSaveOption(param_cases_csv, para_mat, topology, couplingfct, c):
 									& (param_cases_csv['K']==float(para_mat[i,2])) & (param_cases_csv['N']==int(para_mat[i,0]))
 									& (param_cases_csv['c']==float(c)) & (param_cases_csv['topology']==str(topology)) & (param_cases_csv['couplingfct']==str(couplingfct))
 									& (param_cases_csv['Nx']==int(para_mat[i,10])) & (param_cases_csv['Ny']==int(para_mat[i,11]))
-									& (param_cases_csv['mx']==int(para_mat[i,12])) & (param_cases_csv['my']==int(para_mat[i,13]))].sort('K') #guided_execution.py:270: FutureWarning: sort(columns=....) is deprecated, use sort_values(by=.....)
+									& (param_cases_csv['mx']==int(para_mat[i,12])) & (param_cases_csv['my']==int(para_mat[i,13]))].sort_values('K') #guided_execution.py:270: FutureWarning: sort(columns=....) is deprecated, use sort_values(by=.....)
 		exist_set.append( temp )
 		if len(temp) == 0:														# if temp is not set/empty,
 			para_mat_new.append(para_mat[i,:])
@@ -330,7 +331,7 @@ def chooseCsvSaveOption(param_cases_csv, para_mat, topology, couplingfct, c):
 
 def writeCsvFileNewCases(para_mat_new, topology, couplingfct, c):
 	# find last line in csv-file, ask whether new cases should be added, add if reqiured in the proper format (include id, etc....)
-	lastIDcsv = len(param_cases_csv.sort('id'))+3								# have to add 3 in order to account for the header of the csv file
+	lastIDcsv = len(param_cases_csv.sort_values('id'))+3						# have to add 3 in order to account for the header of the csv file
 	# print('In write function! Here para_mat_new[0,7]: ', para_mat_new[0,7])
 	with open('GlobFreq_LinStab/DPLLParameters.csv', 'a') as f:				# 'a' means append to file! other modes: 'w' write only and replace existing file, 'r' readonly...
 		writer = csv.writer(f, delimiter=',') #, header=2, dtype={'K': np.float, 'Fc': np.float, 'delay': np.float, 'F_Omeg': np.float, 'k': np.int, 'Tsim': np.int, 'sim-time-approx': np.float, 'topology': np.str, 'c': np.float})
@@ -436,6 +437,74 @@ def setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanv
 	print( '\norder parameter for system after delta-perturbation: ', eva.oracle_mTwistOrderParameter(perturbation_vec, k), ' and twist number: ', k, '\n' )
 	return perturbation_vec
 
+''' SINGLE REALIZATION, ADIABATIC CHANGE OF c_LF AFTER TRANSIENT DECAY TIME '''
+def singleAdiabatChange(params):
+
+	cLF_value = float(raw_input('\nPlease specify initial value of cLF_s in [Hz*Hz], from there it will adiabatically change to zero = '))
+	Trelax = float(raw_input('\nPlease specify the transient decay time Trelax, adiabatic change start after that time in [s] = '))
+
+	print('\nWill start with this cLF-value: ', cLF_value, ', and relaxation time Trelax: ', Trelax, '\n\n')
+
+	topology= chooseTopology()													# calls function that asks user for input of type of network topology
+	if ( topology == 'square-periodic' or topology == 'square-open' ):
+		Nx, Ny = get2DosciNumbers()												# calls function that asks user for input of number of oscis in each direction
+		N = Nx*Ny
+		kx, ky = get2DTwistNumbers(Nx, Ny)										# choose 2d-twist under investigation
+		k = kx																	# set to dummy value
+	else:
+		N = chooseNumber()														# calls function that asks user for input of number of oscis
+		k = chooseTwistNumber(N)												# choose twist under investigation
+		kx = k; ky = -999; Nx = N; Ny = 1;
+	K    	= chooseK(float(params['DEFAULT']['F']))							# calls function that asks user for input of the coupling strength
+	Fc    	= chooseFc()														# calls function that asks user for input of cut-off frequency
+	delay 	= chooseTransDelay()												# calls function that asks user for input of mean transmission delay
+	c 		= chooseDiffConst()													# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
+	Nsim    = 1																	# calls function that asks user for input for number of realizations
+	case, rot_vs_orig = chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
+	if case == '4':
+		distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale = chooseDistribution()
+	else:
+		distrib='gamma'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
+	pert = []
+	for i in range (Nsim):
+		pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
+
+	if str(params['DEFAULT']['couplingfct']) == 'triang':						# set the coupling function for evaluating the frequency and stability with Daniel's module
+		h = synctools.Triangle(1.0 / (2.0 * np.pi))
+	elif str(params['DEFAULT']['couplingfct']) == 'cos':
+		h = synctools.Cos(1.0 / (2.0 * np.pi))
+	elif str(params['DEFAULT']['couplingfct']) == 'sin':
+		h = synctools.Sin(1.0 / (2.0 * np.pi))
+	print('params', params)
+
+	# perform a delay sweep
+	isRadian=False																# set this False to get values returned in [Hz] instead of [rad * Hz]
+	sf = synctools.SweepFactory(N, Ny, Nx, F, K, delay, h, Fc, k, kx, ky,topology, np.array([cLF_value, cLF_value]), isRadians=isRadian)
+	print('\n\nAdjust code Daniel to fit cLF!!!!')
+
+	fsl = sf.sweep()
+	para_mat = fsl.get_parameter_matrix(isRadians=False)						# extract variables from the sweep, this matrix contains all cases
+	print('New parameter combinations with {N, F, K, Fc, delay, m, F_Omeg, ReLambda, ImLambda, Tsim, Nx, Ny, mx, my}: \n', para_mat)
+
+	para_mat = simulateOnlyLinStableCases(para_mat)								# correct for negative Tsim = -25 / Re(Lambda)....
+
+	if not ( para_mat == [] and new_cLF_values == [] ):
+		plot_out = True
+
+		# for i in range (len(para_mat[:,0])):
+		print('\nSTART: python case_singleadiabatic.py '+str(topology)+' '+str(int(para_mat[0,0]))+' '+str(float(para_mat[0,2]))+' '+str(float((para_mat[0,3])))+' '
+										+str(float(delay))+' '+str(float(para_mat[0,6]))+' '+str(int(para_mat[0,5]))+' '+str(int(round(float(para_mat[0,9]))))+' '
+										+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(float(cLF_value))+' '+str(Trelax)+'  '.join(map(str, pert)))
+		print('Tsim: ', para_mat[0,9])
+		# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
+		# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
+		cadiab.singleadiabatic(str(topology), int(para_mat[0,0]), float(para_mat[0,2]), float((para_mat[0,3])), float(delay), float(para_mat[0,6]),
+						int(para_mat[0,5]), int(round(float(para_mat[0,9]))), float(c), float(cLF_value), float(Trelax), int(1), str(int(Nx)), str(int(Ny)), str(int(kx)), str(int(ky)),
+						pert, plot_out)
+		gc.collect()
+
+	return None
+
 ''' SINGLE REALIZATION '''
 def singleRealization(params):
 	x_true = True
@@ -509,7 +578,7 @@ def singleRealization(params):
 				for i in range (len(para_mat[:,0])):
 					print('\nSTART: python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 							+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-							+str(c)+' '+str(cLF)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+' '.join(map(str, pert)))
+							+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(cLF)+' '.join(map(str, pert)))
 					print('Tsim: ', para_mat[i,9])
 					# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
@@ -585,7 +654,7 @@ def singleRealization(params):
 				for i in range (len(para_mat[:,0])):
 					print('\nSTART: python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-													+str(c)+' '+str(cLF)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+' '.join(map(str, pert)))
+													+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(cLF)+' '.join(map(str, pert)))
 					print('Tsim: ', para_mat[i,9])
 					# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
@@ -661,7 +730,7 @@ def singleRealization(params):
 				for i in range (len(para_mat[:,0])):
 					print('\nSTART: python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-													+str(c)+' '+str(cLF)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+' '.join(map(str, pert)))
+													+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(cLF)+' '.join(map(str, pert)))
 					print('Tsim: ', para_mat[i,9])
 					# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
@@ -833,7 +902,7 @@ def noisyStatistics(params):
 				for i in range (len(para_mat[:,0])):
 					print('\nSTART: python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 												+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-												+str(c)+' '+str(cLF)+' '+str(Nsim)+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky))
+												+str(c)+' '+str(Nsim)+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(cLF))
 					print('Tsim: ', para_mat[i,9])
 					# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)ky.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
@@ -920,7 +989,7 @@ def noisyStatistics(params):
 					for j in range (len(new_c_values)):
 						print('\nSTART: python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 												+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-												+str(new_c_values[j])+' '+str(Nsim)+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky))
+												+str(new_c_values[j])+' '+str(Nsim)+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(cLF))
 						# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)ky.join(map(str, pert)))
 						# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 						# def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, Nx=0, Ny=0, kx=0, ky=0, phiSr=[], show_plot=True):
@@ -999,7 +1068,7 @@ def noisyStatistics(params):
 				for i in range (len(para_mat[:,0])):
 					print('\nSTART: python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 												+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-												+str(c)+' '+str(cLF)+' '+str(Nsim)+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
+												+str(c)+' '+str(cLF)+' '+str(Nsim)+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+str(cLF)+' '.join(map(str, pert)))
 					# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					cnois.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
@@ -1157,7 +1226,7 @@ def noisyStatistics(params):
 				for i in range (len(para_mat[:,0])):
 					print('\nSTART: python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 												+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-												+str(c)+' '+str(cLF)+' '+str(Nsim)+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '
+												+str(c)+' '+str(Nsim)+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(cLF)+' '
 												.join(map(str, pert)))
 					# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
@@ -1231,7 +1300,7 @@ def bruteForce(params, param_cases_csv):
 					print('Tsim: ', para_mat[i,9])
 					print('\nSTART: python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '
-													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(cLF)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '
+													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(cLF)+' '
 													.join(map(str, pert)))
 					# os.system('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
@@ -1293,7 +1362,7 @@ def bruteForce(params, param_cases_csv):
 					print('Tsim: ', para_mat[i,9])
 					print('\nSTART: python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '
-													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(cLF)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '
+													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(cLF)+' '
 													.join(map(str, pert)))
 					# os.system('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
@@ -1355,7 +1424,7 @@ def bruteForce(params, param_cases_csv):
 					print('Tsim: ', para_mat[i,9])
 					print('\nSTART: python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '
-													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(cLF)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '
+													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(cLF)+' '
 													+' '.join(map(str, pert)))
 					# os.system('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
@@ -1475,7 +1544,7 @@ if __name__ == '__main__':
 	# sim_mode = raw_input...
 	a_true = True
 	while a_true:
-		decision2 = raw_input('\nPlease specify simulation mode: \n\n[1] single realization, \n[2] statistics on noisy realizations, \n[3] brute-force basin of attraction scan. \n\nChoice: ')
+		decision2 = raw_input('\nPlease specify simulation mode: \n\n[1] single realization, \n[2] statistics on noisy realizations, \n[3] brute-force basin of attraction scan, \n[4] single realization, adiabatic change of cLF. \n\nChoice: ')
 		if decision2 == '1':
 			singleRealization(params)
 			break
@@ -1484,6 +1553,9 @@ if __name__ == '__main__':
 			break
 		elif decision2 == '3':
 			bruteForce(params, param_cases_csv)
+			break
+		elif decision2 == '4':
+			singleAdiabatChange(params)
 			break
 		else:
 			print('Please provide numbers 1 to 3 as an input!')

@@ -29,6 +29,20 @@ class PhaseLockedLoop:
 		phi = self.vco.next(x_ctrl)[0]											# the control signal is used to update the VCO and thereby evolving the phase
 		return phi
 
+	def nextrelax(self,idx_time,phi):
+		x, x_delayed = self.delayer.next(idx_time,phi)							# this gets the values of a signal x at time t, and time t-tau, from the delayer (x is the matrix phi here)
+		x_comb = self.pdc.next(x, x_delayed, idx_time)							# the phase detector signal is computed
+		x_ctrl, cLF_t = self.lf.nextrelax(x_comb)								# the filtering at the loop filter is applied to the phase detector signal
+		phi = self.vco.next(x_ctrl)[0]											# the control signal is used to update the VCO and thereby evolving the phase
+		return phi
+
+	def nextadiab(self,idx_time,phi):
+		x, x_delayed = self.delayer.next(idx_time,phi)							# this gets the values of a signal x at time t, and time t-tau, from the delayer (x is the matrix phi here)
+		x_comb = self.pdc.next(x, x_delayed, idx_time)							# the phase detector signal is computed
+		x_ctrl, cLF_t = self.lf.nextadiab(x_comb)								# the filtering at the loop filter is applied to the phase detector signal
+		phi = self.vco.next(x_ctrl)[0]											# the control signal is used to update the VCO and thereby evolving the phase
+		return phi
+
 	def setup_hist(self):														# set the initial history of the PLLs, all evolving with frequency F_Omeg, provided on program start
 		phi = self.vco.set_initial()[0]											# [0] vector-entry zero of the two values saved to phi which is returned
 		return phi
@@ -68,7 +82,8 @@ class LowPass:
 		self.cLF_t	 = cLF														# time dependent case (adiabatic change)
 		self.d_xcrtl = 0 #-23
 		self.dt      = dt														# set time-step
-		self.Nrelax  = int(Trelax/self.dt)
+		self.Trelax  = Trelax
+		self.Nrelax  = int(self.Trelax/self.dt)
 
 		# if cLF>0:
 		# 	print('Simulate system WITH LF noise!')
@@ -129,7 +144,7 @@ class NoisyLowPassAdiabaticC(LowPass):
 		#self.y = (self.F_Omeg - self.F) / (self.K)								# calculate the state of the LF at the last time step of the history, it is needed for the simulation of the network
 		if self.K!=0:															# this if-call is fine, since it will only be evaluated once
 			self.y = (self.inst_Freq - self.F) / (self.K_Hz)					# calculate the state of the LF at the last time step of the history, it is needed for the simulation of the network
-			self.y = self.y + np.random.normal(loc=0.0, scale=self.Fc*np.sqrt(2*self.cLF*self.dt))
+			self.y = self.y + np.random.normal(loc=0.0, scale=self.Fc*np.sqrt(2*self.cLF_t*self.dt))
 			# print('initial control signal x_ctrl=', self.y)
 			# self.y = (2.0 * np.pi * (self.inst_Freq - self.F)) / (self.K)
 		else:
@@ -139,17 +154,16 @@ class NoisyLowPassAdiabaticC(LowPass):
 	def nextrelax(self,xPD):						      						# this updates y=x_k^{C}(t), the control signal, using the input x=x_k^{PD}(t), the phase-detector signal
 		y_ctrl0 = 0.0															# since y_ctrl0 = x_k^C(t=0) * \delta(t-0), t=0 is set in function above already!
 		# self.y = (1-self.beta)*self.y + self.beta*(xPD-y_ctrl0/self.Fc)			# the difference to the old version is the non-zero initial condition x_k^C(t=0)=[\dot{\theta}_k(0)-\omega] / K
-		self.y = (1.0-self.beta)*self.y + self.beta*xPD + np.random.normal(loc=0.0, scale=self.Fc*np.sqrt(2*self.cLF*self.dt))
-		cLF_t=self.cLF
-		print('self.cLF_t:', self.cLF_t)
+		self.y = (1.0-self.beta)*self.y + self.beta*xPD + np.random.normal(loc=0.0, scale=self.Fc*np.sqrt(2*self.cLF_t*self.dt))
+		# print('self.cLF_t:', self.cLF_t)
 		# print('state of filter AFTER update:', self.y)
 		return self.y, self.cLF_t
 
 	def nextadiab(self,xPD):						      						# this updates y=x_k^{C}(t), the control signal, using the input x=x_k^{PD}(t), the phase-detector signal
 		y_ctrl0 = 0.0															# since y_ctrl0 = x_k^C(t=0) * \delta(t-0), t=0 is set in function above already!
 		# self.y = (1-self.beta)*self.y + self.beta*(xPD-y_ctrl0/self.Fc)			# the difference to the old version is the non-zero initial condition x_k^C(t=0)=[\dot{\theta}_k(0)-\omega] / K
-		self.cLF_t = self.cLF_t - 0.1 / float(self.Trelax)
-		print('self.cLF_t:', self.cLF_t)
+		self.cLF_t = self.cLF_t - 0.1 / float(self.Trelax/self.dt)
+		# print('self.cLF_t:', self.cLF_t)
 		self.y     = (1.0-self.beta)*self.y + self.beta*xPD + np.random.normal(loc=0.0, scale=self.Fc*np.sqrt(2*self.cLF_t*self.dt))
 		# print('state of filter AFTER update:', self.y)
 		return self.y, self.cLF_t
@@ -359,6 +373,7 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,coupling
 
 		phi[0,:] = [pll.set_delta_pertubation(0, phi, phiS[i], F_Omeg) for i,pll in enumerate(pll_list)]  # NOTE: phi[idx_time,:] is already set
 
+		''' YOU SHOULD CHANGE HERE AND SO ON TO SAVE DATA DURING SIMULATION TO KEEP THE RAM AVAILABLE '''
 		for idx_time in range(Nsteps+delay_steps-1):							# iterate over Nsteps from 0 to "Nsteps" no history, just initial conditions
 			phi[idx_time+1,:] = [pll.next(idx_time,phi) for pll in pll_list]	# now the network is iterated, starting at t=0 with the history as prepared above
 
@@ -402,14 +417,20 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,coupling
 		''' use Trelax to calculate the rate and Nsteps until cLF is close to zero '''
 		Nsteps  	  = int(0.95 * cLF / rate_per_step)
 		print('Simulation time after relaxation time in [s]:', Nsteps*dt, ' and total time in [s]:', Trelax+Nsteps*dt)
+		phi = np.empty([Nsteps+Nrelax+delay_steps,Nplls])						# prepare container for phase time series
+		cLF_t = np.empty([Nsteps+Nrelax+delay_steps])							# prepare container for c_LF
 		phi[0,:] = [pll.set_delta_pertubation(0, phi, phiS[i], F_Omeg) for i,pll in enumerate(pll_list)]  # NOTE: phi[idx_time,:] is already set
 
 		''' adiabatic case, relaxation time '''
 		for idx_time in range(Nrelax):											# iterate over Nsteps from 0 to "Nsteps" no history, just initial conditions
-			phi[idx_time+1,:] = [pll.next(idx_time,phi) for pll in pll_list]	# now the network is iterated, starting at t=0 with the history as prepared above
+			cLF_t[idx_time]	 = [pll.lf.cLF_t][0]
+			# print('relaxation:', [pll.lf.cLF_t][0])
+			phi[idx_time+1,:] = [pll.nextrelax(idx_time,phi) for pll in pll_list]	# now the network is iterated, starting at t=0 with the history as prepared above
 		''' adiabatic case, adiabatic change '''
-		for idx_time in range(Nrelax+1,Nrelax+Nsteps):							# iterate over Nsteps from 0 to "Nsteps" no history, just initial conditions
-			phi[idx_time+1,:] = [pll.next(idx_time,phi) for pll in pll_list]	# now the network is iterated, starting at t=0 with the history as prepared above
+		for idx_time in range(Nrelax,Nrelax+Nsteps-1):							# iterate over Nsteps from 0 to "Nsteps" no history, just initial conditions
+			cLF_t[idx_time]	 = [pll.lf.cLF_t][0]
+			# print('adiabatic:', [pll.lf.cLF_t][0])
+			phi[idx_time+1,:] = [pll.nextadiab(idx_time,phi) for pll in pll_list]	# now the network is iterated, starting at t=0 with the history as prepared above
 
 	elif delay_steps > 0  and Trelax > 0:
 		''' This is for delay_steps > 0, cLF-rate > 0  '''
@@ -422,39 +443,45 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,coupling
 		''' use Trelax to calculate the rate and Nsteps until cLF is close to zero '''
 		Nsteps  	  = int(0.95 * cLF / rate_per_step)
 		print('Simulation time after relaxation time in [s]:', Nsteps*dt, ' and total time in [s]:', Trelax+Nsteps*dt)
-		for idx_time in range(Nsteps+10+delay_steps-1):							# iterate over Nsteps from 0 to "Nsteps + delay_steps" -> of that "delay_steps+1" is history
+		phi = np.empty([Nsteps+Nrelax+delay_steps,Nplls])						# prepare container for phase time series
+		cLF_t = np.empty([Nsteps+Nrelax+delay_steps])							# prepare container for c_LF
+		for idx_time in range(Nsteps+Nrelax+delay_steps-1):							# iterate over Nsteps from 0 to "Nsteps + delay_steps" -> of that "delay_steps+1" is history
 			''' Important note: the container for the phase variables [phi] is indexed from 0 onwards, i.e., idx_time==delay_steps-1 corresponds to the entry in the container
 			 	with index delay_steps-1, and hence the container then has "delay_steps" number of entries.
 				Also note however, that below we always set idx_time+1, i.e., when idx_time==delay_steps-1, idx_time+1==delay_steps-1+1==delay_steps is set and the history is
 				complete (delay_steps * dt written in real time).'''
 			if idx_time <= (delay_steps-2):						# fill phi entries 1 to "delay_steps-2", note: we set idx_time+1 in the last call at idx_time==delay_steps-2
 				#print( 'prior [step =', idx_time ,'] entry phi-container simulateNetwork-fct:', phi[idx_time][:])
-				phi[idx_time+1,:] = [pll.setup_hist() for pll in pll_list]			# here the initial phase history is set
+				cLF_t[idx_time]	 = [pll.lf.cLF_t][0]
+				phi[idx_time+1,:] = [pll.setup_hist() for pll in pll_list]		# here the initial phase history is set
 				#print( 'new   [step =', idx_time+1 ,'] entry phi-container simulateNetwork-fct:', phi[idx_time+1][:], 'difference: ', phi[idx_time+1][:] - phi[idx_time][:])
-			if idx_time == (delay_steps-1):											# fill the last entry of the history in phi at delay_steps-1
+			if idx_time == (delay_steps-1):										# fill the last entry of the history in phi at delay_steps-1
 				# print( '\n\nhere is also STILL A PROBLEM HERE: if there is no perturbation, the history should grow constantly until delay_steps (included)\n')
 				#print( 'prior [step =', idx_time ,'] entry phi-container simulateNetwork-fct:', phi[idx_time][:])
-				inst_Freq = (phi[idx_time,:]-phi[idx_time-1,:])/(dt*2*np.pi)		# calculate all instantaneous frequencies of all PLLs
+				inst_Freq = (phi[idx_time,:]-phi[idx_time-1,:])/(dt*2*np.pi)	# calculate all instantaneous frequencies of all PLLs
 				#print('instantaneous frequency when delta_perturbation is set: ', inst_Freq)
 				#print('self.F_Omeg when perturbation is set: ', F_Omeg, '\n')
 				#print('CHECK WHETHER CALCULATED AT THE TIME STEP; HERE FOR CALCULTED: instantaneous frequency TOWARDS last step of history:', inst_Freq)
 				#print('number of oscis:', Nplls)
+				cLF_t[idx_time]	 = [pll.lf.cLF_t][0]
 				phi[idx_time+1,:] = [pll.set_delta_pertubation(idx_time, phi, phiS[i], inst_Freq[i]) for i,pll in enumerate(pll_list)]
 				#print('new   [step =', idx_time+1 ,'] entry phi-container simulateNetwork-fct:', phi[idx_time+1][:], 'difference: ', phi[idx_time+1][:] - phi[idx_time][:])
 			''' adiabatic case, relaxation time '''
-			if (idx_time > (delay_steps-1) and idx_time <= (delay_steps+Nrelax)):
+			if (idx_time > (delay_steps-1) and idx_time <= (delay_steps-1+Nrelax)):
 				#if idx_time == delay_steps:
 				#	print('\n\nSIMULATION STARTS HERE, phase histories are set\n')
 				#if idx_time < delay_steps+10:
 				#	print( 'prior [step =', idx_time ,'] entry phi-container simulateNetwork-fct:', phi[idx_time][:])
+				cLF_t[idx_time]	 = [pll.lf.cLF_t][0]
 				phi[idx_time+1,:] = [pll.nextrelax(idx_time,phi) for pll in pll_list]	# now the network is iterated, starting at t=0 with the history as prepared above
 				#if idx_time < delay_steps+10:
 				#	print( 'new   [step =', idx_time+1 ,'] entry phi-container simulateNetwork-fct:', phi[idx_time+1][:], 'difference: ', phi[idx_time+1][:] - phi[idx_time][:])
 			''' adiabatic case, adiabatic change '''
 			if (idx_time > (delay_steps-1) and idx_time > (delay_steps-1+Nrelax)):
+				cLF_t[idx_time]	 = [pll.lf.cLF_t][0]
 				phi[idx_time+1,:] = [pll.nextadiab(idx_time,phi) for pll in pll_list]	# now the network is iterated, starting at t=0 with the history as prepared above
 
-	return {'phases': phi, 'intrinfreq': omega_0, 'coupling_strength': K_0, 'transdelays': delays_0}
+	return {'phases': phi, 'intrinfreq': omega_0, 'coupling_strength': K_0, 'transdelays': delays_0, 'cLF': cLF_t}
 
 ''' CREATE PLL LIST '''
 def generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,y0,phiM,domega,diffconstK,Nx,Ny,cLF,Trelax=0):
