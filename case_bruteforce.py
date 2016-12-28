@@ -180,7 +180,7 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0
 							itertools.repeat(dt), itertools.repeat(c),itertools.repeat(Fc), itertools.repeat(F_Omeg), itertools.repeat(K), itertools.repeat(N), itertools.repeat(k), itertools.repeat(delay),
 							itertools.repeat(phiM), itertools.repeat(domega), itertools.repeat(diffconstK), itertools.repeat(cLF), itertools.repeat(Nx), itertools.repeat(Ny), itertools.repeat(kx), itertools.repeat(ky),
 							itertools.repeat(plot_Phases_Freq), itertools.repeat(mode) ) ) )
-		results=[]; phi=[]; omega_0=[]; K_0=[]; delays_0=[];
+		results=[]; phi=[]; omega_0=[]; K_0=[]; delays_0=[]; #cLF_t=[]
 		for i in range(Nsim):
 			''' evaluate dictionaries '''
 			results.append( [ pool_data[0][i]['mean_order'],  pool_data[0][i]['last_orderP'], pool_data[0][i]['stdev_orderP'] ] )
@@ -192,6 +192,7 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0
 			omega_0.append( pool_data[0][i]['intrinfreq'] )
 			K_0.append( pool_data[0][i]['coupling_strength'] )
 			delays_0.append( pool_data[0][i]['transdelays'] )
+			# cLF_t.append( pool_data[0][i]['cLF'] )
 
 		del pool_data; del _allPoints;											# emtpy pool data, allPoints variables to free memory
 

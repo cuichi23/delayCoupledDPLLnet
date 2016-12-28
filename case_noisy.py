@@ -143,7 +143,7 @@ def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny=
 							itertools.repeat(phiM), itertools.repeat(domega), itertools.repeat(diffconstK), itertools.repeat(cLF), itertools.repeat(Nx), itertools.repeat(Ny), itertools.repeat(kx), itertools.repeat(ky),
 							itertools.repeat(plot_Phases_Freq), itertools.repeat(mode) ) ) )
 		# print('pool_data:', pool_data, 'type(pool_data):', type(pool_data) )
-		results=[]; phi=[]; omega_0=[]; K_0=[]; delays_0=[];
+		results=[]; phi=[]; omega_0=[]; K_0=[]; delays_0=[]; #cLF_t=[]
 		for i in range(Nsim):
 			''' evaluate dictionaries '''
 			results.append( [ pool_data[0][i]['mean_order'],  pool_data[0][i]['last_orderP'], pool_data[0][i]['stdev_orderP'] ] )
@@ -151,6 +151,7 @@ def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny=
 			omega_0.append( pool_data[0][i]['intrinfreq'] )
 			K_0.append( pool_data[0][i]['coupling_strength'] )
 			delays_0.append( pool_data[0][i]['transdelays'] )
+			# cLF_t.append( pool_data[0][i]['cLF'] )
 
 		del pool_data; del _allPoints;											# emtpy pool data, allPoints variables to free memory
 
@@ -167,7 +168,7 @@ def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny=
 		print('time needed for execution of simulations in multiproc mode: ', (time.time()-t0), ' seconds')
 		# print('data:', data, 'type(data[0]):', type(data[0]))
 	else:
-		results=[]; phi=[]; omega_0=[]; K_0=[]; data=[]; delays_0=[];			# prepare container for results of simulatePllNetwork
+		results=[]; phi=[]; omega_0=[]; K_0=[]; data=[]; delays_0=[]; cLF_t=[]	# prepare container for results of simulatePllNetwork
 		for i in range (allPoints.shape[0]):									# iterate through all points in the N-1 dimensional rotated phase space
 			print('calculation #:', i+1, 'of', allPoints.shape[0])
 			#print( allPoints[i], '\n')
@@ -183,6 +184,7 @@ def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny=
 			omega_0.append( data['intrinfreq'] )
 			K_0.append( data['coupling_strength'] )
 			delays_0.append( data['transdelays'] )
+			# cLF_t.append( data['cLF_t'] )
 
 		phi=np.array(phi); omega_0=np.array(omega_0); K_0=np.array(K_0); delays_0=np.array(delays_0);
 		results=np.array(results);

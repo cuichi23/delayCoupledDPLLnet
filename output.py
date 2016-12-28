@@ -24,6 +24,8 @@ from matplotlib import rc
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
 
+plt.rcParams['agg.path.chunksize'] = 10000
+
 ''' STYLEPACKS '''
 titlefont = {
         'family' : 'serif',
@@ -49,11 +51,19 @@ annotationfont = {
 ''' EVALUATION SINGLE REALIZATION '''
 def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, cLF_t=[], coupFct='triang', Tsim=53, Fsim=None, show_plot=True):
 
+	Trelax = Tsim
+	Nrelax = int(Trelax/dt)
+	rate   = 0.1 / Trelax
+	rate_per_step = 0.1 / Nrelax
+	''' use Trelax to calculate the rate and Nsteps until cLF is close to zero '''
+	Nsteps  	  = int(0.95 * c / rate_per_step)
+	delaysteps    = int(delay / dt)
+	Nsim   = Nrelax+Nsteps+delaysteps
 	# print('cLF_t:', cLF_t)
 	if F > 0:																	# for f=0, there would otherwies be a float division by zero
 		F1=F
 	else:
-		F1=1.1
+		F1=.1
 	# print('\n\nUncomment \"matplotlib.use(\'Agg\')\" in ouput.py to enable plotting figures to the desktop, DISABLE for queue-jobs!')
 	phi = phi[:,:,:]; orderparam = orderparam[0,:]								# there is only one realization of interest -reduces dimensionof phi array
 	afterTransients = int( round( 0.5*Tsim / dt ) )
@@ -87,14 +97,14 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, cLF_
 	plt.figure('histogram of frequencies')										# plot a histogram of the frequencies of the oscillators over time
 	plt.clf()
 	lastfreqs = (np.diff(phi[-int(2*1.0/(F1*dt)):, :], axis=0).flatten()/(dt))
-	plt.hist(lastfreqs, bins=np.linspace(2*np.pi*(F1-K), 2*np.pi*(F1+K), num=21), rwidth=0.75 )
+	plt.hist(lastfreqs, bins=np.linspace(2*np.pi*(F1-2.*K), 2*np.pi*(F1+2.*K), num=21), rwidth=0.75 )
 	plt.axvspan(t[-int(2*1.0/(F1*dt))]*dt, t[-1]*dt, color='b', alpha=0.3)
 	plt.xlim((2*np.pi*(F1-K), 2*np.pi*(F1+K)))
 	plt.title(r'mean frequency [Hz] $\bar{f}=$%.3f and std $\bar{\sigma}_f=$%.4f' %( np.mean(lastfreqs)/(2.0*np.pi), np.std(lastfreqs)/(2.0*np.pi) ), fontdict = titlefont)
 	plt.xlabel(r'$\dot{\phi}(-2T -> T_{end})$ $[rad/s]$', fontdict = labelfont)
 	plt.ylabel(r'histogram', fontdict = labelfont)
-	plt.savefig('results/freq_histo_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
-	plt.savefig('results/freq_histo_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=300)
+	plt.savefig('results/freqhistK%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
+	plt.savefig('results/freqhistK%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=300)
 
 	if ( len(phi[0, :])>100 ):
 		plt.figure('histogram of phases at TSim')								# plot a histogram of the frequencies of the oscillators over time
@@ -105,8 +115,8 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, cLF_
 		plt.title(r'mean phase [rad] $\bar{\phi}=$%.3f and std $\bar{\sigma}_{\phi}=$%.4f' %( np.mean(phasesTSim), np.std(phasesTSim) ), fontdict = titlefont)
 		plt.xlabel(r'$\phi(t=TSim)$ $[rad]$', fontdict = labelfont)
 		plt.ylabel(r'histogram', fontdict = labelfont)
-		plt.savefig('results/phase_histo_TSim_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
-		plt.savefig('results/phase_histo_TSim_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=300)
+		plt.savefig('results/phaseHistoTSim_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
+		plt.savefig('results/phaseHistoTSim_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=300)
 
 	plt.figure('phases over time')
 	plt.clf()
@@ -116,8 +126,8 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, cLF_
 	plt.title(r'time series phases, inst. freq: $\dot{\phi}_0(t_{start})=%.4f$, $\dot{\phi}_0(t_{end})=%.4f$  [rad/Hz]' %( (phi[int(2*1.0/(F1*dt))][0]-phi[1][0])/(2*1.0/F1-dt), (phi[-4][0]-phi[-3-int(2*1.0/(F1*dt))][0])/(2*1.0/F1-dt) ), fontdict = titlefont)
 	plt.xlabel(r'$t$ $[s]$', fontdict = labelfont)
 	plt.ylabel(r'$\phi(t)$', fontdict = labelfont)
-	plt.savefig('results/phases-vs-time_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
-	plt.savefig('results/phases-vs-time_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=300)
+	plt.savefig('results/phases-t_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
+	plt.savefig('results/phases-t_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=300)
 	print(r'frequency of zeroth osci at the beginning and end of the simulation:, freqStart=%.4f, freqEnd=%.4f  [rad/Hz]' %( (phi[int(2*1.0/(F1*dt))][0]-phi[1][0])/(2*1.0/F1-dt), (phi[-4][0]-phi[-4-int(2*1.0/(F1*dt))][0])/(2*1.0/F1-dt) ) )
 	print('last values of the phases:\n', phi[-3:,:])
 
@@ -133,34 +143,45 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, cLF_
 	plt.title(r'mean frequency [rad Hz] of last $2T$-eigenperiods $\dot{\bar{\phi}}=$%.4f' % np.mean(phidot[-int(round(2*1.0/(F1*dt))):, 0] ), fontdict = titlefont)
 	plt.xlabel(r'$t$ $[s]$', fontdict = labelfont)
 	plt.ylabel(r'$\dot{\phi}(t)$ $[rad Hz]$', fontdict = labelfont)
-	plt.savefig('results/freq-vs-time_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
-	plt.savefig('results/freq-vs-time_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=300)
+	plt.savefig('results/freq-t_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
+	plt.savefig('results/freq-t_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=300)
 
-	if len(cLF_t) > 0:
-		plt.figure('order parameter over time, adiabatic change cLF')			# plot the order parameter in dependence of time
+	# print('\n\ncLF_t:', cLF_t, '\n\n')
+	if not np.size(cLF_t) == 0:
+		plt.figure('order parameter over time, adiabatic change cLF or c')		# plot the order parameter in dependence of time
 		cLF_t=np.array(cLF_t)
 		cLF_t=cLF_t.flatten()
 		plt.clf()
 		plt.plot((t[0:(len(t)-1):10*int(1/dt)]*dt), orderparam[0:(len(t)-1):10*int(1/dt)])
-		plt.plot((t*dt), cLF_t)
+		plt.plot(t*dt, cLF_t)
 		plt.plot(delay, orderparam[int(round(delay/dt))], 'yo', ms=5)			# mark where the simulation starts
 		plt.axvspan(t[-int(2*1.0/(F1*dt))]*dt, t[-1]*dt, color='b', alpha=0.3)
 		plt.title(r'mean order parameter $\bar{R}=$%.2f, and $\bar{\sigma}=$%.4f' %(np.mean(orderparam[-int(round(2*1.0/(F1*dt))):]), np.std(orderparam[-int(round(2*1.0/(F1*dt))):])), fontdict = titlefont)
 		plt.xlabel(r'$t$ $[s]$', fontdict = labelfont)
 		plt.ylabel(r'$R( t,m = %d )$' % k, fontdict = labelfont)
-		plt.savefig('results/orderP-vs-time_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
-		plt.savefig('results/orderP-vs-time_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=300)
+		plt.savefig('results/orderP-t_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
+		plt.savefig('results/orderP-t_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=300)
 		#print('\nlast entry order parameter: R-1 = %.3e' % (orderparam[-1]-1) )
 		#print('\nlast entries order parameter: R = ', orderparam[-25:])
 
-		plt.figure('order parameter over time, adiabatic change cLF')			# plot the order parameter in dependence of time
-		plt.clf()
-		plt.plot(cLF_t[0:(len(t)-1):10*int(1/dt)], orderparam[0:(len(t)-1):10*int(1/dt)])
-		plt.title(r'order parameter as a function of cLF(t) after Trelax', fontdict = titlefont)
-		plt.xlabel(r'$cLF(t)$', fontdict = labelfont)
-		plt.ylabel(r'$R( t,m = %d )$' % k, fontdict = labelfont)
-		plt.savefig('results/orderP-vs-cLF_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
-		plt.savefig('results/orderP-vs-cLF_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=300)
+		if c==0 and cLF>0:
+			plt.figure('order parameter over time, adiabatic change cLF')		# plot the order parameter in dependence of time
+			plt.clf()
+			plt.plot(cLF_t[0:(len(t)-1):10*int(1/dt)], orderparam[0:(len(t)-1):10*int(1/dt)])
+			plt.title(r'order parameter as a function of cLF(t) after Trelax', fontdict = titlefont)
+			plt.xlabel(r'$cLF(t)$', fontdict = labelfont)
+			plt.ylabel(r'$R( t,m = %d )$' % k, fontdict = labelfont)
+			plt.savefig('results/orderP-cLF_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
+			plt.savefig('results/orderP-cLF_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=300)
+		elif c>0 and cLF==0:
+			plt.figure('order parameter over time, adiabatic change c')		# plot the order parameter in dependence of time
+			plt.clf()
+			plt.plot(cLF_t[0:(len(t)-1):10*int(1/dt)], orderparam[0:(len(t)-1):10*int(1/dt)])
+			plt.title(r'order parameter as a function of c(t) after Trelax', fontdict = titlefont)
+			plt.xlabel(r'$c(t)$', fontdict = labelfont)
+			plt.ylabel(r'$R( t,m = %d )$' % k, fontdict = labelfont)
+			plt.savefig('results/orderP-c_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
+			plt.savefig('results/orderP-c_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=300)
 	else:
 		plt.figure('order parameter over time')									# plot the order parameter in dependence of time
 		plt.clf()
@@ -170,8 +191,8 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, cLF_
 		plt.title(r'mean order parameter $\bar{R}=$%.2f, and $\bar{\sigma}=$%.4f' %(np.mean(orderparam[-int(round(2*1.0/(F1*dt))):]), np.std(orderparam[-int(round(2*1.0/(F1*dt))):])), fontdict = titlefont)
 		plt.xlabel(r'$t$ $[s]$', fontdict = labelfont)
 		plt.ylabel(r'$R( t,m = %d )$' % k, fontdict = labelfont)
-		plt.savefig('results/orderP-vs-time_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
-		plt.savefig('results/orderP-vs-time_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=300)
+		plt.savefig('results/orderP-t_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
+		plt.savefig('results/orderP-t_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=300)
 		#print('\nlast entry order parameter: R-1 = %.3e' % (orderparam[-1]-1) )
 		#print('\nlast entries order parameter: R = ', orderparam[-25:])
 

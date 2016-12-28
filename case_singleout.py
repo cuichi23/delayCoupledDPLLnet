@@ -26,6 +26,8 @@ def simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg
 	omega_0 = simresult['intrinfreq']
 	K_0     = simresult['coupling_strength']
 	delays_0= simresult['transdelays']
+	cLF_t   = simresult['cLF']
+	# print('\n\ncLF_t:', cLF_t, '\n\n')
 	# print('type phi:', type(phi), 'phi:', phi)
 
 	''' KURAMOTO ORDER PARAMETER '''
@@ -39,7 +41,7 @@ def simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg
 
 	''' RETURN '''																# return value of mean order parameter, last order parameter, and the variance of r during the last 2T_{\omega}
 	return {'mean_order':np.mean(r), 'last_orderP':r[len(r)-1], 'stdev_orderP':np.var(r), 'phases': phi,
-			'intrinfreq': omega_0, 'coupling_strength': K_0, 'transdelays': delays_0, 'orderparameter': orderparam}
+			'intrinfreq': omega_0, 'coupling_strength': K_0, 'transdelays': delays_0, 'orderparameter': orderparam, 'cLF': cLF_t}
 
 # def multihelper(phiSr, initPhiPrime0, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiM, domega, diffconstK, plot_Phases_Freq, mode):
 # 	if N > 2:
@@ -109,11 +111,11 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny
 		print('\nNo perturbation set, hence all perturbations have the default value zero (in original phase space of phases)!')
 		phiS=phiSValues
 
-	if F > 0.0:
+	if F > 1E-3:
 		Tsim   = Tsim*(1.0/F)				  									# simulation time in multiples of the period of the uncoupled oscillators
 		print('total simulation time in multiples of the eigentfrequency:', int(Tsim*F),'\n')
 	else:
-		print('Tsim Not in multiples of T_omega, since F=0')
+		print('Tsim Not in multiples of T_omega, since F > 1E-3')
 		Tsim   = Tsim*2.0														# in case F = 0 Hz
 		print('total simulation time in Tsim*2.0:', int(Tsim*2.0),'\n')
 
@@ -122,7 +124,6 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny
 	Nsteps 	= int(round(Tsim*Fsim))												# calculate number of iterations -- add output?
 	Nsim 	= 1
 	print('Test single evaluation and plot phase and frequency time series, PROVIDE initial condition in ROTATED phase space!')
-	print('Total simulation time in multiples of the eigentfrequency:', int(Tsim*F),'\n')
 
 	if ( topology == 'square-open' or topology == 'square-periodic' ):
 		twistdelta_x = ( 2.0 * np.pi * kx / ( float( Nx ) ) )					# phase difference between neighboring oscillators in a stable m-twist state
@@ -147,25 +148,28 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny
 			# print('phiM: ', phiM)												# in the original phase space of an m-twist solution
 
 	# print('time-step dt=', dt)
+	# print('delay:', delay)
 	t0 = time.time()
 	data = simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, cLF, Nx, Ny, kx, ky, plot_Phases_Freq) # initiates simulation and saves result in results container
 	print('time needed for execution of simulation: ', (time.time()-t0), ' seconds')
 
 	''' evaluate dictionaries '''
-	results=[]; phi=[]; omega_0=[]; K_0=[]; delays_0=[]; orderparam=[];			# prepare container for results of simulatePllNetwork
+	results=[]; phi=[]; omega_0=[]; K_0=[]; delays_0=[]; orderparam=[];	cLF_t=[]# prepare container for results of simulatePllNetwork
 	results.append( [ data['mean_order'],  data['last_orderP'], data['stdev_orderP'] ] )
 	phi.append( data['phases'] )
 	omega_0.append( data['intrinfreq'] )
 	K_0.append( data['coupling_strength'] )
 	delays_0.append( data['transdelays'] )
 	orderparam.append( data['orderparameter'] )
+	cLF_t.append( data['cLF'] )
+	# print('\n\ncLF_t:', cLF_t, '\n\n')
 
 	phi=np.array(phi); omega_0=np.array(omega_0); K_0=np.array(K_0); delays_0=np.array(delays_0);
-	results=np.array(results); orderparam=np.array(orderparam);
+	results=np.array(results); orderparam=np.array(orderparam); cLF_t=np.array(cLF_t);
 
 	''' PLOT PHASE & FREQUENCY TIME SERIES '''
 	if plot_Phases_Freq:
-		out.plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, couplingfct, Tsim, Fsim, show_plot)
+		out.plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, cLF_t, couplingfct, Tsim, Fsim, show_plot)
 
 	''' SAVE RESULTS '''
 	np.savez('results/orderparam_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cLF%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), results=results)

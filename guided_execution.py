@@ -439,69 +439,144 @@ def setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanv
 
 ''' SINGLE REALIZATION, ADIABATIC CHANGE OF c_LF AFTER TRANSIENT DECAY TIME '''
 def singleAdiabatChange(params):
+	x_true = True
+	while x_true:
+		# get user input to know which parameter should be analyzed
+		user_input = raw_input('\nPlease specify which parameters should be changed adiabatically {VCO noise inst. freq [c] or LF induced noise on control signal [cLF]} : ')
+		if user_input == 'cLF':
+			cLF_value = float(raw_input('\nPlease specify initial value of cLF_s in [Hz*Hz], from there it will adiabatically change to zero = '))
+			Trelax = float(raw_input('\nPlease specify the transient decay time Trelax, adiabatic change start after that time in [s] = '))
 
-	cLF_value = float(raw_input('\nPlease specify initial value of cLF_s in [Hz*Hz], from there it will adiabatically change to zero = '))
-	Trelax = float(raw_input('\nPlease specify the transient decay time Trelax, adiabatic change start after that time in [s] = '))
+			print('\nWill start with this cLF-value: ', cLF_value, ', and relaxation time Trelax: ', Trelax, '\n\n')
 
-	print('\nWill start with this cLF-value: ', cLF_value, ', and relaxation time Trelax: ', Trelax, '\n\n')
+			topology= chooseTopology()											# calls function that asks user for input of type of network topology
+			if ( topology == 'square-periodic' or topology == 'square-open' ):
+				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
+				N = Nx*Ny
+				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
+				k = kx															# set to dummy value
+			else:
+				N = chooseNumber()												# calls function that asks user for input of number of oscis
+				k = chooseTwistNumber(N)										# choose twist under investigation
+				kx = k; ky = -999; Nx = N; Ny = 1;
+			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
+			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
+			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
+			# c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
+			c       = 0
+			Nsim    = 1															# calls function that asks user for input for number of realizations
+			case, rot_vs_orig = chooseDeltaPert(N)								# calls function that asks user for input for delta-like perturbation
+			if case == '4':
+				distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale = chooseDistribution()
+			else:
+				distrib='gamma'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
+			pert = []
+			for i in range (Nsim):
+				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
 
-	topology= chooseTopology()													# calls function that asks user for input of type of network topology
-	if ( topology == 'square-periodic' or topology == 'square-open' ):
-		Nx, Ny = get2DosciNumbers()												# calls function that asks user for input of number of oscis in each direction
-		N = Nx*Ny
-		kx, ky = get2DTwistNumbers(Nx, Ny)										# choose 2d-twist under investigation
-		k = kx																	# set to dummy value
-	else:
-		N = chooseNumber()														# calls function that asks user for input of number of oscis
-		k = chooseTwistNumber(N)												# choose twist under investigation
-		kx = k; ky = -999; Nx = N; Ny = 1;
-	K    	= chooseK(float(params['DEFAULT']['F']))							# calls function that asks user for input of the coupling strength
-	Fc    	= chooseFc()														# calls function that asks user for input of cut-off frequency
-	delay 	= chooseTransDelay()												# calls function that asks user for input of mean transmission delay
-	c 		= chooseDiffConst()													# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
-	Nsim    = 1																	# calls function that asks user for input for number of realizations
-	case, rot_vs_orig = chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
-	if case == '4':
-		distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale = chooseDistribution()
-	else:
-		distrib='gamma'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
-	pert = []
-	for i in range (Nsim):
-		pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
+			if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
+				h = synctools.Triangle(1.0 / (2.0 * np.pi))
+			elif str(params['DEFAULT']['couplingfct']) == 'cos':
+				h = synctools.Cos(1.0 / (2.0 * np.pi))
+			elif str(params['DEFAULT']['couplingfct']) == 'sin':
+				h = synctools.Sin(1.0 / (2.0 * np.pi))
+			print('params', params)
 
-	if str(params['DEFAULT']['couplingfct']) == 'triang':						# set the coupling function for evaluating the frequency and stability with Daniel's module
-		h = synctools.Triangle(1.0 / (2.0 * np.pi))
-	elif str(params['DEFAULT']['couplingfct']) == 'cos':
-		h = synctools.Cos(1.0 / (2.0 * np.pi))
-	elif str(params['DEFAULT']['couplingfct']) == 'sin':
-		h = synctools.Sin(1.0 / (2.0 * np.pi))
-	print('params', params)
+			# perform a delay sweep
+			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
+			sf = synctools.SweepFactory(N, Ny, Nx, F, K, delay, h, Fc, k, kx, ky,topology, np.array([cLF_value, cLF_value]), isRadians=isRadian)
+			print('\n\nAdjust code Daniel to fit cLF!!!!')
 
-	# perform a delay sweep
-	isRadian=False																# set this False to get values returned in [Hz] instead of [rad * Hz]
-	sf = synctools.SweepFactory(N, Ny, Nx, F, K, delay, h, Fc, k, kx, ky,topology, np.array([cLF_value, cLF_value]), isRadians=isRadian)
-	print('\n\nAdjust code Daniel to fit cLF!!!!')
+			fsl = sf.sweep()
+			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
+			print('New parameter combinations with {N, F, K, Fc, delay, m, F_Omeg, ReLambda, ImLambda, Tsim, Nx, Ny, mx, my}: \n', para_mat)
 
-	fsl = sf.sweep()
-	para_mat = fsl.get_parameter_matrix(isRadians=False)						# extract variables from the sweep, this matrix contains all cases
-	print('New parameter combinations with {N, F, K, Fc, delay, m, F_Omeg, ReLambda, ImLambda, Tsim, Nx, Ny, mx, my}: \n', para_mat)
+			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
-	para_mat = simulateOnlyLinStableCases(para_mat)								# correct for negative Tsim = -25 / Re(Lambda)....
+			if not ( para_mat == [] and cLF_value == [] ):
+				plot_out = True
 
-	if not ( para_mat == [] and new_cLF_values == [] ):
-		plot_out = True
+				# for i in range (len(para_mat[:,0])):
+				print('\nSTART: python case_singleadiabatic.py '+str(topology)+' '+str(int(para_mat[0,0]))+' '+str(float(para_mat[0,2]))+' '+str(float((para_mat[0,3])))+' '
+												+str(float(delay))+' '+str(float(para_mat[0,6]))+' '+str(int(para_mat[0,5]))+' '+str(int(round(float(para_mat[0,9]))))+' '
+												+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(float(cLF_value))+' '+str(Trelax)+'  '.join(map(str, pert)))
+				print('Tsim: ', para_mat[0,9])
+				# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
+				# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
+				cadiab.singleadiabatic(str(topology), int(para_mat[0,0]), float(para_mat[0,2]), float((para_mat[0,3])), float(delay), float(para_mat[0,6]),
+								int(para_mat[0,5]), int(round(float(para_mat[0,9]))), float(c), float(cLF_value), float(Trelax), int(1), str(int(Nx)), str(int(Ny)), str(int(kx)), str(int(ky)),
+								pert, plot_out)
+				gc.collect()
+			break
 
-		# for i in range (len(para_mat[:,0])):
-		print('\nSTART: python case_singleadiabatic.py '+str(topology)+' '+str(int(para_mat[0,0]))+' '+str(float(para_mat[0,2]))+' '+str(float((para_mat[0,3])))+' '
-										+str(float(delay))+' '+str(float(para_mat[0,6]))+' '+str(int(para_mat[0,5]))+' '+str(int(round(float(para_mat[0,9]))))+' '
-										+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(float(cLF_value))+' '+str(Trelax)+'  '.join(map(str, pert)))
-		print('Tsim: ', para_mat[0,9])
-		# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
-		# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
-		cadiab.singleadiabatic(str(topology), int(para_mat[0,0]), float(para_mat[0,2]), float((para_mat[0,3])), float(delay), float(para_mat[0,6]),
-						int(para_mat[0,5]), int(round(float(para_mat[0,9]))), float(c), float(cLF_value), float(Trelax), int(1), str(int(Nx)), str(int(Ny)), str(int(kx)), str(int(ky)),
-						pert, plot_out)
-		gc.collect()
+		elif user_input == 'c':
+			c_value = float(raw_input('\nPlease specify initial value of c in [Hz*Hz], from there it will adiabatically change to zero = '))
+			Trelax = float(raw_input('\nPlease specify the transient decay time Trelax, adiabatic change start after that time in [s] = '))
+
+			print('\nWill start with this c-value: ', c_value, ', and relaxation time Trelax: ', Trelax, '\n\n')
+
+			topology= chooseTopology()										# calls function that asks user for input of type of network topology
+			if ( topology == 'square-periodic' or topology == 'square-open' ):
+				Nx, Ny = get2DosciNumbers()									# calls function that asks user for input of number of oscis in each direction
+				N = Nx*Ny
+				kx, ky = get2DTwistNumbers(Nx, Ny)							# choose 2d-twist under investigation
+				k = kx														# set to dummy value
+			else:
+				N = chooseNumber()											# calls function that asks user for input of number of oscis
+				k = chooseTwistNumber(N)									# choose twist under investigation
+				kx = k; ky = -999; Nx = N; Ny = 1;
+			K    	= chooseK(float(params['DEFAULT']['F']))				# calls function that asks user for input of the coupling strength
+			Fc    	= chooseFc()											# calls function that asks user for input of cut-off frequency
+			delay 	= chooseTransDelay()									# calls function that asks user for input of mean transmission delay
+			# c 		= chooseDiffConst()									# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
+			cLF     = 0
+			Nsim    = 1														# calls function that asks user for input for number of realizations
+			case, rot_vs_orig = chooseDeltaPert(N)							# calls function that asks user for input for delta-like perturbation
+			if case == '4':
+				distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale = chooseDistribution()
+			else:
+				distrib='gamma'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
+			pert = []
+			for i in range (Nsim):
+				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
+
+			if str(params['DEFAULT']['couplingfct']) == 'triang':			# set the coupling function for evaluating the frequency and stability with Daniel's module
+				h = synctools.Triangle(1.0 / (2.0 * np.pi))
+			elif str(params['DEFAULT']['couplingfct']) == 'cos':
+				h = synctools.Cos(1.0 / (2.0 * np.pi))
+			elif str(params['DEFAULT']['couplingfct']) == 'sin':
+				h = synctools.Sin(1.0 / (2.0 * np.pi))
+			print('params', params)
+
+			# perform a delay sweep
+			isRadian=False													# set this False to get values returned in [Hz] instead of [rad * Hz]
+			sf = synctools.SweepFactory(N, Ny, Nx, F, K, delay, h, Fc, k, kx, ky,topology, np.array([c_value, c_value]), isRadians=isRadian)
+			print('\n\nAdjust code Daniel to fit c!!!!')
+
+			fsl = sf.sweep()
+			para_mat = fsl.get_parameter_matrix(isRadians=False)			# extract variables from the sweep, this matrix contains all cases
+			print('New parameter combinations with {N, F, K, Fc, delay, m, F_Omeg, ReLambda, ImLambda, Tsim, Nx, Ny, mx, my}: \n', para_mat)
+
+			para_mat = simulateOnlyLinStableCases(para_mat)					# correct for negative Tsim = -25 / Re(Lambda)....
+
+			if not ( para_mat == [] and c_value == [] ):
+				plot_out = True
+
+				# for i in range (len(para_mat[:,0])):
+				print('\nSTART: python case_singleadiabatic.py '+str(topology)+' '+str(int(para_mat[0,0]))+' '+str(float(para_mat[0,2]))+' '+str(float((para_mat[0,3])))+' '
+												+str(float(delay))+' '+str(float(para_mat[0,6]))+' '+str(int(para_mat[0,5]))+' '+str(int(round(float(para_mat[0,9]))))+' '
+												+str(c_value)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(float(cLF))+' '+str(Trelax)+'  '.join(map(str, pert)))
+				print('Tsim: ', para_mat[0,9])
+				# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
+				# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
+				cadiab.singleadiabatic(str(topology), int(para_mat[0,0]), float(para_mat[0,2]), float((para_mat[0,3])), float(delay), float(para_mat[0,6]),
+								int(para_mat[0,5]), int(round(float(para_mat[0,9]))), float(c_value), float(cLF), float(Trelax), int(1), str(int(Nx)), str(int(Ny)), str(int(kx)), str(int(ky)),
+								pert, plot_out)
+				gc.collect()
+			break
+
+		else:
+			print('Please provide input from the following options: [c , cLF]: ')
 
 	return None
 
