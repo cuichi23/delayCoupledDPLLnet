@@ -172,15 +172,17 @@ def oracle_mTwistOrderParameter(phi, k):
 	return rk
 
 ''' CALCULATE SPECTRUM '''
-def calcSpectrum(phi,Fsample,waveform=None):
+def calcSpectrum(phi,Fsample,waveform=None,decayTimeSlowestMode=None):
 	Pxx_db=[]; f=[];
 	windowset='boxcar' #'hamming'
 	print('current window option is', windowset, 'for waveform', waveform)
 	window = scipy.signal.get_window(windowset, int(Fsample), fftbins=True)		# choose window from: boxcar, triang, blackman, hamming, hann, bartlett, flattop, parzen, bohman, blackmanharris, nuttall,
 																				# barthann, kaiser (needs beta), gaussian (needs std), general_gaussian (needs power, width), slepian (needs width), chebwin (needs attenuation)
-	print('calculate spectrum for signals with waveform:', waveform)
+	print('calculate spectrum for signals with waveform:', waveform, 'and cut the beginning 25percent of the time-series. Implement better solution using decay times.')
+	phisteps = len(phi[0,:,0])													# determine length of time-series of phi, then only analyze the part without the transients
+	analyzeL = int(0.75 * phisteps)
 	for i in range ( len(phi[0,0,:]) ):
-		tsdata = generateOscillationSignal(phi[0,:,i],waveform=waveform)
+		tsdata = generateOscillationSignal(phi[0,-analyzeL:,i],waveform=waveform)
 		ftemp, Pxx = scipy.signal.periodogram(tsdata, Fsample, return_onesided=True, window=windowset, axis=0)
 		Pxx_db.append( 10*np.log10(Pxx) )
 		f.append( ftemp )

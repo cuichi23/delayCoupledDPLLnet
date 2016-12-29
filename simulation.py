@@ -308,7 +308,7 @@ class PhaseDetectorCombiner:													# this class creates PD objects, these 
 		self.h = lambda x: sawtooth(x,width=0.5)								# set the type of coupling function, here a sawtooth since we consider digital PLLs (rectangular signals)
 		self.idx_self = idx_self												# assigns the index
 		self.idx_neighbours = idx_neighbours									# assigns the neighbors according to the coupling topology
-		print('Osci ',idx_self,', my neighbors are:', idx_neighbours)
+		# print('Osci ',idx_self,', my neighbors are:', idx_neighbours)
 
 	def next(self,x,x_delayed,idx_time=0):										# gets time-series results at delayed time and current time to calculate phase differences
 		try:
