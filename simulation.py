@@ -458,8 +458,11 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,coupling
 		if Nplls==3:
 			print('initial phases original system:', phi[0,:],'\ninitial phases rotated system:', eva.rotate_phases(phi[0,:].flatten(), isInverse=True))
 			diff1=phi[0,2]-phi[0,1]; diff2=phi[0,1]-phi[0,0]; diff3=phi[0,0]-phi[0,2];
-			print('initial phases differences original system (3-2, 2-1, 1-3):', diff1%(2*np.pi), diff2%(2*np.pi), diff3%(2*np.pi),
-				'\ninitial phase differences rotated system:', eva.rotate_phases(np.array([diff1, diff2, diff3]), isInverse=True), '\n')
+			print('initial phases differences original system, WITHOUT perturbation (3-2, 2-1, 1-3):', diff1%(2*np.pi), diff2%(2*np.pi), diff3%(2*np.pi),
+				'\ninitial phase differences rotated system, WITHOUT perturbation:', eva.rotate_phases(np.array([diff1%(2*np.pi), diff2%(2*np.pi), diff3%(2*np.pi)]), isInverse=True), '\n')
+			diff1p=phi[idx_time+1,2]-phi[idx_time+1,1]; diff2p=phi[idx_time+1,1]-phi[idx_time+1,0]; diff3p=phi[idx_time+1,0]-phi[idx_time+1,2];
+			print('initial phases differences original system, WITH perturbation (3-2, 2-1, 1-3):', diff1p%(2*np.pi), diff2p%(2*np.pi), diff3p%(2*np.pi),
+				'\ninitial phase differences rotated system, WITH perturbation:', eva.rotate_phases(np.array([diff1p%(2*np.pi), diff2p%(2*np.pi), diff3p%(2*np.pi)]), isInverse=True), '\n')
 		''' NOW SIMULATE THE SYSTEM AFTER HISTORY IS SET '''
 		for idx_time in range(delay_steps,Nsteps+delay_steps-1):
 			#if idx_time == delay_steps:
