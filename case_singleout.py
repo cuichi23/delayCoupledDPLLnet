@@ -37,7 +37,7 @@ def simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg
 		F1=F+1E-3
 	r = eva.oracle_mTwistOrderParameter(phi[-int(2*1.0/(F1*dt)):, :], k)			# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
 	orderparam = eva.oracle_mTwistOrderParameter(phi[:, :], k)					# calculate the m-twist order parameter for all times
-	#print('mean of modulus of the order parameter, R, over 2T:', np.mean(r), ' last value of R', r[-1])
+	print('mean of modulus of the order parameter, R, over 2T:', np.mean(r), ' last value of R', r[-1])
 
 	''' RETURN '''																# return value of mean order parameter, last order parameter, and the variance of r during the last 2T_{\omega}
 	return {'mean_order':np.mean(r), 'last_orderP':r[len(r)-1], 'stdev_orderP':np.var(r), 'phases': phi,
@@ -86,10 +86,10 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny
 			# this direction corresponds to the case where all phi_k in the original phase space are equal phi_0==phi_1==...==phi_N-1 or (all) have constant phase differences
 			initPhiPrime0 = 0.0
 			print('shift along the first axis in rotated phase space, equivalent to phase kick of all oscillators before simulation starts: phi`_0=', initPhiPrime0)
-			phiSrtemp[0] = initPhiPrime0						  					# set value of the first dimension, phi'_0, the axis along which all phase differences are preserved
+			phiSrtemp[0] = initPhiPrime0						  				# set value of the first dimension, phi'_0, the axis along which all phase differences are preserved
 			phiSr = phiSrtemp; del phiSrtemp
 			print('\nvalues of the initial phases in ROTATED phase space, i.e., last time-step of history set as initial condition:', phiSr)
-			phiS = eva.rotate_phases(phiSr.flatten(), isInverse=False)		  		# rotate back into physical phase space for simulation
+			phiS = eva.rotate_phases(phiSr.flatten(), isInverse=False)		  	# rotate back into physical phase space for simulation
 			print('values of initial phase in ORIGINAL phase space:', phiS, '\n')
 	elif len(phiSrtemp.shape)==2:
 		if len(phiSrtemp[0,:])==N:
@@ -163,6 +163,13 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny
 	orderparam.append( data['orderparameter'] )
 	cLF_t.append( data['cLF'] )
 	# print('\n\ncLF_t:', cLF_t, '\n\n')
+
+	if N==3:
+		# print('shape(phi):', np.shape(phi))
+		print('phase differences, PLL_3-PLL_2, PLL_2-PLL_1 and PLL_1-PLL_3 at the end of the simulation:',
+										(phi[0][-1][2]-phi[0][-1][1])%(2*np.pi), '\t',
+										(phi[0][-1][1]-phi[0][-1][0])%(2*np.pi), '\t',
+										(phi[0][-1][0]-phi[0][-1][2])%(2*np.pi))
 
 	phi=np.array(phi); omega_0=np.array(omega_0); K_0=np.array(K_0); delays_0=np.array(delays_0);
 	results=np.array(results); orderparam=np.array(orderparam); cLF_t=np.array(cLF_t);

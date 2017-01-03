@@ -66,17 +66,20 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, cLF_
 		F1=.1
 	# print('\n\nUncomment \"matplotlib.use(\'Agg\')\" in ouput.py to enable plotting figures to the desktop, DISABLE for queue-jobs!')
 	phi = phi[:,:,:]; orderparam = orderparam[0,:]								# there is only one realization of interest -reduces dimensionof phi array
-	afterTransients = int( round( 0.5*Tsim / dt ) )
-	phiSpect = phi[:,-afterTransients:,:]
+	# afterTransients = int( round( 0.5*Tsim / dt ) )
+	# phiSpect = phi[:,-afterTransients:,:]
 	if coupFct == 'triang':
 		print('Calculate spectrum for square wave signals. Fsim=%d' %Fsim)
-		f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'square')				# calculate spectrum of signals, i.e., of this state
+		# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'square')				# calculate spectrum of signals, i.e., of this state
+		f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'square')					# calculate spectrum of signals, i.e., of this state
 	elif coupFct == 'sin':
 		print('check that... sine coupFct only if cos and sin signal input')
-		f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'sin')					# calculate spectrum of signals, i.e., of this state
+		# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'sin')					# calculate spectrum of signals, i.e., of this state
+		f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'sin')						# calculate spectrum of signals, i.e., of this state
 	elif coupFct == 'cos':
 		print('Calculate spectrum for cosinusoidal signals. Fsim=%d' %Fsim)
-		f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'cos')					# calculate spectrum of signals, i.e., of this state
+		# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'cos')					# calculate spectrum of signals, i.e., of this state
+		f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'cos')						# calculate spectrum of signals, i.e., of this state
 
 	now = datetime.datetime.now()
 

@@ -6,6 +6,7 @@ import numpy as np
 import networkx as nx
 from scipy.signal import sawtooth
 
+import evaluation as eva
 import datetime
 
 ''' CLASSES
@@ -440,7 +441,7 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,coupling
 			 	with index delay_steps-1, and hence the container then has "delay_steps" number of entries.
 				Also note however, that below we always set idx_time+1, i.e., when idx_time==delay_steps-1, idx_time+1==delay_steps-1+1==delay_steps is set and the history is
 				complete (delay_steps * dt written in real time).'''
-			if idx_time <= (delay_steps-2):						# fill phi entries 1 to "delay_steps-2", note: we set idx_time+1 in the last call at idx_time==delay_steps-2
+			if idx_time <= (delay_steps-2):										# fill phi entries 1 to "delay_steps-2", note: we set idx_time+1 in the last call at idx_time==delay_steps-2
 				#print( 'prior [step =', idx_time ,'] entry phi-container simulateNetwork-fct:', phi[idx_time][:])
 				phi[idx_time+1,:] = [pll.setup_hist() for pll in pll_list]		# here the initial phase history is set
 				#print( 'new   [step =', idx_time+1 ,'] entry phi-container simulateNetwork-fct:', phi[idx_time+1][:], 'difference: ', phi[idx_time+1][:] - phi[idx_time][:])
@@ -454,6 +455,11 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,coupling
 				#print('number of oscis:', Nplls)
 				phi[idx_time+1,:] = [pll.set_delta_pertubation(idx_time, phi, phiS[i], inst_Freq[i]) for i,pll in enumerate(pll_list)]
 				#print('new   [step =', idx_time+1 ,'] entry phi-container simulateNetwork-fct:', phi[idx_time+1][:], 'difference: ', phi[idx_time+1][:] - phi[idx_time][:])
+		if Nplls==3:
+			print('initial phases original system:', phi[0,:],'\ninitial phases rotated system:', eva.rotate_phases(phi[0,:].flatten(), isInverse=True))
+			diff1=phi[0,2]-phi[0,1]; diff2=phi[0,1]-phi[0,0]; diff3=phi[0,0]-phi[0,2];
+			print('initial phases differences original system (3-2, 2-1, 1-3):', diff1%(2*np.pi), diff2%(2*np.pi), diff3%(2*np.pi),
+				'\ninitial phase differences rotated system:', eva.rotate_phases(np.array([diff1, diff2, diff3]), isInverse=True), '\n')
 		''' NOW SIMULATE THE SYSTEM AFTER HISTORY IS SET '''
 		for idx_time in range(delay_steps,Nsteps+delay_steps-1):
 			#if idx_time == delay_steps:
