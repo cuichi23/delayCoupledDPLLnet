@@ -45,6 +45,7 @@ def multihelper(phiSr, initPhiPrime0, topology, couplingfct, F, Nsteps, dt, c, F
 	if N > 2:
 		phiSr = np.insert(phiSr, 0, initPhiPrime0)								# insert the first variable in the rotated space, constant initPhiPrime0
 	phiS = eva.rotate_phases(phiSr, isInverse=False)							# rotate back into physical phase space
+	# print('TEST in multihelper, phiS:', phiS, ' and phiSr:', phiSr)
 	np.random.seed()
 	return simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, cLF, Nx, Ny, kx, ky, plot_Phases_Freq)
 
@@ -88,8 +89,6 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0
 	# choose the value of phi'_0, i.e., where the plane, rectangular to the axis phi'_0 in the rotated phase space, is placed
 	# this direction corresponds to the case where all phi_k in the original phase space are equal phi_0==phi_1==...==phi_N-1 or (all) have constant phase differences
 	initPhiPrime0 = ( 0.0 * np.pi )
-	if N > 2:
-		print('shift along the first axis in rotated phase space, equivalent to phase kick of all oscillators before simulation starts: phi`_0=', initPhiPrime0)
 
 	if ( topology == 'square-open' or topology == 'square-periodic' ):
 		twistdelta_x = ( 2.0 * np.pi * kx / ( float( Nx ) ) )					# phase difference between neighboring oscillators in a stable m-twist state
@@ -114,10 +113,11 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0
 																				# in the original phase space of an m-twist solution
 
 	phiMr = eva.rotate_phases(phiM, isInverse=True)								# calculate phiM in terms of rotated phase space
-	# print('phiR =', phiR, '\n')
+	print('m-twist phases phiM =', phiM, 'in coordinates of rotated system, phiMr =', phiMr, '\n')
 
 	if N > 2:
-		phiMr[0] = initPhiPrime0												# set first dimension in rotated phase space constant for systems of more than 2 oscillators
+		print('shift along the first axis in rotated phase space, equivalent to phase kick of all oscillators before simulation starts: phi`_0=', initPhiPrime0)
+		# phiSr[0] = initPhiPrime0												# set first dimension in rotated phase space constant for systems of more than 2 oscillators
 		#print('phiMr =', phiMr, '\n')
 	# the space about each twist solution is scanned in [phiM-pi, phiM+pi] where phiM are the initial phases of the m-twist under investigation
 	if N==2:
@@ -144,7 +144,8 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0
 		# setup a matrix for all N-1 variables but the first, which is set later
 		scanValues = np.zeros((N-1,paramDiscretization), dtype=np.float)		# create container for all points in the discretized rotated phase space, +/- pi around each dimension (unit area)
 		for i in range (0, N-1):												# the different coordinates of the solution, discretize an interval plus/minus pi around each variable
-			scanValues[i,:] = np.linspace(phiMr[i+1]-np.pi, phiMr[i+1]+np.pi, paramDiscretization) # all entries are in rotated, and reduced phase space
+			# scanValues[i,:] = np.linspace(phiMr[i+1]-np.pi, phiMr[i+1]+np.pi, paramDiscretization) # all entries are in rotated, and reduced phase space
+			scanValues[i,:] = np.linspace(-np.pi, +np.pi, paramDiscretization) 	# all entries are in rotated, and reduced phase space
 			#print('row', i,'of matrix with all intervals of the rotated phase space:\n', scanValues[i,:], '\n')
 
 		# max_scanValuesRotated = []; min_scanValuesRotated = [];
@@ -251,7 +252,7 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0
 	# np.savez('results/allInitPerturbPoints_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), allPoints=allPoints)
 
 	''' EXTRA EVALUATION '''
-	out.doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints, initPhiPrime0, paramDiscretization, delays_0, show_plot)
+	out.doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints, initPhiPrime0, phiMr, paramDiscretization, delays_0, show_plot)
 
 	del results; del allPoints; del initPhiPrime0; del K_0;						# emtpy data container to free memory
 	return None

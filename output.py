@@ -204,7 +204,7 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, cLF_
 		plt.show()
 
 ''' EVALUATION BRUTE-FORCE BASIN OF ATTRACTION '''
-def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints, initPhiPrime0, paramDiscretization, delays_0, show_plot=True):
+def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints, initPhiPrime0, phiMr, paramDiscretization, delays_0, show_plot=True):
 	''' Here addtional output, e.g., graphs or matrices can be implemented for testing '''
 	# we want to plot all the m-twist locations in rotated phase space: calculate phases, rotate and then plot into the results
 	twist_points  = np.zeros((N, N), dtype=np.float)							# twist points in physical phase space
@@ -218,8 +218,10 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 		F1=1.1
 
 	if N == 2:																	# this part is for calculating the points of m-twist solutions in the rotated space, they are plotted later
+		d1=0; d2=1;
 		pass
 	if N == 3:
+		d1=1; d2=2;
 		for i in range (N):
 			twistdelta = ( 2.0*np.pi*i/(1.0*N) )
 			twist_points[i,:] = np.array([0.0, twistdelta, 2.0*twistdelta]) 	# write m-twist phase configuation in phase space of phases
@@ -242,16 +244,17 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	# "sh -e /etc/init.d/xvfb start"
 	# sleep 3 # give xvfb some time to start
 
+	''' IMPORTANT: since we add the perturbations additively, here we need to shift allPoints around the initial phases of the respective m-twist state, using phiMr '''
 	plt.figure(1)																# plot the mean of the order parameter over a period 2T
 	plt.clf()
 	ax = plt.subplot(1, 1, 1)
 	ax.set_aspect('equal')
-	plt.scatter(allPoints[:,0], allPoints[:,1], c=results[:,0], alpha=0.5, edgecolor='')
+	plt.scatter(allPoints[:,0]+phiMr[d1], allPoints[:,1]+phiMr[d2], c=results[:,0], alpha=0.5, edgecolor='')
 	plt.title(r'mean $R(t,m=%d )$, constant dim: $\phi_0^{\prime}=%.2f$' %(k ,initPhiPrime0) )
 	plt.xlabel(r'$\phi_1^{\prime}$')
 	plt.ylabel(r'$\phi_2^{\prime}$')
-	plt.xlim([1.05*allPoints[:,0].min(), 1.05*allPoints[:,0].max()])
-	plt.ylim([1.05*allPoints[:,1].min(), 1.05*allPoints[:,1].max()])
+	plt.xlim([1.05*allPoints[:,0].min()+phiMr[d1], 1.05*allPoints[:,0].max()+phiMr[d1]])
+	plt.ylim([1.05*allPoints[:,1].min()+phiMr[d2], 1.05*allPoints[:,1].max()+phiMr[d2]])
 	plt.colorbar()
 	if N==3:
 		plt.plot(alltwistPR[:,1],alltwistPR[:,2], 'yo', ms=8)
@@ -262,12 +265,12 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	plt.clf()
 	ax = plt.subplot(1, 1, 1)
 	ax.set_aspect('equal')
-	plt.scatter(allPoints[:,0], allPoints[:,1], c=results[:,1], alpha=0.5, edgecolor='')
+	plt.scatter(allPoints[:,0]+phiMr[d1], allPoints[:,1]+phiMr[d2], c=results[:,1], alpha=0.5, edgecolor='')
 	plt.title(r'last $R(t,m=%d )$, constant dim: $\phi_0^{\prime}=%.2f$' %(k ,initPhiPrime0) )
 	plt.xlabel(r'$\phi_1^{\prime}$')
 	plt.ylabel(r'$\phi_2^{\prime}$')
-	plt.xlim([1.05*allPoints[:,0].min(), 1.05*allPoints[:,0].max()])
-	plt.ylim([1.05*allPoints[:,1].min(), 1.05*allPoints[:,1].max()])
+	plt.xlim([1.05*allPoints[:,0].min()+phiMr[d1], 1.05*allPoints[:,0].max()+phiMr[d1]])
+	plt.ylim([1.05*allPoints[:,1].min()+phiMr[d2], 1.05*allPoints[:,1].max()+phiMr[d2]])
 	plt.colorbar()
 	if N==3:
 		plt.plot(alltwistPR[:,1],alltwistPR[:,2], 'yo', ms=8)
@@ -280,15 +283,15 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	ax.set_aspect('equal')
 	tempresults = results[:,0].reshape((paramDiscretization, paramDiscretization))   #np.flipud()
 	tempresults = np.transpose(tempresults)
-	plt.imshow(tempresults, interpolation='nearest', cmap=cm.coolwarm, aspect='auto', origin='lower', extent=(allPoints[:,0].min(), allPoints[:,0].max(), allPoints[:,1].min(), allPoints[:,1].max()), vmin=0, vmax=1)
+	plt.imshow(tempresults, interpolation='nearest', cmap=cm.coolwarm, aspect='auto', origin='lower', extent=(allPoints[:,0].min()+phiMr[d1], allPoints[:,0].max()+phiMr[d1], allPoints[:,1].min()+phiMr[d2], allPoints[:,1].max()+phiMr[d2]), vmin=0, vmax=1)
 	plt.title(r'mean $R(t,m=%d )$, constant dim: $\phi_0^{\prime}=%.2f$' %(k ,initPhiPrime0) )
 	plt.xlabel(r'$\phi_1^{\prime}$')
 	plt.ylabel(r'$\phi_2^{\prime}$')
 	plt.colorbar()
 	if N==3:
 		plt.plot(alltwistPR[:,1],alltwistPR[:,2], 'yo', ms=8)
-		plt.xlim([1.05*allPoints[:,0].min(), 1.05*allPoints[:,0].max()])
-		plt.ylim([1.05*allPoints[:,1].min(), 1.05*allPoints[:,1].max()])
+		plt.xlim([1.05*allPoints[:,0].min()+phiMr[d1], 1.05*allPoints[:,0].max()+phiMr[d1]])
+		plt.ylim([1.05*allPoints[:,1].min()+phiMr[d2], 1.05*allPoints[:,1].max()+phiMr[d2]])
 	plt.savefig('results/imsh_PhSpac_meanR_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), dpi=dpi_value)
 	plt.savefig('results/imsh_PhSpac_meanR_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), dpi=dpi_value)
 
@@ -298,15 +301,15 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	ax.set_aspect('equal')
 	tempresults = results[:,1].reshape((paramDiscretization, paramDiscretization))   #np.flipud()
 	tempresults = np.transpose(tempresults)
-	plt.imshow(tempresults, interpolation='nearest', cmap=cm.coolwarm, aspect='auto', origin='lower', extent=(allPoints[:,0].min(), allPoints[:,0].max(), allPoints[:,1].min(), allPoints[:,1].max()), vmin=0, vmax=1)
+	plt.imshow(tempresults, interpolation='nearest', cmap=cm.coolwarm, aspect='auto', origin='lower', extent=(allPoints[:,0].min()+phiMr[d1], allPoints[:,0].max()+phiMr[d1], allPoints[:,1].min()+phiMr[d2], allPoints[:,1].max()+phiMr[d2]), vmin=0, vmax=1)
 	plt.title(r'last $R(t,m=%d )$, constant dim: $\phi_0^{\prime}=%.2f$' %(k ,initPhiPrime0) )
 	plt.xlabel(r'$\phi_1^{\prime}$')
 	plt.ylabel(r'$\phi_2^{\prime}$')
 	plt.colorbar()
 	if N==3:
 		plt.plot(alltwistPR[:,1],alltwistPR[:,2], 'yo', ms=8)
-		plt.xlim([1.05*allPoints[:,0].min(), 1.05*allPoints[:,0].max()])
-		plt.ylim([1.05*allPoints[:,1].min(), 1.05*allPoints[:,1].max()])
+		plt.xlim([1.05*allPoints[:,0].min()+phiMr[d1], 1.05*allPoints[:,0].max()+phiMr[d1]])
+		plt.ylim([1.05*allPoints[:,1].min()+phiMr[d2], 1.05*allPoints[:,1].max()+phiMr[d2]])
 	plt.savefig('results/imsh_PhSpac_lastR_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), dpi=dpi_value)
 	plt.savefig('results/imsh_PhSpac_lastR_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), dpi=dpi_value)
 

@@ -98,10 +98,10 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny
 			# this direction corresponds to the case where all phi_k in the original phase space are equal phi_0==phi_1==...==phi_N-1 or (all) have constant phase differences
 			initPhiPrime0 = 0.0
 			print('shift along the first axis in rotated phase space, equivalent to phase kick of all oscillators before simulation starts: phi`_0=', initPhiPrime0)
-			phiSrtemp[:,0] = initPhiPrime0						  					# set value of the first dimension, phi'_0, the axis along which all phase differences are preserved
+			phiSrtemp[:,0] = initPhiPrime0						  				# set value of the first dimension, phi'_0, the axis along which all phase differences are preserved
 			phiSr = phiSrtemp; del phiSrtemp
 			print('\nvalues of the initial phases in ROTATED phase space, i.e., last time-step of history set as initial condition:', phiSr)
-			phiS = eva.rotate_phases(phiSr.flatten(), isInverse=False)		  		# rotate back into physical phase space for simulation
+			phiS = eva.rotate_phases(phiSr.flatten(), isInverse=False)		  	# rotate back into physical phase space for simulation
 			print('values of initial phase in ORIGINAL phase space:', phiS, '\n')
 	else:
 		print('phiSr: ', phiSr)
