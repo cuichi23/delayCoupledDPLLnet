@@ -527,7 +527,7 @@ class SweepFactory(object):
         return self.__dict__[key]
 
     @staticmethod
-    def init_system(self, topology, n, h, k, tau, w, wc):
+    def init_system(topology, n, h, k, tau, w, wc):
         # Initialize arrangement/geometry
             if self.topology == 'TOPO_CHAIN':
                 arr = Chain(n)
@@ -568,7 +568,7 @@ class SweepFactory(object):
             n_sweep = 1
 
         fsl = FlatStateList()
-        key_sys = ['n', 'w', 'k', 'tau', 'h', 'wc', 'topology', 'nx', 'ny', 'c'] # ['topology', 'n', 'h', 'k', 'tau', 'w', 'wc']
+        key_sys = ['topology', 'n', 'h', 'k', 'tau', 'w', 'wc']
         for i in range(n_sweep):
             args = []
             for key in key_sys:
@@ -780,3 +780,6 @@ class FlatStateList(object):
             return x
         else:
             return None
+
+
+
