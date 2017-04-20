@@ -13,6 +13,7 @@ STATE_TWIST = 0
 
 
 
+
 class Arrangement(object):
     def _check_coordinate_type(self, yx):
         raise NotImplementedError
@@ -303,14 +304,14 @@ class Twist(LinearState):
     def get_states(sys, m, k=1):
         n = sys.g.arr.get_n()
         w = sys.pll.w
-        k = sys.g.k
+        kc = sys.g.k
         tau = sys.g.tau
         c = sys.g.get_single_site_coupling(k)
         n = sys.g.arr.get_n()
         h = sys.g.func
 
         f_sum = lambda s: Twist.get_coupling_sum(c, n, m, h, s, k=1)
-        omega = Twist.get_omega(w, k, tau, f_sum, ns=10000)
+        omega = Twist.get_omega(w, kc, tau, f_sum, ns=10000)
 
         states = []
         for o in omega:
@@ -361,6 +362,7 @@ class Twist(LinearState):
         d = self.get_coupling_derivative_matrix()
         return np.sum(d[k, :])
 
+
     @staticmethod
     def _stability_function(l, b, kc, d_sum, tau, alpha, beta):
         x = np.zeros(2)
@@ -372,6 +374,7 @@ class Twist(LinearState):
         #x[0] = l[0] + b * l[0]**2 - b * l[1]**2 + kc * d_sum - kc * np.exp(-l[0] * tau) * (np.cos(l[1] * tau) * alpha + np.sin(l[1] * tau) * beta)
         #x[1] = l[1] + 2 * b * l[0] * l[1] - kc * np.exp(-l[0] * tau) * (np.cos(l[1] * tau) * beta - np.sin(l[1] * tau) * alpha)
         return x
+
 
     def get_stability_functions(self):
         funcs = []
@@ -388,6 +391,7 @@ class Twist(LinearState):
 
         return funcs
 
+
     def get_stability(self, l0=np.array([1.0, 1.0])):
         funcs = self.get_stability_functions()
         l = []
@@ -397,7 +401,7 @@ class Twist(LinearState):
             l.append(l_num)
         l = np.array(l)
         i_max = np.argmax(np.real(l))
-        return np.real(l[i_max]), np.imag(l[i_max])
+        return l[i_max]
 
 
     @staticmethod
@@ -436,348 +440,6 @@ class Twist(LinearState):
                 s_tmp = optimize.brentq(f, s[i_root[ir]], s[i_root[ir] + 1])
                 omega.append(w + k * f_sum(s_tmp))
             return omega
-        else:
-            return None
-
-
-# #############################################################################
-
-
-
-
-class SweepFactory(object):
-    '''Sweeps a system parameters of a coupled PLL system
-
-       One of the class attributes should be given as a np.ndarray. This will be the swept parameter
-
-       Attributes
-       ----------
-       n : int/np.ndarray
-           number of oscillators^
-       w : float/np.ndarray
-           intrinsic angular frequency
-       k : float/np.ndarray
-           coupling constant
-       tau : float/np.ndarray
-             delay
-       h : callable/list of callables
-           coupling function
-       wc : float/np.ndarray
-            (angular) cut-off frequency of low-pass filter
-       m : int
-           twist number
-       tsim : float
-              simulation time
-    '''
-    def __init__(self, n, ny, nx, w, k, tau, h, wc, m, mx, my, topology, c, tsim=0.0, isRadians=True):
-        if isRadians:                                                           # if parameters provided in rad*Hz
-            self.n    = n
-            self.nx   = nx
-            self.ny   = ny
-            self.w    = w
-            self.k    = k
-            self.tau  = tau
-            self.h    = h
-            self.wc   = wc
-            self.m    = m
-            self.mx   = mx
-            self.my   = my
-            self.tsim = tsim
-            self.topology = topology
-            self.c    = c                                                       # just dummy variable here
-        else:                                                                   # if parameters provided in Hz, multiply by 2pi, as needed in the phase model
-            self.n    = n
-            self.nx   = nx
-            self.ny   = ny
-            self.w    = 2.0*np.pi*w                                             # here, w = f
-            self.k    = 2.0*np.pi*k                                             # here, k is given in Hz instead rad*Hz
-            print('in SweepFactory, K in [rad*Hz] and [Hz]:', self.k, self.k/(2.0*np.pi))
-            self.tau  = tau
-            self.h    = h
-            self.wc   = 2.0*np.pi*wc                                            # here, wc = fc
-            self.m    = m
-            self.mx   = mx
-            self.my   = my
-            self.tsim = tsim
-            self.topology = topology
-            self.c    = c                                                       # just dummy variable here
-
-    def _identify_swept_variable(self):
-        '''Identify the swept variable
-
-           Returns
-           -------
-           var_str  :  str
-                       name string of the swept variable
-        '''
-        if type(self.w) is np.ndarray:
-            return 'w'
-        elif type(self.k) is np.ndarray:
-            return 'k'
-        elif type(self.tau) is np.ndarray:
-            return 'tau'
-        elif type(self.wc) is np.ndarray:
-            return 'wc'
-        elif type(self.c) is np.ndarray:
-            return 'c'
-        else:
-            return None
-
-    def __getitem__(self, key):
-        return self.__dict__[key]
-
-    @staticmethod
-    def init_system(topology, n, h, k, tau, w, wc):
-        # Initialize arrangement/geometry
-            if self.topology == 'TOPO_CHAIN':
-                arr = Chain(n)
-            elif self.topology == 'TOPO_RING':
-                arr = Ring(n)
-
-            # Initialize coupling
-            g = NearestNeighbor(arr, h, k, tau, hasNormalizedCoupling=True)
-
-            # Initialize singel pll
-            pll = Pll(w, wc)
-
-            # Initialize system
-            sys = PllSystem(pll, g)
-
-            return sys
-
-
-
-    def sweep(self):
-        '''Performs sweep
-
-           Determines the possible globally synchronized states, their angular frequencies and their linear stability
-
-           Returns
-           -------
-           fsl  :  FlatStateList
-                   flat list of the possible states
-        '''
-        #fsl = FlatStateList(tsim=self.tsim)
-
-        # Identify swept parameter
-        key_sweep = self._identify_swept_variable()
-        par_sweep = self[key_sweep]
-        if not key_sweep=='c':
-            n_sweep = len(par_sweep)
-        else:
-            n_sweep = 1
-
-        fsl = FlatStateList()
-        key_sys = ['topology', 'n', 'h', 'k', 'tau', 'w', 'wc']
-        for i in range(n_sweep):
-            args = []
-            for key in key_sys:
-                if key == key_sweep:
-                    args.append(self[key][i])
-                else:
-                    args.append(self[key])
-            sys = self.init_system(*args)
-
-            s = Twist.get_states(sys, self.m)
-            fsl.add_states(s)
-        return fsl
-
-
-
-# ##############################################################################
-
-class FlatStateList(object):
-    '''Flat list of TwistStates'''
-    def __init__(self, tsim=0.0):
-        self.states = []
-        self.n = 0
-        self.tsim = tsim
-
-    def add_states(self, s):
-        '''Adds a single or a list of twist states to the list
-
-           Parameters
-           ----------
-           s : TwistState or list of TwistStates
-               state or list of states that should be added
-        '''
-        if type(s) is TwistState:
-            self.states.append(s)
-            self.n = len(self.states)
-        elif type(s) is list:
-            for el in s:
-                self.states.append(el)
-            self.n = len(self.states)
-
-
-    def get_n(self):
-        '''Returns an array of the number of oscillators of the states in the list'''
-        if self.n > 0:
-            x = np.zeros(self.n)
-            for i in range(self.n):
-                x[i] = self.states[i].system.n
-            return x
-        else:
-            return None
-
-
-    def get_w(self, isRadians=True):
-        '''Returns an array of the intrinsic frequencies of oscillators of the states in the list
-
-           Parameters
-           ----------
-           isRadians : bool
-                       frequency is given in radians if True, otherwise in Hertz
-        '''
-        if isRadians:
-            s = 1.0
-        else:
-            s = 1.0 / (2 * np.pi)
-
-        if self.n > 0:
-            x = np.zeros(self.n)
-            for i in range(self.n):
-                x[i] = s * self.states[i].system.w
-            return x
-        else:
-            return None
-
-    def get_k(self, isRadians=True):
-        '''Returns an array of the coupling constants of the states in the list
-
-           Parameters
-           ----------
-           isRadians : bool
-                       frequency is given in radians if True, otherwise in Hertz
-        '''
-        if isRadians:
-            s = 1.0
-        else:
-            s = 1.0 / (2 * np.pi)
-
-        if self.n > 0:
-            x = np.zeros(self.n)
-            for i in range(self.n):
-                x[i] = s * self.states[i].system.k
-            return x
-        else:
-            return None
-
-    def get_tau(self):
-        '''Returns an array of the delay times of the states in the list'''
-        if self.n > 0:
-            x = np.zeros(self.n)
-            for i in range(self.n):
-                x[i] = self.states[i].system.tau
-            return x
-        else:
-            return None
-
-    def get_h(self):
-        '''Returns a list of the coupling functions of the states in the list'''
-        if self.n > 0:
-            x = []
-            for i in range(self.n):
-                x.append(self.states[i].system.h)
-            return x
-        else:
-            return None
-
-    def get_m(self):
-        '''Returns an array of the twist numbers of the states in the list'''
-        if self.n > 0:
-            x = np.zeros(self.n)
-            for i in range(self.n):
-                x[i] = self.states[i].m
-            return x
-        else:
-            return None
-
-    def get_omega(self, isRadians=True):
-        '''Returns an array of the global synchronization frequencies of the states in the list
-
-           Parameters
-           ----------
-           isRadians : bool
-                       frequency is given in radians if True, otherwise in Hertz
-        '''
-        if isRadians:
-            s = 1.0
-        else:
-            s = 1.0 / (2 * np.pi)
-
-        if self.n > 0:
-            x = np.zeros(self.n)
-            for i in range(self.n):
-                x[i] = s * self.states[i].omega
-            return x
-        else:
-            return None
-
-    def get_l(self):
-        '''Returns an array of the complex linear stability exponent of the states in the list'''
-        if self.n > 0:
-            x = np.zeros(self.n, dtype=np.complex)
-            for i in range(self.n):
-                x[i] = self.states[i].l
-            return x
-        else:
-            return None
-
-    def get_wc(self, isRadians=True):
-        '''Returns the low-pass filter cut-off frequency of the states in the list
-
-           Parameters
-           ----------
-           isRadians : bool
-                       frequency is given in radians if True, otherwise in Hertz
-        '''
-        if isRadians:
-            s = 1.0
-        else:
-            s = 1.0 / (2 * np.pi)
-
-        if self.n > 0:
-            x = np.zeros(self.n)
-            for i in range(self.n):
-                x[i] = s * self.states[i].system.wc
-            return x
-        else:
-            return None
-
-    def get_tsim(self):
-        '''Returns an array of simulation time'''
-        if self.n > 0:
-            x = self.tsim * np.ones(self.n)
-            return x
-        else:
-            return None
-
-    def get_parameter_matrix(self, isRadians=True):
-        '''Returns a matrix of the numeric parameters the states in the list
-
-           Parameters
-           ----------
-           isRadians : bool
-                       frequency is given in radians if True, otherwise in Hertz
-        '''
-        if isRadians:
-            s = 1.0
-        else:
-            s = 1.0 / (2 * np.pi)
-        if self.n > 0:
-            x = np.zeros((self.n, 10))
-            x[:, 0] = self.get_n()
-            x[:, 1] = self.get_w(isRadians=isRadians)
-            x[:, 2] = self.get_k(isRadians=isRadians)
-            x[:, 3] = self.get_wc(isRadians=isRadians)
-            x[:, 4] = self.get_tau()
-            x[:, 5] = self.get_m()
-            x[:, 6] = self.get_omega(isRadians=isRadians)
-            x[:, 7] = np.real(self.get_l())
-            x[:, 8] = np.imag(self.get_l())
-            x[:, 9] = self.get_tsim()
-            return x
         else:
             return None
 

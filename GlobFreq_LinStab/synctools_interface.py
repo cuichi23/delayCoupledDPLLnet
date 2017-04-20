@@ -150,6 +150,10 @@ class SweepFactory(object):
     def get_states(self, pll_sys):
         if self.topology == TOPO_1D_RING:
             return st.Twist.get_states(pll_sys, self.m)
+        elif self.topology == TOPO_1D_CHAIN and self.m == 0:
+            return st.Twist.get_states(pll_sys, self.m)
+        else:
+            raise Exception('Interface does not support topology yet.')
 
 
     def sweep(self):
