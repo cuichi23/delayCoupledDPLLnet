@@ -28,7 +28,8 @@ import case_singleout as csing
 import case_singleadiabatic as cadiab
 
 sys.path.append(os.path.abspath('./GlobFreq_LinStab'))
-import synctools
+# import synctools
+import synctools_interface as synctools
 
 def chooseTopology():															# ask user-input for topology
 	a_true = True
@@ -474,17 +475,17 @@ def singleAdiabatChange(params):
 			for i in range (Nsim):
 				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
 
-			if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
-				h = synctools.Triangle(1.0 / (2.0 * np.pi))
-			elif str(params['DEFAULT']['couplingfct']) == 'cos':
-				h = synctools.Cos(1.0 / (2.0 * np.pi))
-			elif str(params['DEFAULT']['couplingfct']) == 'sin':
-				h = synctools.Sin(1.0 / (2.0 * np.pi))
+			# if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
+			# 	h = synctools.Triangle(1.0 / (2.0 * np.pi))
+			# elif str(params['DEFAULT']['couplingfct']) == 'cos':
+			# 	h = synctools.Cos(1.0 / (2.0 * np.pi))
+			# elif str(params['DEFAULT']['couplingfct']) == 'sin':
+			# 	h = synctools.Sin(1.0 / (2.0 * np.pi))
 			print('params', params)
 
 			# perform a delay sweep
 			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
-			sf = synctools.SweepFactory(N, Ny, Nx, F, K, delay, h, Fc, k, kx, ky,topology, np.array([cLF_value, cLF_value]), isRadians=isRadian)
+			sf = synctools.SweepFactory(N, Ny, Nx, F, K, delay, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, np.array([cLF_value, cLF_value]), isRadians=isRadian)
 			print('\n\nAdjust code Daniel to fit cLF!!!!')
 
 			fsl = sf.sweep()
@@ -515,23 +516,23 @@ def singleAdiabatChange(params):
 
 			print('\nWill start with this c-value: ', c_value, ', and relaxation time Trelax: ', Trelax, '\n\n')
 
-			topology= chooseTopology()										# calls function that asks user for input of type of network topology
+			topology= chooseTopology()											# calls function that asks user for input of type of network topology
 			if ( topology == 'square-periodic' or topology == 'square-open' ):
-				Nx, Ny = get2DosciNumbers()									# calls function that asks user for input of number of oscis in each direction
+				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
-				kx, ky = get2DTwistNumbers(Nx, Ny)							# choose 2d-twist under investigation
-				k = kx														# set to dummy value
+				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
+				k = kx															# set to dummy value
 			else:
-				N = chooseNumber()											# calls function that asks user for input of number of oscis
-				k = chooseTwistNumber(N)									# choose twist under investigation
+				N = chooseNumber()												# calls function that asks user for input of number of oscis
+				k = chooseTwistNumber(N)										# choose twist under investigation
 				kx = k; ky = -999; Nx = N; Ny = 1;
-			K    	= chooseK(float(params['DEFAULT']['F']))				# calls function that asks user for input of the coupling strength
-			Fc    	= chooseFc()											# calls function that asks user for input of cut-off frequency
-			delay 	= chooseTransDelay()									# calls function that asks user for input of mean transmission delay
-			# c 		= chooseDiffConst()									# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
+			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
+			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
+			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
+			# c 		= chooseDiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
 			cLF     = 0
-			Nsim    = 1														# calls function that asks user for input for number of realizations
-			case, rot_vs_orig = chooseDeltaPert(N)							# calls function that asks user for input for delta-like perturbation
+			Nsim    = 1															# calls function that asks user for input for number of realizations
+			case, rot_vs_orig = chooseDeltaPert(N)								# calls function that asks user for input for delta-like perturbation
 			if case == '4':
 				distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale = chooseDistribution()
 			else:
@@ -540,17 +541,17 @@ def singleAdiabatChange(params):
 			for i in range (Nsim):
 				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
 
-			if str(params['DEFAULT']['couplingfct']) == 'triang':			# set the coupling function for evaluating the frequency and stability with Daniel's module
-				h = synctools.Triangle(1.0 / (2.0 * np.pi))
-			elif str(params['DEFAULT']['couplingfct']) == 'cos':
-				h = synctools.Cos(1.0 / (2.0 * np.pi))
-			elif str(params['DEFAULT']['couplingfct']) == 'sin':
-				h = synctools.Sin(1.0 / (2.0 * np.pi))
+			# if str(params['DEFAULT']['couplingfct']) == 'triang':			    # set the coupling function for evaluating the frequency and stability with Daniel's module
+			# 	h = synctools.Triangle(1.0 / (2.0 * np.pi))
+			# elif str(params['DEFAULT']['couplingfct']) == 'cos':
+			# 	h = synctools.Cos(1.0 / (2.0 * np.pi))
+			# elif str(params['DEFAULT']['couplingfct']) == 'sin':
+			# 	h = synctools.Sin(1.0 / (2.0 * np.pi))
 			print('params', params)
 
 			# perform a delay sweep
 			isRadian=False													# set this False to get values returned in [Hz] instead of [rad * Hz]
-			sf = synctools.SweepFactory(N, Ny, Nx, F, K, delay, h, Fc, k, kx, ky,topology, np.array([c_value, c_value]), isRadians=isRadian)
+			sf = synctools.SweepFactory(N, Ny, Nx, F, K, delay, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, np.array([c_value, c_value]), isRadians=isRadian)
 			print('\n\nAdjust code Daniel to fit c!!!!')
 
 			fsl = sf.sweep()
@@ -616,17 +617,17 @@ def singleRealization(params):
 			for i in range (Nsim):
 				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
 
-			if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
-				h = synctools.Triangle(1.0 / (2.0 * np.pi))
-			elif str(params['DEFAULT']['couplingfct']) == 'cos':
-				h = synctools.Cos(1.0 / (2.0 * np.pi))
-			elif str(params['DEFAULT']['couplingfct']) == 'sin':
-				h = synctools.Sin(1.0 / (2.0 * np.pi))
+			# if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
+			# 	h = synctools.Triangle(1.0 / (2.0 * np.pi))
+			# elif str(params['DEFAULT']['couplingfct']) == 'cos':
+			# 	h = synctools.Cos(1.0 / (2.0 * np.pi))
+			# elif str(params['DEFAULT']['couplingfct']) == 'sin':
+			# 	h = synctools.Sin(1.0 / (2.0 * np.pi))
 			# print('params:', params)
 
 			# perform a K sweep
 			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
-			sf = synctools.SweepFactory(N, Ny, Nx, F, new_K_values, delay, h, Fc, k, kx, ky,topology, c, isRadians=isRadian)
+			sf = synctools.SweepFactory(N, Ny, Nx, F, new_K_values, delay, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, c, isRadians=isRadian)
 
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
@@ -692,17 +693,17 @@ def singleRealization(params):
 			for i in range (Nsim):
 				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
 
-			if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
-				h = synctools.Triangle(1.0 / (2.0 * np.pi))
-			elif str(params['DEFAULT']['couplingfct']) == 'cos':
-				h = synctools.Cos(1.0 / (2.0 * np.pi))
-			elif str(params['DEFAULT']['couplingfct']) == 'sin':
-				h = synctools.Sin(1.0 / (2.0 * np.pi))
+			# if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
+			# 	h = synctools.Triangle(1.0 / (2.0 * np.pi))
+			# elif str(params['DEFAULT']['couplingfct']) == 'cos':
+			# 	h = synctools.Cos(1.0 / (2.0 * np.pi))
+			# elif str(params['DEFAULT']['couplingfct']) == 'sin':
+			# 	h = synctools.Sin(1.0 / (2.0 * np.pi))
 			print('params', params)
 
 			# perform a Fc sweep
 			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
-			sf = synctools.SweepFactory(N, Ny, Nx, F, K, delay, h, new_Fc_values, k, kx, ky,topology, c, isRadians=isRadian)
+			sf = synctools.SweepFactory(N, Ny, Nx, F, K, delay, str(params['DEFAULT']['couplingfct']), new_Fc_values, k, kx, ky,topology, c, isRadians=isRadian)
 
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
@@ -768,17 +769,17 @@ def singleRealization(params):
 			for i in range (Nsim):
 				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
 
-			if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
-				h = synctools.Triangle(1.0 / (2.0 * np.pi))
-			elif str(params['DEFAULT']['couplingfct']) == 'cos':
-				h = synctools.Cos(1.0 / (2.0 * np.pi))
-			elif str(params['DEFAULT']['couplingfct']) == 'sin':
-				h = synctools.Sin(1.0 / (2.0 * np.pi))
+			# if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
+			# 	h = synctools.Triangle(1.0 / (2.0 * np.pi))
+			# elif str(params['DEFAULT']['couplingfct']) == 'cos':
+			# 	h = synctools.Cos(1.0 / (2.0 * np.pi))
+			# elif str(params['DEFAULT']['couplingfct']) == 'sin':
+			# 	h = synctools.Sin(1.0 / (2.0 * np.pi))
 			print('params', params)
 
 			# perform a delay sweep
 			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
-			sf = synctools.SweepFactory(N, Ny, Nx, F, K, new_delay_values, h, Fc, k, kx, ky,topology, c, isRadians=isRadian)
+			sf = synctools.SweepFactory(N, Ny, Nx, F, K, new_delay_values, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, c, isRadians=isRadian)
 
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
@@ -845,17 +846,17 @@ def singleRealization(params):
 			for i in range (Nsim):
 				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
 
-			if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
-				h = synctools.Triangle(1.0 / (2.0 * np.pi))
-			elif str(params['DEFAULT']['couplingfct']) == 'cos':
-				h = synctools.Cos(1.0 / (2.0 * np.pi))
-			elif str(params['DEFAULT']['couplingfct']) == 'sin':
-				h = synctools.Sin(1.0 / (2.0 * np.pi))
+			# if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
+			# 	h = synctools.Triangle(1.0 / (2.0 * np.pi))
+			# elif str(params['DEFAULT']['couplingfct']) == 'cos':
+			# 	h = synctools.Cos(1.0 / (2.0 * np.pi))
+			# elif str(params['DEFAULT']['couplingfct']) == 'sin':
+			# 	h = synctools.Sin(1.0 / (2.0 * np.pi))
 			print('params', params)
 
 			# perform a delay sweep
 			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
-			sf = synctools.SweepFactory(N, Ny, Nx, F, K, delay, h, Fc, k, kx, ky,topology, new_cLF_values, isRadians=isRadian)
+			sf = synctools.SweepFactory(N, Ny, Nx, F, K, delay, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, new_cLF_values, isRadians=isRadian)
 			print('\n\nAdjust code Daniel to fit cLF!!!!')
 
 			fsl = sf.sweep()
@@ -938,18 +939,18 @@ def noisyStatistics(params):
 			for i in range (Nsim):
 				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
 
-			if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
-				h = synctools.Triangle(1.0 / (2.0 * np.pi))
-			elif str(params['DEFAULT']['couplingfct']) == 'cos':
-				h = synctools.Cos(1.0 / (2.0 * np.pi))
-			elif str(params['DEFAULT']['couplingfct']) == 'sin':
-				h = synctools.Sin(1.0 / (2.0 * np.pi))
+			# if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
+			# 	h = synctools.Triangle(1.0 / (2.0 * np.pi))
+			# elif str(params['DEFAULT']['couplingfct']) == 'cos':
+			# 	h = synctools.Cos(1.0 / (2.0 * np.pi))
+			# elif str(params['DEFAULT']['couplingfct']) == 'sin':
+			# 	h = synctools.Sin(1.0 / (2.0 * np.pi))
 			print('params', params)
 
 			# perform a K sweep
 			isRadian=False														# set this False if values provided in [Hz] instead of [rad * Hz]
 			print('K before:', new_K_values)
-			sf = synctools.SweepFactory(N, Ny, Nx, F, new_K_values, delay, h, Fc, k, kx, ky,topology, c, isRadians=isRadian)
+			sf = synctools.SweepFactory(N, Ny, Nx, F, new_K_values, delay, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, c, isRadians=isRadian)
 
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
@@ -1019,18 +1020,18 @@ def noisyStatistics(params):
 				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
 
 
-			if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
-				h = synctools.Triangle(1.0 / (2.0 * np.pi))
-			elif str(params['DEFAULT']['couplingfct']) == 'cos':
-				h = synctools.Cos(1.0 / (2.0 * np.pi))
-			elif str(params['DEFAULT']['couplingfct']) == 'sin':
-				h = synctools.Sin(1.0 / (2.0 * np.pi))
+			# if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
+			# 	h = synctools.Triangle(1.0 / (2.0 * np.pi))
+			# elif str(params['DEFAULT']['couplingfct']) == 'cos':
+			# 	h = synctools.Cos(1.0 / (2.0 * np.pi))
+			# elif str(params['DEFAULT']['couplingfct']) == 'sin':
+			# 	h = synctools.Sin(1.0 / (2.0 * np.pi))
 			print('params', params)
 
 			# perform a K sweep
 			isRadian=False														# set this False if values provided in [Hz] instead of [rad * Hz]
 			print('c before:', new_c_values)
-			sf = synctools.SweepFactory(N, Ny, Nx, F, K, delay, h, Fc, k, kx, ky,topology, new_c_values, isRadians=isRadian) # just the determinisic parameters
+			sf = synctools.SweepFactory(N, Ny, Nx, F, K, delay, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, new_c_values, isRadians=isRadian) # just the determinisic parameters
 
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
@@ -1106,17 +1107,17 @@ def noisyStatistics(params):
 				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
 
 
-			if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
-				h = synctools.Triangle(1.0 / (2.0 * np.pi))
-			elif str(params['DEFAULT']['couplingfct']) == 'cos':
-				h = synctools.Cos(1.0 / (2.0 * np.pi))
-			elif str(params['DEFAULT']['couplingfct']) == 'sin':
-				h = synctools.Sin(1.0 / (2.0 * np.pi))
+			# if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
+			# 	h = synctools.Triangle(1.0 / (2.0 * np.pi))
+			# elif str(params['DEFAULT']['couplingfct']) == 'cos':
+			# 	h = synctools.Cos(1.0 / (2.0 * np.pi))
+			# elif str(params['DEFAULT']['couplingfct']) == 'sin':
+			# 	h = synctools.Sin(1.0 / (2.0 * np.pi))
 			print('params', params)
 
 			# perform a Fc sweep
 			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
-			sf = synctools.SweepFactory(N, Ny, Nx, F, K, delay, h, new_Fc_values, k, kx, ky,topology, c, isRadians=isRadian)
+			sf = synctools.SweepFactory(N, Ny, Nx, F, K, delay, str(params['DEFAULT']['couplingfct']), new_Fc_values, k, kx, ky,topology, c, isRadians=isRadian)
 
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
@@ -1184,17 +1185,17 @@ def noisyStatistics(params):
 				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
 
 
-			if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
-				h = synctools.Triangle(1.0 / (2.0 * np.pi))
-			elif str(params['DEFAULT']['couplingfct']) == 'cos':
-				h = synctools.Cos(1.0 / (2.0 * np.pi))
-			elif str(params['DEFAULT']['couplingfct']) == 'sin':
-				h = synctools.Sin(1.0 / (2.0 * np.pi))
+			# if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
+			# 	h = synctools.Triangle(1.0 / (2.0 * np.pi))
+			# elif str(params['DEFAULT']['couplingfct']) == 'cos':
+			# 	h = synctools.Cos(1.0 / (2.0 * np.pi))
+			# elif str(params['DEFAULT']['couplingfct']) == 'sin':
+			# 	h = synctools.Sin(1.0 / (2.0 * np.pi))
 			print('params', params)
 
 			# perform a Fc sweep
 			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
-			sf = synctools.SweepFactory(N, Ny, Nx, F, K, delay, h, Fc, k, kx, ky,topology, new_cLF_values, isRadians=isRadian)
+			sf = synctools.SweepFactory(N, Ny, Nx, F, K, delay, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, new_cLF_values, isRadians=isRadian)
 			print('\n\nAdjust code Daniel to fit cLF!!!!')
 
 			fsl = sf.sweep()
@@ -1264,17 +1265,17 @@ def noisyStatistics(params):
 			for i in range (Nsim):
 				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
 
-			if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
-				h = synctools.Triangle(1.0 / (2.0 * np.pi))
-			elif str(params['DEFAULT']['couplingfct']) == 'cos':
-				h = synctools.Cos(1.0 / (2.0 * np.pi))
-			elif str(params['DEFAULT']['couplingfct']) == 'sin':
-				h = synctools.Sin(1.0 / (2.0 * np.pi))
+			# if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
+			# 	h = synctools.Triangle(1.0 / (2.0 * np.pi))
+			# elif str(params['DEFAULT']['couplingfct']) == 'cos':
+			# 	h = synctools.Cos(1.0 / (2.0 * np.pi))
+			# elif str(params['DEFAULT']['couplingfct']) == 'sin':
+			# 	h = synctools.Sin(1.0 / (2.0 * np.pi))
 			print('params', params)
 
 			# perform a delay sweep
 			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
-			sf = synctools.SweepFactory(N, Ny, Nx, F, K, new_delay_values, h, Fc, k, kx, ky,topology, c, isRadians=isRadian)
+			sf = synctools.SweepFactory(N, Ny, Nx, F, K, new_delay_values, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, c, isRadians=isRadian)
 
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
@@ -1345,17 +1346,18 @@ def bruteForce(params, param_cases_csv):
 			# pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
 			pert = []
 			# Nsim    = chooseNsim()											# calls function that asks user for input for number of realizations
-			if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
-				h = synctools.Triangle(1.0 / (2.0 * np.pi))
-			elif str(params['DEFAULT']['couplingfct']) == 'cos':
-				h = synctools.Cos(1.0 / (2.0 * np.pi))
-			elif str(params['DEFAULT']['couplingfct']) == 'sin':
-				h = synctools.Sin(1.0 / (2.0 * np.pi))
+
+			# if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
+			# 	h = synctools.Triangle(1.0 / (2.0 * np.pi))
+			# elif str(params['DEFAULT']['couplingfct']) == 'cos':
+			# 	h = synctools.Cos(1.0 / (2.0 * np.pi))
+			# elif str(params['DEFAULT']['couplingfct']) == 'sin':
+			# 	h = synctools.Sin(1.0 / (2.0 * np.pi))
 			print('params', params)
 
 			# perform a K sweep
 			isRadian=False
-			sf = synctools.SweepFactory(N, Ny, Nx, F, new_K_values, delay, h, Fc, k, kx, ky,topology, c, isRadians=isRadian)
+			sf = synctools.SweepFactory(N, Ny, Nx, F, new_K_values, delay, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, c, isRadians=isRadian)
 
 			fsl = sf.sweep()
 			para_mat_temp = fsl.get_parameter_matrix(isRadians=False)			# extract variables from the sweep, this matrix contains all cases
@@ -1407,17 +1409,18 @@ def bruteForce(params, param_cases_csv):
 			# pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
 			pert = []
 			# Nsim    = chooseNsim()												# calls function that asks user for input for number of realizations
-			if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
-				h = synctools.Triangle(1.0 / (2.0 * np.pi))
-			elif str(params['DEFAULT']['couplingfct']) == 'cos':
-				h = synctools.Cos(1.0 / (2.0 * np.pi))
-			elif str(params['DEFAULT']['couplingfct']) == 'sin':
-				h = synctools.Sin(1.0 / (2.0 * np.pi))
+
+			# if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
+			# 	h = synctools.Triangle(1.0 / (2.0 * np.pi))
+			# elif str(params['DEFAULT']['couplingfct']) == 'cos':
+			# 	h = synctools.Cos(1.0 / (2.0 * np.pi))
+			# elif str(params['DEFAULT']['couplingfct']) == 'sin':
+			# 	h = synctools.Sin(1.0 / (2.0 * np.pi))
 			print('params', params)
 
 			# perform a Fc sweep
 			isRadian=False
-			sf = synctools.SweepFactory(N, Ny, Nx, F, K, delay, h, new_Fc_values, k, kx, ky,topology, c, isRadians=isRadian)
+			sf = synctools.SweepFactory(N, Ny, Nx, F, K, delay, str(params['DEFAULT']['couplingfct']), new_Fc_values, k, kx, ky,topology, c, isRadians=isRadian)
 
 			fsl = sf.sweep()
 			para_mat_temp = fsl.get_parameter_matrix(isRadians=False)			# extract variables from the sweep, this matrix contains all cases
@@ -1469,17 +1472,18 @@ def bruteForce(params, param_cases_csv):
 			# pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
 			pert = []
 			# Nsim    = chooseNsim()												# calls function that asks user for input for number of realizations
-			if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
-				h = synctools.Triangle(1.0 / (2.0 * np.pi))
-			elif str(params['DEFAULT']['couplingfct']) == 'cos':
-				h = synctools.Cos(1.0 / (2.0 * np.pi))
-			elif str(params['DEFAULT']['couplingfct']) == 'sin':
-				h = synctools.Sin(1.0 / (2.0 * np.pi))
+
+			# if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
+			# 	h = synctools.Triangle(1.0 / (2.0 * np.pi))
+			# elif str(params['DEFAULT']['couplingfct']) == 'cos':
+			# 	h = synctools.Cos(1.0 / (2.0 * np.pi))
+			# elif str(params['DEFAULT']['couplingfct']) == 'sin':
+			# 	h = synctools.Sin(1.0 / (2.0 * np.pi))
 			print('params', params)
 
 			# perform a delay sweep
 			isRadian=False
-			sf = synctools.SweepFactory(N, Ny, Nx, F, K, new_delay_values, h, Fc, k, kx, ky,topology, c, isRadians=isRadian)
+			sf = synctools.SweepFactory(N, Ny, Nx, F, K, new_delay_values, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, c, isRadians=isRadian)
 
 			fsl = sf.sweep()
 			para_mat_temp = fsl.get_parameter_matrix(isRadians=False)			# extract variables from the sweep, this matrix contains all cases
