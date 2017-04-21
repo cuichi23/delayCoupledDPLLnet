@@ -355,6 +355,61 @@ class FlatStateList(object):
         else:
             return None
 
+    def get_nx(self):
+        if self.n > 0:
+            x = np.zeros(self.n)
+            for i in range(self.n):
+                s = self.states[i]
+                if isinstance(s.sys.g.arr, st.Linear):
+                    x[i] = s.sys.g.arr.get_n()
+                else:
+                    raise Exception('Topology not yet supported')
+            return x
+        else:
+            return None
+
+
+    def get_ny(self):
+        if self.n > 0:
+            x = np.zeros(self.n)
+            for i in range(self.n):
+                s = self.states[i]
+                if isinstance(s.sys.g.arr, st.Linear):
+                    x[i] = 1
+                else:
+                    raise Exception('Topology not yet supported')
+            return x
+        else:
+            return None
+
+
+    def get_mx(self):
+        if self.n > 0:
+            x = np.zeros(self.n)
+            for i in range(self.n):
+                s = self.states[i]
+                if isinstance(s.sys.g.arr, st.Linear):
+                    x[i] = s.m
+                else:
+                    raise Exception('Topology not yet supported')
+            return x
+        else:
+            return
+
+    def get_my(self):
+        if self.n > 0:
+            x = np.zeros(self.n)
+            for i in range(self.n):
+                s = self.states[i]
+                if isinstance(s.sys.g.arr, st.Linear):
+                    x[i] = 0
+                else:
+                    raise Exception('Topology not yet supported')
+            return x
+        else:
+            return None
+
+
 
     def get_parameter_matrix(self, isRadians=True):
         '''Returns a matrix of the numeric parameters the states in the list
@@ -365,7 +420,7 @@ class FlatStateList(object):
                        frequency is given in radians if True, otherwise in Hertz
         '''
         if self.n > 0:
-            x = np.zeros((self.n, 10))
+            x = np.zeros((self.n, 14))
             x[:, 0] = self.get_n()
             x[:, 1] = self.get_w(isRadians=isRadians)
             x[:, 2] = self.get_k(isRadians=isRadians)
@@ -376,6 +431,10 @@ class FlatStateList(object):
             x[:, 7] = np.real(self.get_l())
             x[:, 8] = np.imag(self.get_l())
             x[:, 9] = self.get_tsim()
+            x[:, 10] = self.get_nx()
+            x[:, 11] = self.get_ny()
+            x[:, 12] = self.get_mx()
+            x[:, 13] = self.get_my()
             return x
         else:
             return None
