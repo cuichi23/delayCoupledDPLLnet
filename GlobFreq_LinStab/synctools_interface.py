@@ -1,6 +1,6 @@
 import numpy as np
 
-import synctools2 as st
+import synctools3 as st
 
 
 TOPO_0D_GLOABL = 'global'
@@ -78,7 +78,6 @@ class SweepFactory(object):
         self[self.key_sweep] = self.values_sweep[0]
 
 
-
     def _identify_swept_variable(self):
         '''Identify the swept variable
 
@@ -149,11 +148,15 @@ class SweepFactory(object):
 
     def get_states(self, pll_sys):
         if self.topology == TOPO_1D_RING:
-            return st.Twist.get_states(pll_sys, self.m)
+            state_def = st.TwistDefinition(pll_sys, self.m)
         elif self.topology == TOPO_1D_CHAIN and self.m == 0:
-            return st.Twist.get_states(pll_sys, self.m)
+            state_def = st.TwistDefinition(pll_sys, 0)
+        elif self.topology == TOPO_1D_CHAIN:
+            state_def = st.CheckerboardDefinition(pll_sys)
         else:
             raise Exception('Interface does not support topology yet.')
+
+        return state_def.get_states()
 
 
     def sweep(self):
@@ -287,7 +290,11 @@ class FlatStateList(object):
         if self.n > 0:
             x = np.zeros(self.n)
             for i in range(self.n):
-                x[i] = self.states[i].m
+                s = self.states[i]
+                if isinstance(s, st.Twist):
+                    x[i] = s.state_def.m
+                else:
+                    x[i] = 0
             return x
         else:
             return None
@@ -392,23 +399,19 @@ class FlatStateList(object):
             x = np.zeros(self.n)
             for i in range(self.n):
                 s = self.states[i]
-                if isinstance(s.sys.g.arr, st.Linear):
-                    x[i] = s.m
+                if isinstance(s, st.Twist):
+                    x[i] = s.state_def.m
                 else:
-                    raise Exception('Topology not yet supported')
+                    x[i] = 0
             return x
         else:
-            return
+            return None
+
+
 
     def get_my(self):
         if self.n > 0:
             x = np.zeros(self.n)
-            for i in range(self.n):
-                s = self.states[i]
-                if isinstance(s.sys.g.arr, st.Linear):
-                    x[i] = 0
-                else:
-                    raise Exception('Topology not yet supported')
             return x
         else:
             return None

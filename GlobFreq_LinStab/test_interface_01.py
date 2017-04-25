@@ -5,12 +5,12 @@ import synctools2 as st
 
 n = 3
 topology = 'ring'
-topology = 'chain'
+#topology = 'chain'
 w = 2 * np.pi
 kc = np.pi / 2.0
 wc = w
 h = 'triang'
-m = 0
+m = 1
 tau = np.linspace(0, 1.7, 5)
 
 ny = 0
