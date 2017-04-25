@@ -52,7 +52,12 @@ def multihelper(phiSr, initPhiPrime0, topology, couplingfct, F, Nsteps, dt, c, F
 def multihelper_star(dynparam_fixparam):
 	return multihelper(*dynparam_fixparam)
 
+# cbrut.bruteforceout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
+# 				int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cLF), int(1), str(int(Nx)), str(int(Ny)), str(int(kx)), str(int(ky)),
+# 				pert, plot_out)
+
 def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny=0, kx=0, ky=0, phiSr=[], show_plot=True):
+	# print('\n\nkx:', kx, '\n', type(kx))
 	mode = int(2);																# mode=0 -> algorithm usage mode, mode=1 -> single realization mode,
 																				# mode=2 -> brute force scanning mode for parameter interval scans
 																				# mode=3 -> calculate many noisy realization for the same parameter set

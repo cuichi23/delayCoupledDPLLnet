@@ -240,12 +240,6 @@ class Pll(object):
 # #############################################################################
 
 
-
-
-
-
-
-
 class PllSystem(object):
     def __init__(self, pll, graph):
         self.pll = pll
@@ -442,6 +436,3 @@ class Twist(LinearState):
             return omega
         else:
             return None
-
-
-
