@@ -205,10 +205,10 @@ class FlatStateList(object):
            State or list of TwistStates
                state or list of states that should be added
         '''
-        if type(s) is st.State:
+        if isinstance(s, st.SyncState):
             self.states.append(s)
             self.n = len(self.states)
-        elif type(s) is list:
+        elif isinstance(s, list):
             for el in s:
                 self.states.append(el)
             self.n = len(self.states)
@@ -350,10 +350,14 @@ class FlatStateList(object):
     def get_tsim(self):
         '''Returns an array of simulation time'''
         if self.n > 0:
-            x = self.tsim * np.ones(self.n)
+            x = np.zeros(self.n)
+            for i in range(self.n):
+                re_lambda = np.real(self.states[i].get_stability())
+                x[i] = 25.0 / np.abs(re_lambda)
             return x
         else:
             return None
+
 
     def get_nx(self):
         if self.n > 0:
