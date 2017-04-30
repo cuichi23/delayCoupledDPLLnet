@@ -248,6 +248,7 @@ def chooseDeltaPertDistAndBounds(N, distrib, min_pert, max_pert, meanvaluePert, 
 	return perturbation_vec
 
 def simulateOnlyLinStableCases(para_mat_new):
+	print('in SimOnlyLinStabCases: para_mat_new', len(para_mat_new), '\n')
 	if any(decay_rate > 0 for decay_rate in para_mat_new[:,7]):
 		d_true = True
 		while d_true:
@@ -305,7 +306,8 @@ def chooseCsvSaveOption(param_cases_csv, para_mat, topology, couplingfct, c):
 		print('existing parameter sets:\n', exist_set, 'type: ', type(exist_set), 'length', len(exist_set), '\nexist_set[0][:]', exist_set[0][:])
 	# print('new parameter sets:\n', para_mat_new)
 	para_mat_tmp = np.array(para_mat_new)
-	para_mat_new = simulateOnlyLinStableCases(para_mat_tmp)     				# this fct. corrects for negative Tsim if user decides to simulate also linearly unstable solutions
+	if not len(para_mat_tmp) == 0:
+		para_mat_new = simulateOnlyLinStableCases(para_mat_tmp)    				# this fct. corrects for negative Tsim if user decides to simulate also linearly unstable solutions
 
 	b_true = True
 	while b_true:
