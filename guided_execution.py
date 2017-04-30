@@ -284,6 +284,7 @@ def chooseCsvSaveOption(param_cases_csv, para_mat, topology, couplingfct, c):
 	for i in range (len(para_mat[:,0])):
 		temp = []																# reset temp container for every loop
 		# print('csv-container: ', param_cases_csv, '\n\n')
+		# print('para_mat: ', para_mat, '\n\n')
 		# print('type(para_mat[0,:]): ', type(para_mat[0,:]), '\n\n')
 		# print( '\nTEST\ntype(para_mat[i,10]):', type(para_mat[i,10]), '\ntype(param_cases_csv[`mx`]):', type(param_cases_csv['mx']), '\nint(para_mat[i,10]):', int(para_mat[i,10]) , '\nparam_cases_csv[`mx`]:', (param_cases_csv['mx']), '\n\n' )
 		# print( '\n\nlen(para_mat[:,0]):', len(para_mat[:,0]), '\n\n' )
@@ -292,13 +293,16 @@ def chooseCsvSaveOption(param_cases_csv, para_mat, topology, couplingfct, c):
 									& (param_cases_csv['c']==float(c)) & (param_cases_csv['topology']==str(topology)) & (param_cases_csv['couplingfct']==str(couplingfct))
 									& (param_cases_csv['Nx']==int(para_mat[i,10])) & (param_cases_csv['Ny']==int(para_mat[i,11]))
 									& (param_cases_csv['mx']==int(para_mat[i,12])) & (param_cases_csv['my']==int(para_mat[i,13]))].sort_values(by='K') #guided_execution.py:270: FutureWarning: sort(columns=....) is deprecated, use sort_values(by=.....)
-		exist_set.append( temp )
-		if len(temp) == 0:														# if temp is not set/empty,
+		if len(temp) == 0:														# if temp is empty
+			print('no existing cases for this set (para_mat[',i,'][:]) found:', para_mat[i][:])
 			para_mat_new.append(para_mat[i,:])
+		else:
+			exist_set.append( temp )
+			print('existing cases for this set found:', para_mat[i][:], '\nthese are:', temp)
 	if exist_set==[]:
 		print('So far these parameter sets do not exist!')
 	else:
-		print('existing parameter sets:\n', exist_set, type(exist_set))
+		print('existing parameter sets:\n', exist_set, 'type: ', type(exist_set), 'length', len(exist_set), '\nexist_set[0][:]', exist_set[0][:])
 	# print('new parameter sets:\n', para_mat_new)
 	para_mat_tmp = np.array(para_mat_new)
 	para_mat_new = simulateOnlyLinStableCases(para_mat_tmp)     				# this fct. corrects for negative Tsim if user decides to simulate also linearly unstable solutions
@@ -495,7 +499,7 @@ def singleAdiabatChange(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
-			if not ( para_mat == [] and cLF_value == [] ):
+			if not ( para_mat == [] and len(para_mat) == 0 and cLF_value == [] and len(cLF_value) == 0):
 				plot_out = True
 
 				# for i in range (len(para_mat[:,0])):
@@ -561,7 +565,7 @@ def singleAdiabatChange(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)					# correct for negative Tsim = -25 / Re(Lambda)....
 
-			if not ( para_mat == [] and c_value == [] ):
+			if not ( para_mat == [] and len(para_mat) == 0 and c_value == [] and len(c_value) == 0):
 				plot_out = True
 
 				# for i in range (len(para_mat[:,0])):
@@ -644,7 +648,7 @@ def singleRealization(params):
 				if para_mat[i,9]>upper_TSim:
 					para_mat[i,9]=upper_TSim
 
-			if not para_mat == []:
+			if not para_mat == [] and not len(para_mat) == 0:
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:
@@ -720,7 +724,7 @@ def singleRealization(params):
 				if para_mat[i,9]>upper_TSim:
 					para_mat[i,9]=upper_TSim
 
-			if not para_mat == []:
+			if not para_mat == [] and not len(para_mat) == 0:
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:
@@ -796,7 +800,7 @@ def singleRealization(params):
 				if para_mat[i,9]>upper_TSim:
 					para_mat[i,9]=upper_TSim
 
-			if not para_mat == []:
+			if not para_mat == [] and not len(para_mat) == 0:
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:
@@ -967,7 +971,7 @@ def noisyStatistics(params):
 				if para_mat[i,9]<10:
 					para_mat[i,9]=80
 
-			if not para_mat == []:
+			if not para_mat == [] and not len(para_mat) == 0:
 				print('length of para_mat[:,0]:', len(para_mat[:,0]))
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
@@ -1134,7 +1138,7 @@ def noisyStatistics(params):
 				if para_mat[i,9]>upper_TSim:
 					para_mat[i,9]=upper_TSim
 
-			if not para_mat == []:
+			if not para_mat == [] and not len(para_mat) == 0:
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:
@@ -1292,7 +1296,7 @@ def noisyStatistics(params):
 				if para_mat[i,9]>upper_TSim:
 					para_mat[i,9]=upper_TSim
 
-			if not para_mat == []:
+			if not para_mat == [] and not len(para_mat) == 0:
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:
@@ -1345,7 +1349,7 @@ def bruteForce(params, param_cases_csv):
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
 			cLF		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
 			# pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
-			pert = []
+			pert = [];
 			# Nsim    = chooseNsim()											# calls function that asks user for input for number of realizations
 
 			# if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
@@ -1358,16 +1362,16 @@ def bruteForce(params, param_cases_csv):
 
 			# perform a K sweep
 			isRadian=False
-			sf = synctools.SweepFactory(N, Ny, Nx, F, new_K_values, delay, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, c, isRadians=isRadian)
+			sf = synctools.SweepFactory(N, Ny, Nx, F, new_K_values, delay, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky, topology, c, isRadians=isRadian)
 
 			fsl = sf.sweep()
 			para_mat_temp = fsl.get_parameter_matrix(isRadians=False)			# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {N, F, K, Fc, delay, m, F_Omeg, ReLambda, ImLambda, Tsim, Nx, Ny, mx, my}: \n', para_mat_temp, type(para_mat_temp))
 
 			para_mat = chooseCsvSaveOption(param_cases_csv, para_mat_temp, topology, str(params['DEFAULT']['couplingfct']), c) # Nx, Ny, kx, ky contained in para_mat_temp
-			print('Filtered (csv-file) parameter combinations with {N, F, K, Fc, delay, m, F_Omeg, ReLambda, ImLambda, Tsim, Nx, Ny, mx, my}: \n', para_mat, type(para_mat))
+			print('Filtered (csv-file) parameter combinations with {N, F, K, Fc, delay, m, F_Omeg, ReLambda, ImLambda, Tsim, Nx, Ny, mx, my}: \n', para_mat, type(para_mat), len(para_mat))
 
-			if not para_mat == []:
+			if not para_mat == [] and not len(para_mat) == 0:
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:
@@ -1433,7 +1437,7 @@ def bruteForce(params, param_cases_csv):
 
 			para_mat = chooseCsvSaveOption(param_cases_csv, para_mat_temp, topology, str(params['DEFAULT']['couplingfct']), c)
 
-			if not para_mat == []:
+			if not para_mat == [] and not len(para_mat) == 0:
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:
@@ -1496,7 +1500,7 @@ def bruteForce(params, param_cases_csv):
 
 			para_mat = chooseCsvSaveOption(param_cases_csv, para_mat_temp, topology, str(params['DEFAULT']['couplingfct']), c)
 
-			if not para_mat == []:
+			if not para_mat == [] and not len(para_mat) == 0:
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:

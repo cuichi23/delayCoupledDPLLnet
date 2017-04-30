@@ -407,15 +407,12 @@ class FlatStateList(object):
         else:
             return None
 
-
-
     def get_my(self):
         if self.n > 0:
-            x = np.zeros(self.n)
+            x = -999 * np.ones(self.n)
             return x
         else:
             return None
-
 
 
     def get_parameter_matrix(self, isRadians=True):
@@ -445,5 +442,3 @@ class FlatStateList(object):
             return x
         else:
             return None
-
-
