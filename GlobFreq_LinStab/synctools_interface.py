@@ -412,6 +412,12 @@ class FlatStateList(object):
     def get_my(self):
         if self.n > 0:
             x = np.zeros(self.n)
+            for i in range(self.n):
+                s = self.states[i]
+                if isinstance(s, st.Twist):
+                    x[i] = -999
+                else:
+                    raise Exception('State not supported so far.')
             return x
         else:
             return None
