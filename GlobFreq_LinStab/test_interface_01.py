@@ -1,11 +1,11 @@
 import numpy as np
 
 import synctools_interface
-import synctools2 as st
+import synctools3 as st
 
 n = 3
 topology = 'ring'
-#topology = 'chain'
+topology = 'chain'
 w = 2 * np.pi
 kc = np.pi / 2.0
 wc = w

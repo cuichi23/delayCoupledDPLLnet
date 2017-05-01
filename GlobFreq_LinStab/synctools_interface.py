@@ -148,10 +148,13 @@ class SweepFactory(object):
 
     def get_states(self, pll_sys):
         if self.topology == TOPO_1D_RING:
+            # 1d twist state
             state_def = st.TwistDefinition(pll_sys, self.m)
         elif self.topology == TOPO_1D_CHAIN and self.m == 0:
+            # 1d global sync state for non-periodic boundray conditions
             state_def = st.TwistDefinition(pll_sys, 0)
         elif self.topology == TOPO_1D_CHAIN:
+            # 1d Checkerboard states for non-periodic boundray conditions and m > 0
             state_def = st.CheckerboardDefinition(pll_sys)
         else:
             raise Exception('Interface does not support topology yet.')
@@ -401,8 +404,10 @@ class FlatStateList(object):
                 s = self.states[i]
                 if isinstance(s, st.Twist):
                     x[i] = s.state_def.m
-                else:
+                elif isinstance(s, st.Checkerboard):
                     x[i] = 0
+                else:
+                   raise Exception('State not supported so far.')
             return x
         else:
             return None
@@ -416,6 +421,8 @@ class FlatStateList(object):
                 s = self.states[i]
                 if isinstance(s, st.Twist):
                     x[i] = -999
+                elif isinstance(s, st.Checkerboard):
+                    x[i] = 0
                 else:
                     raise Exception('State not supported so far.')
             return x
