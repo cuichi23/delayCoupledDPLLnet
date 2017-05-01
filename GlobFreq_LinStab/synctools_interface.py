@@ -407,12 +407,21 @@ class FlatStateList(object):
         else:
             return None
 
+
+
     def get_my(self):
         if self.n > 0:
-            x = -999 * np.ones(self.n)
+            x = np.zeros(self.n)
+            for i in range(self.n):
+                s = self.states[i]
+                if isinstance(s, st.Twist):
+                    x[i] = -999
+                else:
+                    raise Exception('State not supported so far.')
             return x
         else:
             return None
+
 
 
     def get_parameter_matrix(self, isRadians=True):
@@ -442,3 +451,5 @@ class FlatStateList(object):
             return x
         else:
             return None
+
+
