@@ -92,6 +92,18 @@ def chooseFc():																	# ask user-input for cut-off frequency
 
 	return float(Fc)
 
+def chooseTSim():																# ask user-input for the simulation time
+	a_true = True
+	while a_true:
+		# get user input on number of oscis in the network
+		TSim = float(raw_input('\nPlease specify as [float] the new simulation time TSim in [s]: '))
+		if TSim > 0:
+			break
+		else:
+			print('Please provide input as an [float] in (0, OO] ;) [s]!')
+
+	return float(TSim)
+
 def chooseTransDelay():															# ask user-input for delay
 	a_true = True
 	while a_true:
@@ -108,7 +120,7 @@ def chooseTwistNumber(N):														# ask user-input for twist number
 	a_true = True
 	while a_true:
 		# get user input on number of oscis in the network
-		k = raw_input('\nPlease specify the m-twist number [integer] in [0, ..., %d] [dimless]: ' %(N-1))
+		k = raw_input('\nPlease specify the m-twist number (NOTE that for non-periodic b.c. ANY m > 0 yields a chequerboard configuration) [integer] in [0, ..., %d] [dimless]: ' %(N-1))
 		if ( int(k)>=0 ):
 			break
 		else:
@@ -598,7 +610,8 @@ def singleRealization(params):
 			user_sweep_start = float(raw_input('\nPlease specify the range in which K (K=0.5*Kvco) should be simulated, start K_s in [Hz] = '))
 			user_sweep_end	 = float(raw_input('\nPlease specify the range in which K (K=0.5*Kvco) should be simulated, end K_e in [Hz] = '))
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz] dK = '))
-			new_K_values	 = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
+			new_K_values	 = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
+			print('\nSweep these K-values: ', new_K_values, '\n')
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
 			if ( topology == 'square-periodic' or topology == 'square-open' ):
@@ -651,6 +664,17 @@ def singleRealization(params):
 					para_mat[i,9]=upper_TSim
 
 			if not para_mat == [] and not len(para_mat) == 0:
+
+				if len(para_mat[:,0]) == 1:
+					print('Estimated time until perturbations have decayed to exp(-25) times the initial perturbations: ', para_mat[0,9])
+					if str( raw_input(' Change? [y]es / [n]o: ') ) == 'y':
+						para_mat[0,9] = chooseTSim()
+						print('\nNew TSim set.')
+					else:
+						print('Simulation time remains as calculated/approximated by synctools.py')
+				else:
+					print('\nCould implement here to change TSim also in the case of parameter sweeps. Length para_mat: ', len(para_mat))
+
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:
@@ -665,6 +689,7 @@ def singleRealization(params):
 					print('Tsim: ', para_mat[i,9])
 					# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
+					#HILFE: def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny=1, kx=0, ky=0, phiSr=[], show_plot=True)
 					csing.singleout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
 									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cLF), int(1), int(Nx), int(Ny), int(kx), int(ky),
 									pert, plot_out)
@@ -674,7 +699,7 @@ def singleRealization(params):
 			user_sweep_start = float(raw_input('\nPlease specify the range in which Fc should be simulated, start Fc_s in [Hz] = '))
 			user_sweep_end	 = float(raw_input('\nPlease specify the range in which Fc should be simulated, end Fc_e in [Hz] = '))
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz] dFc = '))
-			new_Fc_values	 = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
+			new_Fc_values	 = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
 			if ( topology == 'square-periodic' or topology == 'square-open' ):
@@ -727,6 +752,17 @@ def singleRealization(params):
 					para_mat[i,9]=upper_TSim
 
 			if not para_mat == [] and not len(para_mat) == 0:
+
+				if len(para_mat[:,0]) == 1:
+					print('Estimated time until perturbations have decayed to exp(-25) times the initial perturbations: ', para_mat[0,9])
+					if str( raw_input(' Change? [y]es / [n]o: ') ) == 'y':
+						para_mat[0,9] = chooseTSim()
+						print('\nNew TSim set.')
+					else:
+						print('Simulation time remains as calculated/approximated by synctools.py')
+				else:
+					print('\nCould implement here to change TSim also in the case of parameter sweeps. Length para_mat: ', len(para_mat))
+
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:
@@ -750,7 +786,7 @@ def singleRealization(params):
 			user_sweep_start = float(raw_input('\nPlease specify the range in which delays should be simulated, start delay_s in [s] = '))
 			user_sweep_end	 = float(raw_input('\nPlease specify the range in which delays should be simulated, end delay_e in [s] = '))
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [s] ddelay = '))
-			new_delay_values = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
+			new_delay_values = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
 			if ( topology == 'square-periodic' or topology == 'square-open' ):
@@ -803,6 +839,17 @@ def singleRealization(params):
 					para_mat[i,9]=upper_TSim
 
 			if not para_mat == [] and not len(para_mat) == 0:
+
+				if len(para_mat[:,0]) == 1:
+					print('Estimated time until perturbations have decayed to exp(-25) times the initial perturbations: ', para_mat[0,9])
+					if str( raw_input(' Change? [y]es / [n]o: ') ) == 'y':
+						para_mat[0,9] = chooseTSim()
+						print('\nNew TSim set.')
+					else:
+						print('Simulation time remains as calculated/approximated by synctools.py')
+				else:
+					print('\nCould implement here to change TSim also in the case of parameter sweeps. Length para_mat: ', len(para_mat))
+
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:
@@ -826,7 +873,7 @@ def singleRealization(params):
 			user_sweep_start = float(raw_input('\nPlease specify the range in which cLF should be simulated, start cLF_s in [Hz*Hz] = '))
 			user_sweep_end	 = float(raw_input('\nPlease specify the range in which cLF should be simulated, end cLF_e in [Hz*Hz] = '))
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz*Hz] dc = '))
-			new_cLF_values = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
+			new_cLF_values = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
 			print('\nWill scan these cLF-values: ', new_cLF_values, '\n\n')
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
@@ -881,7 +928,18 @@ def singleRealization(params):
 					para_mat[i,9]=upper_TSim
 
 
-			if not ( para_mat == [] and new_cLF_values == [] ):
+			if not ( para_mat == [] and len(para_mat) == 0 and new_cLF_values == [] ):
+
+				if len(para_mat[:,0]) == 1:
+					print('Estimated time until perturbations have decayed to exp(-25) times the initial perturbations: ', para_mat[0,9])
+					if str( raw_input(' Change? [y]es / [n]o: ') ) == 'y':
+						para_mat[0,9] = chooseTSim()
+						print('\nNew TSim set.')
+					else:
+						print('Simulation time remains as calculated/approximated by synctools.py')
+				else:
+					print('\nCould implement here to change TSim also in the case of parameter sweeps. Length para_mat: ', len(para_mat))
+
 				# print( 'length of para_mat[:,0]:', len(para_mat[:,0]) )
 				# print( 'length of new_c_values :', len(new_c_values)  )
 				if ( len(para_mat[:,0]) > 1 or len(new_cLF_values) > 1 ):
@@ -920,7 +978,7 @@ def noisyStatistics(params):
 			user_sweep_start = float(raw_input('\nPlease specify the range in which K (K=0.5*Kvco) should be simulated, start K_s in [Hz] = '))
 			user_sweep_end	 = float(raw_input('\nPlease specify the range in which K (K=0.5*Kvco) should be simulated, end K_e in [Hz] = '))
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz] dK = '))
-			new_K_values	 = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
+			new_K_values	 = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
 			if ( topology == 'square-periodic' or topology == 'square-open' ):
@@ -1000,7 +1058,7 @@ def noisyStatistics(params):
 			user_sweep_start = float(raw_input('\nPlease specify the range in which c should be simulated, start c_s in [Hz*Hz] = '))
 			user_sweep_end	 = float(raw_input('\nPlease specify the range in which c should be simulated, end c_e in [Hz*Hz] = '))
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz*Hz] dc = '))
-			new_c_values	 = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
+			new_c_values	 = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
 			print('\nWill scan these c-values: ', new_c_values, '\n\n')
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
@@ -1086,7 +1144,7 @@ def noisyStatistics(params):
 			user_sweep_start = float(raw_input('\nPlease specify the range in which Fc should be simulated, start Fc_s in [Hz] = '))
 			user_sweep_end	 = float(raw_input('\nPlease specify the range in which Fc should be simulated, end Fc_e in [Hz] = '))
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz] dFc = '))
-			new_Fc_values	 = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
+			new_Fc_values	 = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
 			if ( topology == 'square-periodic' or topology == 'square-open' ):
@@ -1164,7 +1222,7 @@ def noisyStatistics(params):
 			user_sweep_start = float(raw_input('\nPlease specify the range in which cLF should be simulated, start cLF_s in [Hz*Hz] = '))
 			user_sweep_end	 = float(raw_input('\nPlease specify the range in which cLF should be simulated, end cLF_e in [Hz*Hz] = '))
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz*Hz] dc = '))
-			new_cLF_values = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
+			new_cLF_values = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
 			print('\nWill scan these cLF-values: ', new_cLF_values, '\n\n')
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
@@ -1246,7 +1304,7 @@ def noisyStatistics(params):
 			user_sweep_start = float(raw_input('\nPlease specify the range in which delays should be simulated, start delay_s in [s] = '))
 			user_sweep_end	 = float(raw_input('\nPlease specify the range in which delays should be simulated, end delay_e in [s] = '))
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [s] ddelay = '))
-			new_delay_values = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
+			new_delay_values = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
 			if ( topology == 'square-periodic' or topology == 'square-open' ):
@@ -1333,7 +1391,7 @@ def bruteForce(params, param_cases_csv):
 			user_sweep_start = float(raw_input('\nPlease specify the range in which K (K=0.5*Kvco) should be simulated, start K_s in [Hz] = '))
 			user_sweep_end	 = float(raw_input('\nPlease specify the range in which K (K=0.5*Kvco) should be simulated, end K_e in [Hz] = '))
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz] dK = '))
-			new_K_values	 = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
+			new_K_values	 = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
 			# print('new K-values: ', new_K_values)
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
@@ -1371,7 +1429,7 @@ def bruteForce(params, param_cases_csv):
 			print('New parameter combinations with {N, F, K, Fc, delay, m, F_Omeg, ReLambda, ImLambda, Tsim, Nx, Ny, mx, my}: \n', para_mat_temp, type(para_mat_temp))
 
 			para_mat = chooseCsvSaveOption(param_cases_csv, para_mat_temp, topology, str(params['DEFAULT']['couplingfct']), c) # Nx, Ny, kx, ky contained in para_mat_temp
-			print('Filtered (csv-file) parameter combinations with {N, F, K, Fc, delay, m, F_Omeg, ReLambda, ImLambda, Tsim, Nx, Ny, mx, my}: \n', para_mat, type(para_mat), len(para_mat))
+			# print('Filtered (csv-file) parameter combinations with {N, F, K, Fc, delay, m, F_Omeg, ReLambda, ImLambda, Tsim, Nx, Ny, mx, my}: \n', para_mat, type(para_mat), len(para_mat))
 
 			if not para_mat == [] and not len(para_mat) == 0:
 				if len(para_mat[:,0]) > 1:
@@ -1401,7 +1459,7 @@ def bruteForce(params, param_cases_csv):
 			user_sweep_start = float(raw_input('\nPlease specify the range in which Fc should be simulated, start Fc_s in [Hz] = '))
 			user_sweep_end	 = float(raw_input('\nPlease specify the range in which Fc should be simulated, end Fc_e in [Hz] = '))
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz] dFc = '))
-			new_Fc_values	 = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
+			new_Fc_values	 = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
 			if ( topology == 'square-periodic' or topology == 'square-open' ):
@@ -1464,7 +1522,7 @@ def bruteForce(params, param_cases_csv):
 			user_sweep_start = float(raw_input('\nPlease specify the range in which delays should be simulated, start delay_s in [s] = '))
 			user_sweep_end	 = float(raw_input('\nPlease specify the range in which delays should be simulated, end delay_e in [s] = '))
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [s] ddelay = '))
-			new_delay_values = np.arange(user_sweep_start, user_sweep_end + user_sweep_discr, user_sweep_discr)
+			new_delay_values = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
 			if ( topology == 'square-periodic' or topology == 'square-open' ):
