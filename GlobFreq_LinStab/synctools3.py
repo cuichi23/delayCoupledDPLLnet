@@ -153,7 +153,7 @@ class Cubic2D(Arrangement):
 
 
 
-class PeriodicCubic2D(Linear):
+class PeriodicCubic2D(Cubic2D):
     def site_exists(self, yx):
         return True
 
@@ -164,7 +164,7 @@ class PeriodicCubic2D(Linear):
 
 
 
-class OpenCubic2D(Linear):
+class OpenCubic2D(Cubic2D):
     def site_exists(self, yx):
         if yx[0] >= 0 and yx[0] < self.ny and yx[1] >= 0 and yx[1] < self.nx:
             return True
@@ -253,26 +253,6 @@ class Graph(object):
         self.tau = delay
         self.hasNormalizedCoupling = hasNormalizedCoupling
 
-    def get_single_site_coupling(self, i):
-        raise NotImplementedError
-
-    def get_single_site_coupling_matrix(self, yx):
-        raise NotImplementedError
-
-    def get_coupling_matrix(self):
-        raise NotImplementedError
-
-
-
-
-class NearestNeighbor(Graph):
-    def __init__(self, arrangement, function, strength, delay, hasNormalizedCoupling):
-        if isinstance(arrangement, Linear):
-            super(NearestNeighbor, self).__init__(arrangement, function, strength, delay, hasNormalizedCoupling)
-            self.d = np.array([-1, 1])
-        else:
-            raise Exception('Incompatible spatial lattice class')
-
 
     def get_single_site_coupling(self, i):
         # Determine coupled sites in coordinate space
@@ -314,6 +294,63 @@ class NearestNeighbor(Graph):
             m[ii, :] = self.get_single_site_coupling(ii)
         return m
 
+
+
+
+class NearestNeighbor(Graph):
+    def __init__(self, arrangement, function, strength, delay, hasNormalizedCoupling):
+        if isinstance(arrangement, Linear):
+            super(NearestNeighbor, self).__init__(arrangement, function, strength, delay, hasNormalizedCoupling)
+            self.d = np.array([-1, 1])
+        else:
+            raise Exception('Incompatible spatial lattice class')
+
+
+class CubicNearestNeighbor(Graph):
+    def __init__(self, arrangement, function, strength, delay, hasNormalizedCoupling):
+        if isinstance(arrangement, Cubic2D):
+            super(CubicNearestNeighbor, self).__init__(arrangement, function, strength, delay, hasNormalizedCoupling)
+            d = []
+            d.append([-1,  0])
+            d.append([ 0, -1])
+            d.append([ 0,  1])
+            d.append([ 1,  0])
+            self.d = np.array(d)
+        else:
+            raise Exception('Incompatible spatial lattice class')
+
+
+class CubicHexagonal(Graph):
+    def __init__(self, arrangement, function, strength, delay, hasNormalizedCoupling):
+        if isinstance(arrangement, Cubic2D):
+            super(CubicHexagonal, self).__init__(arrangement, function, strength, delay, hasNormalizedCoupling)
+            d = []
+            d.append([-1, -1])
+            d.append([-1,  0])
+            d.append([ 0, -1])
+            d.append([ 0,  1])
+            d.append([ 1,  0])
+            d.append([ 1,  1])
+            self.d = np.array(d)
+        else:
+            raise Exception('Incompatible spatial lattice class')
+
+
+class CubicOctagonal(Graph):
+    def __init__(self, arrangement, function, strength, delay, hasNormalizedCoupling):
+        if isinstance(arrangement, Cubic2D):
+            super(CubicOctagonal, self).__init__(arrangement, function, strength, delay, hasNormalizedCoupling)
+            d = []
+            d.append([-1, -1])
+            d.append([-1,  0])
+            d.append([-1,  1])
+            d.append([ 0, -1])
+            d.append([ 0,  1])
+            d.append([ 1, -1])
+            d.append([ 1,  0])
+            d.append([ 1,  1])
+        else:
+            raise Exception('Incompatible spatial lattice class')
 
 
 
