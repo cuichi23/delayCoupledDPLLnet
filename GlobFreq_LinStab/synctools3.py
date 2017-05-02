@@ -76,7 +76,7 @@ class Linear(Arrangement):
         self.n = n
 
     def get_dimensionality(self):
-        return 2
+        return 1
 
     def get_n(self):
         return self.n
@@ -98,14 +98,12 @@ class Linear(Arrangement):
 
 
 
-
 class Ring(Linear):
     def site_exists(self, yx):
         return True
 
     def wrap_coordinates(self, yx):
         return int(np.mod(yx, self.n))
-
 
 
 
@@ -121,6 +119,65 @@ class Chain(Linear):
             return yx
         else:
             return None
+
+
+
+class Cubic2D(Arrangement):
+    def __init__(self, nx, ny):
+        self.nx = nx
+        self.ny = ny
+
+    def get_dimensionality(self):
+        return 2
+
+    def get_n(self):
+        return self.nx * self.ny
+
+    def get_shape(self):
+        return (self.ny, self.nx)
+
+    def reshape_index_array(self, ii):
+        shape = self.get_shape()
+        return np.reshape(ii, shape)
+
+    def flatten_spatial_matrix(self, mat):
+        return mat.flatten()
+
+    def index2coordinate(self, i):
+        x = int(np.mod(i, self.nx))
+        y = int(np.floor(i / float(self.nx)))
+        return np.array([y, x], dtype=np.int32)
+
+    def coordinate2index(self, yx):
+        return self.nx * yx[0] + yx[0]
+
+
+
+class PeriodicCubic2D(Linear):
+    def site_exists(self, yx):
+        return True
+
+    def wrap_coordinates(self, yx):
+        y_wrap = int(np.mod(yx[0], self.ny))
+        x_wrap = int(np.mod(yx[1], self.nx))
+        return np.array([y_wrap, x_wrap], dtype=np.int)
+
+
+
+class OpenCubic2D(Linear):
+    def site_exists(self, yx):
+        if yx[0] >= 0 and yx[0] < self.ny and yx[1] >= 0 and yx[1] < self.nx:
+            return True
+        else:
+            return False
+
+    def wrap_coordinates(self, yx):
+        if yx[0] >= 0 and yx[0] < self.ny and yx[1] >= 0 and yx[1] < self.nx:
+            return yx
+        else:
+            return None
+
+
 
 
 
@@ -210,8 +267,12 @@ class Graph(object):
 
 class NearestNeighbor(Graph):
     def __init__(self, arrangement, function, strength, delay, hasNormalizedCoupling):
-        super(NearestNeighbor, self).__init__(arrangement, function, strength, delay, hasNormalizedCoupling)
-        self.d = np.array([-1, 1])
+        if isinstance(arrangement, Linear):
+            super(NearestNeighbor, self).__init__(arrangement, function, strength, delay, hasNormalizedCoupling)
+            self.d = np.array([-1, 1])
+        else:
+            raise Exception('Incompatible spatial lattice class')
+
 
     def get_single_site_coupling(self, i):
         # Determine coupled sites in coordinate space
@@ -227,7 +288,6 @@ class NearestNeighbor(Graph):
                 i_c.append(tmp)
         i_c = np.array(i_c)
 
-
         # Construct coupling vector in index space
         v = np.zeros(self.arr.get_n())
         for el in i_c:
@@ -239,11 +299,13 @@ class NearestNeighbor(Graph):
 
         return v
 
+
     def get_single_site_coupling_matrix(self, yx):
         i = self.arr.coordinate2index(yx)
         v = self.get_single_site_coupling(i)
         m = self.arr.reshape_index_array(v)
         return m
+
 
     def get_coupling_matrix(self):
         n = self.arr.get_n()
