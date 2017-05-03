@@ -385,10 +385,8 @@ class SyncStateDefinition(object):
     def __init__(self, system):
         self.sys = system
 
-
     def get_phi(self):
         raise NotImplementedError
-
 
     def get_dphi_matrix(self):
         '''The static phase difference matrix
@@ -408,16 +406,12 @@ class SyncStateDefinition(object):
         return sf.get_states()
 
 
-
-
-
 class CheckerboardDefinition(SyncStateDefinition):
     def __init__(self, system):
         if isinstance(system.g.arr, Chain):
             super(CheckerboardDefinition, self).__init__(system)
         else:
             raise Exception('State definition not compatible with system.')
-
 
     def get_phi(self):
         '''The static phases of all oscillators
@@ -431,9 +425,6 @@ class CheckerboardDefinition(SyncStateDefinition):
         return phi
 
 
-
-
-
 class TwistDefinition(SyncStateDefinition):
     def __init__(self, system, m):
         if isinstance(system.g.arr, Ring):
@@ -441,7 +432,6 @@ class TwistDefinition(SyncStateDefinition):
             self.m = m
         else:
             raise Exception('State definition not compatible with system.')
-
 
     def get_phi(self):
         '''The static phases of all oscillators
@@ -454,6 +444,56 @@ class TwistDefinition(SyncStateDefinition):
         return phi
 
 
+class CubicTwistDefinition(SyncStateDefinition):
+    def __init__(self, system, mx, my):
+        if isinstance(system.g.arr, PeriodicCubic2D):
+            super(CubicTwistDefinition, self).__init__(system)
+            self.mx = mx
+            self.my = my
+        else:
+            raise Exception('State definition not compatible with system.')
+
+    def get_phi(self):
+        '''The static phases of all oscillators in index representation
+
+           The phase of oscillator 0 is set to 0.
+        '''
+        nx = self.sys.g.arr.nx
+        ny = self.sys.g.arr.ny
+        dphix = 2 * np.pi /float(nx) * self.mx
+        dphiy = 2 * np.pi /float(ny) * self.my
+        phi = np.zeros((ny, nx))
+
+        for iy in range(ny):
+            for ix in range(nx):
+                phi[iy, ix] = ix * dphix + iy * dphiy
+
+        phi = phi.flatten()
+        return phi
+
+
+class CubicCheckerboardDefinition(SyncStateDefinition):
+    def __init__(self, system):
+        if isinstance(system.g.arr, OpenCubic2D):
+            super(CubicCheckerboardDefinition, self).__init__(system)
+        else:
+            raise Exception('State definition not compatible with system.')
+
+    def get_phi(self):
+        '''The static phases of all oscillators in index representation
+
+           The phase of oscillator 0 is set to 0.
+        '''
+        nx = self.sys.g.arr.nx
+        ny = self.sys.g.arr.ny
+        phi = np.zeros((ny, nx))
+
+        for iy in range(ny):
+            for ix in range(nx):
+                phi[iy, ix] =  0.5 * ((-1)**(ix + iy + 1) + 1) * np.pi / 2.0
+
+        phi = phi.flatten()
+        return phi
 
 
 
@@ -472,14 +512,11 @@ class SyncStateFactory(object):
         else:
             raise Exception('State definition type not supported by SyncStateFactory')
 
-
     def get_phi(self):
         return self.state_def.get_phi()
 
-
     def get_dphi_matrix(self):
         return self.state_def.get_dphi_matrix()
-
 
     def get_coupling_sum(self, omega, k=1):
         ''' The sum of all coupling function interacting with oscillator k'''
@@ -495,7 +532,6 @@ class SyncStateFactory(object):
         else:
             h_sum = np.sum(c * h(-tau * omega + dphi))
         return h_sum
-
 
     def get_omega(self, k=1, ns=1000):
         # Get parameters
@@ -543,7 +579,6 @@ class SyncStateFactory(object):
         else:
             raise Exception('No global synchronization frequency found.')
 
-
     def get_states(self):
         omega = self.get_omega()
         states = []
@@ -567,14 +602,11 @@ class SyncState(object):
         self.sys = state_def.sys
         self.omega = omega
 
-
     def get_phi(self):
         return self.state_def.get_phi()
 
-
     def get_dphi_matrix(self):
         return self.state_def.get_dphi_matrix()
-
 
     def get_stability(self, l0=np.array([1.0, 1.0])):
         funcs = self.get_stability_functions()
@@ -586,7 +618,6 @@ class SyncState(object):
         l = np.array(l)
         i_max = np.argmax(np.real(l))
         return l[i_max]
-
 
     def get_stability_functions(self, k=1):
         funcs = []
@@ -602,14 +633,12 @@ class SyncState(object):
 
         return funcs
 
-
     def get_coupling_derivative_matrix(self):
         dphi = self.get_dphi_matrix()
         h = self.sys.g.func
         dhdx = h.get_derivative()
         c = self.sys.g.get_coupling_matrix()
         return c * dhdx(-self.omega * self.sys.g.tau + dphi)
-
 
     def get_eigensystem(self, cutoff=1e-6):
         m = self.get_coupling_derivative_matrix()
@@ -627,7 +656,6 @@ class SyncState(object):
 
         return e_tmp, v_tmp
 
-
     @staticmethod
     def _stability_function(l_vector, b, kc, d_sum, tau, eig_cx):
         x = np.zeros(2)
@@ -638,16 +666,12 @@ class SyncState(object):
         return x
 
 
-
-
 class Checkerboard(SyncState):
     def __init__(self, state_def, omega):
         if isinstance(state_def, CheckerboardDefinition):
             super(Checkerboard, self).__init__(state_def, omega)
         else:
             raise Exception('Non-compatible StateDefinition')
-
-
 
 
 class Twist(SyncState):
