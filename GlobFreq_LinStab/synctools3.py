@@ -503,10 +503,10 @@ class CubicCheckerboardDefinition(SyncStateDefinition):
 
 class SyncStateFactory(object):
     def __init__(self, state_def):
-        if isinstance(state_def, CheckerboardDefinition):
-            self.sys = state_def.sys
-            self.state_def = state_def
-        elif isinstance(state_def, TwistDefinition):
+        if (isinstance(state_def, CheckerboardDefinition) or
+            isinstance(state_def, TwistDefinition) or
+            isinstance(state_def, CubicTwistDefinition) or
+            isinstance(state_def, CubicCheckerboardDefinition)):
             self.sys = state_def.sys
             self.state_def = state_def
         else:
@@ -585,8 +585,12 @@ class SyncStateFactory(object):
         for o in omega:
             if isinstance(self.state_def, CheckerboardDefinition):
                 states.append(Checkerboard(self.state_def, o))
-            if isinstance(self.state_def, TwistDefinition):
+            elif isinstance(self.state_def, TwistDefinition):
                 states.append(Twist(self.state_def, o))
+            elif isinstance(self.state_def, CubicCheckerboardDefinition):
+                states.append(CubicCheckerboard(self.state_def, o))
+            elif isinstance(self.state_def, CubicTwistDefinition):
+                states.append(CubicTwist(self.state_def, o))
         return states
 
 
@@ -677,6 +681,22 @@ class Checkerboard(SyncState):
 class Twist(SyncState):
     def __init__(self, state_def, omega):
         if isinstance(state_def, TwistDefinition):
+            super(Twist, self).__init__(state_def, omega)
+        else:
+            raise Exception('Non-compatible StateDefinition')
+
+
+class CubicCheckerboard(SyncState):
+    def __init__(self, state_def, omega):
+        if isinstance(state_def, CubicCheckerboardDefinition):
+            super(Checkerboard, self).__init__(state_def, omega)
+        else:
+            raise Exception('Non-compatible StateDefinition')
+
+
+class CubicTwist(SyncState):
+    def __init__(self, state_def, omega):
+        if isinstance(state_def, CubicTwistDefinition):
             super(Twist, self).__init__(state_def, omega)
         else:
             raise Exception('Non-compatible StateDefinition')
