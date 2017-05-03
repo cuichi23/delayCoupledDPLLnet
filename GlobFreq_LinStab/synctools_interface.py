@@ -383,6 +383,8 @@ class FlatStateList(object):
                 s = self.states[i]
                 if isinstance(s.sys.g.arr, st.Linear):
                     x[i] = s.sys.g.arr.get_n()
+                elif isinstance(s.sys.g.arr, st.Cubic2D):
+                    x[i] = s.sys.g.arr.nx
                 else:
                     raise Exception('Topology not yet supported')
             return x
@@ -396,6 +398,8 @@ class FlatStateList(object):
                 s = self.states[i]
                 if isinstance(s.sys.g.arr, st.Linear):
                     x[i] = 1
+                elif isinstance(s.sys.g.arr, st.Cubic2D):
+                    x[i] = s.sys.g.arr.ny
                 else:
                     raise Exception('Topology not yet supported')
             return x
@@ -410,7 +414,11 @@ class FlatStateList(object):
                 if isinstance(s, st.Twist):
                     x[i] = s.state_def.m
                 elif isinstance(s, st.Checkerboard):
-                    x[i] = 0
+                    x[i] = s.sys.g.arr.get_n() / 2
+                elif isinstance(s, st.CubicTwist):
+                    x[i] = s.state_def.mx
+                elif isinstance(s, st.CubicCheckerboard):
+                    x[i] = s.sys.g.arr.nx / 2
                 else:
                    raise Exception('State not supported so far.')
             return x
@@ -425,7 +433,11 @@ class FlatStateList(object):
                 if isinstance(s, st.Twist):
                     x[i] = -999
                 elif isinstance(s, st.Checkerboard):
-                    x[i] = 0
+                    x[i] = -999
+                elif isinstance(s, st.CubicTwist):
+                    x[i] = s.state_def.my
+                elif isinstance(s, st.CubicCheckerboard):
+                    x[i] = s.sys.g.arr.ny / 2
                 else:
                     raise Exception('State not supported so far.')
             return x
