@@ -105,15 +105,11 @@ class SweepFactory(object):
         else:
             return None
 
-
-
     def __getitem__(self, key):
         return self.__dict__[key]
 
-
     def __setitem__(self, key, value):
         self.__dict__[key] = value
-
 
     def init_system(self):
         # Initilaize coupling function
@@ -126,16 +122,27 @@ class SweepFactory(object):
         else:
             raise Exception('Non-valid coupling function string')
 
-        # Initialize arrangement/geometry
+        # Initialize arrangement/ and coupling
         if self.topology == TOPO_1D_CHAIN:
             arr = st.Chain(self.n)
+            g = st.NearestNeighbor(arr, h_func, self.k, self.tau, hasNormalizedCoupling=True)
         elif self.topology == TOPO_1D_RING:
             arr = st.Ring(self.n)
+            g = st.NearestNeighbor(arr, h_func, self.k, self.tau, hasNormalizedCoupling=True)
+        elif self.topology == TOPO_2D_CUBIC_OPEN:
+            arr = st.OpenCubic2D(self.nx, self.ny)
+            g = st.CubicNearestNeighbor(arr, h_func, self.k, self.tau, hasNormalizedCoupling=True)
+        elif self.topology == TOPO_2D_CUBIC_PERIODIC:
+            arr = st.PeriodicCubic2D(self.nx, self.ny)
+            g = st.CubicNearestNeighbor(arr, h_func, self.k, self.tau, hasNormalizedCoupling=True)
+        elif self.topology == TOPO_2D_HEXAGONAL_PERIODIC:
+            arr = st.PeriodicCubic2D(self.nx, self.ny)
+            g = st.CubicHexagonal(arr, h_func, self.k, self.tau, hasNormalizedCoupling=True)
+        elif self.topology == TOPO_2D_OCTAGONAL_PERIODIC:
+            arr = st.PeriodicCubic2D(self.nx, self.ny)
+            g = st.CubicOctagonal(arr, h_func, self.k, self.tau, hasNormalizedCoupling=True)
         else:
             raise Exception('Non-valid topology string')
-
-        # Initialize coupling
-        g = st.NearestNeighbor(arr, h_func, self.k, self.tau, hasNormalizedCoupling=True)
 
         # Initialize singel pll
         pll = st.Pll(self.w, self.wc)
@@ -145,7 +152,6 @@ class SweepFactory(object):
 
         return pll_sys
 
-
     def get_states(self, pll_sys):
         if self.topology == TOPO_1D_RING:
             state_def = st.TwistDefinition(pll_sys, self.m)
@@ -153,11 +159,21 @@ class SweepFactory(object):
             state_def = st.TwistDefinition(pll_sys, 0)
         elif self.topology == TOPO_1D_CHAIN:
             state_def = st.CheckerboardDefinition(pll_sys)
+        elif self.topology == TOPO_2D_CUBIC_OPEN and self.mx == 0 and self.my ==0:
+            # Global sync state for open 2d cubic lattice
+            state_def = st.CubicTwistDefinition(pll_sys, 0, 0)
+        elif self.topology == TOPO_2D_CUBIC_OPEN and (self.mx > 0 or self.my >0):
+            # Checkerboar state for open cubic 2d lattice
+            state_def = st.CubicCheckerboardDefinition(pll_sys)
+        elif (self.topology == TOPO_2D_CUBIC_PERIODIC or
+              self.topology == TOPO_2D_HEXAGONAL_PERIODIC or
+              self.topology == TOPO_2D_OCTAGONAL_PERIODIC):
+            # Twist states for periodic cubic 2d lattice
+            state_def = st.CubicTwistDefinition(pll_sys, self.mx, self.my)
         else:
             raise Exception('Interface does not support topology yet.')
 
         return state_def.get_states()
-
 
     def sweep(self):
         '''Performs sweep
@@ -218,7 +234,6 @@ class FlatStateList(object):
         else:
             raise Exception('Non-valid object for storage in FlatStateList')
 
-
     def get_n(self):
         '''Returns an array of the number of oscillators of the states in the list'''
         if self.n > 0:
@@ -228,7 +243,6 @@ class FlatStateList(object):
             return x
         else:
             return None
-
 
     def get_w(self, isRadians=True):
         '''Returns an array of the intrinsic frequencies of oscillators of the states in the list
@@ -251,7 +265,6 @@ class FlatStateList(object):
         else:
             return None
 
-
     def get_k(self, isRadians=True):
         '''Returns an array of the coupling constants of the states in the list
 
@@ -273,7 +286,6 @@ class FlatStateList(object):
         else:
             return None
 
-
     def get_tau(self):
         '''Returns an array of the delay times of the states in the list'''
         if self.n > 0:
@@ -283,7 +295,6 @@ class FlatStateList(object):
             return x
         else:
             return None
-
 
     def get_m(self):
         '''Returns an array of the twist numbers of the states in the list'''
@@ -298,7 +309,6 @@ class FlatStateList(object):
             return x
         else:
             return None
-
 
     def get_omega(self, isRadians=True):
         '''Returns an array of the global synchronization frequencies of the states in the list
@@ -321,7 +331,6 @@ class FlatStateList(object):
         else:
             return None
 
-
     def get_l(self):
         '''Returns an array of the complex linear stability exponent of the states in the list'''
         if self.n > 0:
@@ -331,7 +340,6 @@ class FlatStateList(object):
             return x
         else:
             return None
-
 
     def get_wc(self, isRadians=True):
         '''Returns the low-pass filter cut-off frequency of the states in the list
@@ -365,7 +373,6 @@ class FlatStateList(object):
         else:
             return None
 
-
     def get_nx(self):
         if self.n > 0:
             x = np.zeros(self.n)
@@ -373,12 +380,13 @@ class FlatStateList(object):
                 s = self.states[i]
                 if isinstance(s.sys.g.arr, st.Linear):
                     x[i] = s.sys.g.arr.get_n()
+                elif isinstance(s.sys.g.arr, st.Cubic2D):
+                    x[i] = s.sys.g.arr.nx
                 else:
                     raise Exception('Topology not yet supported')
             return x
         else:
             return None
-
 
     def get_ny(self):
         if self.n > 0:
@@ -387,12 +395,13 @@ class FlatStateList(object):
                 s = self.states[i]
                 if isinstance(s.sys.g.arr, st.Linear):
                     x[i] = 1
+                elif isinstance(s.sys.g.arr, st.Cubic2D):
+                    x[i] = s.sys.g.arr.ny
                 else:
                     raise Exception('Topology not yet supported')
             return x
         else:
             return None
-
 
     def get_mx(self):
         if self.n > 0:
@@ -401,22 +410,36 @@ class FlatStateList(object):
                 s = self.states[i]
                 if isinstance(s, st.Twist):
                     x[i] = s.state_def.m
+                elif isinstance(s, st.Checkerboard):
+                    x[i] = s.sys.g.arr.get_n() / 2
+                elif isinstance(s, st.CubicTwist):
+                    x[i] = s.state_def.mx
+                elif isinstance(s, st.CubicCheckerboard):
+                    x[i] = s.sys.g.arr.nx / 2
                 else:
                     x[i] = 0
             return x
         else:
             return None
 
-
-
     def get_my(self):
         if self.n > 0:
             x = np.zeros(self.n)
+            for i in range(self.n):
+                s = self.states[i]
+                if isinstance(s, st.Twist):
+                    x[i] = -999
+                elif isinstance(s, st.Checkerboard):
+                    x[i] = -999
+                elif isinstance(s, st.CubicTwist):
+                    x[i] = s.state_def.my
+                elif isinstance(s, st.CubicCheckerboard):
+                    x[i] = s.sys.g.arr.ny / 2
+                else:
+                    raise Exception('State not supported so far.')
             return x
         else:
             return None
-
-
 
     def get_parameter_matrix(self, isRadians=True):
         '''Returns a matrix of the numeric parameters the states in the list
