@@ -146,7 +146,7 @@ def chooseDeltaPert(N):															# ask user-input for delta-perturbation
 	while b_true:
 		# get user input on delta-perturbation type
 		choice_history = raw_input('\nPlease specify type delta-perturbation from {[1] manual, [2] all zero, [3] 1 of N perturbed, or [4] all perturbed according to a distribution}: ')
-		if ( type(choice_history) == str and int(choice_history) > 0):
+		if ( type(choice_history) == str and int(choice_history) > 0 and int(choice_history) < 5):
 			rot_vs_orig = chooseRotOrig()
 			break
 		else:
@@ -243,7 +243,7 @@ def chooseDeltaPertDistAndBounds(N, distrib, min_pert, max_pert, meanvaluePert, 
 				perturbation_vec = iid_delta_pert
 				if isRotatedPhaseSpace == False:
 					perturbation_vec = eva.rotate_phases(perturbation_vec, isInverse=True)	# transform perturbations into rotated phase space of phases, as required by case_noisy, case_singleout
-				print('iid-dist. perturbation vector: ', perturbation_vec)
+				print('iid-dist. perturbation vector:\n', perturbation_vec)
 	elif distrib == 'normal':
 				normal_delta_pert = np.random.normal(float(meanvaluePert), float(diffconstPert), size=N)
 				perturbation_vec = normal_delta_pert
@@ -611,7 +611,7 @@ def singleRealization(params):
 			user_sweep_end	 = float(raw_input('\nPlease specify the range in which K (K=0.5*Kvco) should be simulated, end K_e in [Hz] = '))
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz] dK = '))
 			new_K_values	 = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
-			print('\nSweep these K-values: ', new_K_values, '\n')
+			print('Sweep these K-values: ', new_K_values, '\n')
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
 			if ( topology == 'square-periodic' or topology == 'square-open' ):
