@@ -200,8 +200,6 @@ class CouplingFunction(object):
         raise NotImplementedError
 
 
-
-
 class Triangle(CouplingFunction):
     ''' Periodic triangle signal vertically centered around 0'''
     def __init__(self, freq=1.0 / (2 * np.pi)):
@@ -219,8 +217,6 @@ class Triangle(CouplingFunction):
 
     def min(self):
         return -1.0
-
-
 
 
 class Square(CouplingFunction):
@@ -253,7 +249,6 @@ class Graph(object):
         self.tau = delay
         self.hasNormalizedCoupling = hasNormalizedCoupling
 
-
     def get_single_site_coupling(self, i):
         # Determine coupled sites in coordinate space
         yx = self.arr.index2coordinate(i)
@@ -279,13 +274,11 @@ class Graph(object):
 
         return v
 
-
     def get_single_site_coupling_matrix(self, yx):
         i = self.arr.coordinate2index(yx)
         v = self.get_single_site_coupling(i)
         m = self.arr.reshape_index_array(v)
         return m
-
 
     def get_coupling_matrix(self):
         n = self.arr.get_n()
@@ -293,8 +286,6 @@ class Graph(object):
         for ii in range(n):
             m[ii, :] = self.get_single_site_coupling(ii)
         return m
-
-
 
 
 class NearestNeighbor(Graph):
@@ -446,7 +437,8 @@ class TwistDefinition(SyncStateDefinition):
 
 class CubicTwistDefinition(SyncStateDefinition):
     def __init__(self, system, mx, my):
-        if isinstance(system.g.arr, PeriodicCubic2D):
+        if (isinstance(system.g.arr, PeriodicCubic2D) or
+            (isinstance(system.g.arr, OpenCubic2D) and mx == 0 and my == 0)):
             super(CubicTwistDefinition, self).__init__(system)
             self.mx = mx
             self.my = my
@@ -689,7 +681,7 @@ class Twist(SyncState):
 class CubicCheckerboard(SyncState):
     def __init__(self, state_def, omega):
         if isinstance(state_def, CubicCheckerboardDefinition):
-            super(Checkerboard, self).__init__(state_def, omega)
+            super(CubicCheckerboard, self).__init__(state_def, omega)
         else:
             raise Exception('Non-compatible StateDefinition')
 
@@ -697,6 +689,6 @@ class CubicCheckerboard(SyncState):
 class CubicTwist(SyncState):
     def __init__(self, state_def, omega):
         if isinstance(state_def, CubicTwistDefinition):
-            super(Twist, self).__init__(state_def, omega)
+            super(CubicTwist, self).__init__(state_def, omega)
         else:
             raise Exception('Non-compatible StateDefinition')
