@@ -340,6 +340,7 @@ class CubicOctagonal(Graph):
             d.append([ 1, -1])
             d.append([ 1,  0])
             d.append([ 1,  1])
+            self.d = np.array(d)
         else:
             raise Exception('Incompatible spatial lattice class')
 

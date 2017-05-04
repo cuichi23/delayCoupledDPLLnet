@@ -8,7 +8,7 @@ TOPO_1D_RING = 'ring'
 TOPO_1D_CHAIN = 'chain'
 TOPO_2D_CUBIC_OPEN = 'square-open'
 TOPO_2D_CUBIC_PERIODIC = 'square-periodic'
-TOPO_2D_HEXAGONAL_PERIODIC = 'hexgon'
+TOPO_2D_HEXAGONAL_PERIODIC = 'hexagon'
 TOPO_2D_OCTAGONAL_PERIODIC = 'octagon'
 
 
@@ -154,10 +154,13 @@ class SweepFactory(object):
 
     def get_states(self, pll_sys):
         if self.topology == TOPO_1D_RING:
+            # 1d twist state
             state_def = st.TwistDefinition(pll_sys, self.m)
         elif self.topology == TOPO_1D_CHAIN and self.m == 0:
+            # 1d global sync state for non-periodic boundray conditions
             state_def = st.TwistDefinition(pll_sys, 0)
         elif self.topology == TOPO_1D_CHAIN:
+            # 1d Checkerboard states for non-periodic boundray conditions and m > 0
             state_def = st.CheckerboardDefinition(pll_sys)
         elif self.topology == TOPO_2D_CUBIC_OPEN and self.mx == 0 and self.my ==0:
             # Global sync state for open 2d cubic lattice
@@ -417,7 +420,7 @@ class FlatStateList(object):
                 elif isinstance(s, st.CubicCheckerboard):
                     x[i] = s.sys.g.arr.nx / 2
                 else:
-                    x[i] = 0
+                   raise Exception('State not supported so far.')
             return x
         else:
             return None
@@ -468,3 +471,5 @@ class FlatStateList(object):
             return x
         else:
             return None
+
+
