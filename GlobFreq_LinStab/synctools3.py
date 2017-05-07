@@ -605,14 +605,25 @@ class SyncState(object):
     def get_dphi_matrix(self):
         return self.state_def.get_dphi_matrix()
 
-    def get_stability(self, l0=np.array([1.0, 1.0])):
+    def get_all_stabilities(self, l0=np.array([1.0, 1.0]), isFullOutput=False):
         funcs = self.get_stability_functions()
         l = []
         for f in funcs:
-            l_full = optimize.root(f, l0, tol=1e-14)
-            l_num = l_full.x[0] + 1j * l_full.x[1]
-            l.append(l_num)
-        l = np.array(l)
+            l_full = optimize.root(f, l0, tol=1e-14, method='lm')
+            l.append(l_full)
+
+        if isFullOutput:
+            return l
+        else:
+            l_num = []
+            for el in l:
+                l_tmp = el.x[0] + 1j * el.x[1]
+                l_num.append(l_tmp)
+            l_num = np.array(l_num)
+            return l_num
+
+    def get_stability(self, l0=np.array([1.0, 1.0])):
+        l = self.get_all_stabilities(l0=l0, isFullOutput=False)
         i_max = np.argmax(np.real(l))
         return l[i_max]
 
@@ -624,12 +635,14 @@ class SyncState(object):
         d_sum = np.sum(d[k, :])
         tau = self.sys.g.tau
         e, v = self.get_eigensystem()
-        for el in e:
-            func_root = lambda l: self._stability_function(l, b, kc, d_sum, tau, el)
+        for ie in range(len(e)):
+            func_root = self._plug_parameters_in_stability_function(b, kc, d_sum, tau, e[ie])
             funcs.append(func_root)
-
         return funcs
-
+    
+    def _plug_parameters_in_stability_function(self, b, kc, d_sum, tau, e):
+        return lambda l: self._stability_function(l, b, kc, d_sum, tau, e)
+        
     def get_coupling_derivative_matrix(self):
         dphi = self.get_dphi_matrix()
         h = self.sys.g.func
@@ -650,6 +663,11 @@ class SyncState(object):
                 v_tmp.append(v[:, ie])
         e_tmp = np.array(e_tmp)
         v_tmp = np.transpose(np.array(v_tmp))
+        
+        # Sort the eigenvalues with respect to their real part
+        i_sort = np.argsort(np.real(e_tmp))
+        e_tmp = e_tmp[i_sort]
+        v_tmp = v_tmp[:, i_sort]
 
         return e_tmp, v_tmp
 
