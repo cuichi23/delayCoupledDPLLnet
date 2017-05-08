@@ -260,7 +260,7 @@ def chooseDeltaPertDistAndBounds(N, distrib, min_pert, max_pert, meanvaluePert, 
 	return perturbation_vec
 
 def simulateOnlyLinStableCases(para_mat_new):
-	print('in SimOnlyLinStabCases: para_mat_new', len(para_mat_new), '\n')
+	# print('in SimOnlyLinStabCases: para_mat_new', len(para_mat_new), '\n')
 	if any(decay_rate > 0 for decay_rate in para_mat_new[:,7]):
 		d_true = True
 		while d_true:
@@ -470,7 +470,7 @@ def singleAdiabatChange(params):
 			print('\nWill start with this cLF-value: ', cLF_value, ', and relaxation time Trelax: ', Trelax, '\n\n')
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
-			if ( topology == 'square-periodic' or topology == 'square-open' or 'hexagon' or 'octagon'):
+			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' ):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
 				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
@@ -536,7 +536,7 @@ def singleAdiabatChange(params):
 			print('\nWill start with this c-value: ', c_value, ', and relaxation time Trelax: ', Trelax, '\n\n')
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
-			if ( topology == 'square-periodic' or topology == 'square-open' or 'hexagon' or 'octagon'):
+			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' ):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
 				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
@@ -614,7 +614,7 @@ def singleRealization(params):
 			print('Sweep these K-values: ', new_K_values, '\n')
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
-			if ( topology == 'square-periodic' or topology == 'square-open' or 'hexagon' or 'octagon'):
+			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' ):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
 				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
@@ -702,7 +702,7 @@ def singleRealization(params):
 			new_Fc_values	 = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
-			if ( topology == 'square-periodic' or topology == 'square-open' or 'hexagon' or 'octagon'):
+			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' ):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
 				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
@@ -789,7 +789,7 @@ def singleRealization(params):
 			new_delay_values = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
-			if ( topology == 'square-periodic' or topology == 'square-open' or 'hexagon' or 'octagon'):
+			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' ):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
 				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
@@ -877,7 +877,7 @@ def singleRealization(params):
 			print('\nWill scan these cLF-values: ', new_cLF_values, '\n\n')
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
-			if ( topology == 'square-periodic' or topology == 'square-open' or 'hexagon' or 'octagon'):
+			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' ):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
 				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
@@ -981,7 +981,7 @@ def noisyStatistics(params):
 			new_K_values	 = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
-			if ( topology == 'square-periodic' or topology == 'square-open' or 'hexagon' or 'octagon'):
+			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' ):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
 				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
@@ -1062,7 +1062,7 @@ def noisyStatistics(params):
 			print('\nWill scan these c-values: ', new_c_values, '\n\n')
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
-			if ( topology == 'square-periodic' or topology == 'square-open' or 'hexagon' or 'octagon'):
+			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' ):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
 				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
@@ -1147,7 +1147,7 @@ def noisyStatistics(params):
 			new_Fc_values	 = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
-			if ( topology == 'square-periodic' or topology == 'square-open' or 'hexagon' or 'octagon'):
+			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' ):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
 				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
@@ -1226,7 +1226,7 @@ def noisyStatistics(params):
 			print('\nWill scan these cLF-values: ', new_cLF_values, '\n\n')
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
-			if ( topology == 'square-periodic' or topology == 'square-open' or 'hexagon' or 'octagon'):
+			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' ):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
 				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
@@ -1307,7 +1307,7 @@ def noisyStatistics(params):
 			new_delay_values = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
-			if ( topology == 'square-periodic' or topology == 'square-open' or 'hexagon' or 'octagon'):
+			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' ):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
 				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
@@ -1395,7 +1395,7 @@ def bruteForce(params, param_cases_csv):
 			# print('new K-values: ', new_K_values)
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
-			if ( topology == 'square-periodic' or topology == 'square-open' or 'hexagon' or 'octagon'):
+			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' ):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
 				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
@@ -1462,7 +1462,7 @@ def bruteForce(params, param_cases_csv):
 			new_Fc_values	 = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
-			if ( topology == 'square-periodic' or topology == 'square-open' or 'hexagon' or 'octagon'):
+			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' ):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
 				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
@@ -1525,7 +1525,7 @@ def bruteForce(params, param_cases_csv):
 			new_delay_values = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
-			if ( topology == 'square-periodic' or topology == 'square-open' or 'hexagon' or 'octagon'):
+			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' ):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
 				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
