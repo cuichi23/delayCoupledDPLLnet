@@ -307,11 +307,11 @@ def chooseCsvSaveOption(param_cases_csv, para_mat, topology, couplingfct, c):
 									& (param_cases_csv['Nx']==int(para_mat[i,10])) & (param_cases_csv['Ny']==int(para_mat[i,11]))
 									& (param_cases_csv['mx']==int(para_mat[i,12])) & (param_cases_csv['my']==int(para_mat[i,13]))].sort_values(by='K') #guided_execution.py:270: FutureWarning: sort(columns=....) is deprecated, use sort_values(by=.....)
 		if len(temp) == 0:														# if temp is empty
-			print('no existing cases for this set (para_mat[',i,'][:]) found:', para_mat[i][:])
+			print('\nno existing cases found for set with values (para_mat[',i,'][:]) found:', para_mat[i][:])
 			para_mat_new.append(para_mat[i,:])
 		else:
 			exist_set.append( temp )
-			print('existing cases for this set found:', para_mat[i][:], '\nthese are:', temp)
+			print('\nexisting cases found for set with values (para_mat[',i,'][:]):', para_mat[i][:], '\nthese are:', temp)
 	if exist_set==[]:
 		print('So far these parameter sets do not exist!')
 	else:
@@ -1392,7 +1392,7 @@ def bruteForce(params, param_cases_csv):
 			user_sweep_end	 = float(raw_input('\nPlease specify the range in which K (K=0.5*Kvco) should be simulated, end K_e in [Hz] = '))
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz] dK = '))
 			new_K_values	 = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
-			# print('new K-values: ', new_K_values)
+			print('new K-values: ', new_K_values)
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
 			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' ):
@@ -1460,6 +1460,7 @@ def bruteForce(params, param_cases_csv):
 			user_sweep_end	 = float(raw_input('\nPlease specify the range in which Fc should be simulated, end Fc_e in [Hz] = '))
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz] dFc = '))
 			new_Fc_values	 = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
+			print('new Fc-values: ', new_Fc_values)
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
 			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' ):
@@ -1523,6 +1524,7 @@ def bruteForce(params, param_cases_csv):
 			user_sweep_end	 = float(raw_input('\nPlease specify the range in which delays should be simulated, end delay_e in [s] = '))
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [s] ddelay = '))
 			new_delay_values = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
+			print('new delay-values: ', new_delay_values)
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
 			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' ):
