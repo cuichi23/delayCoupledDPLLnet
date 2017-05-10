@@ -419,7 +419,7 @@ class CheckerboardDefinition(SyncStateDefinition):
 
 class TwistDefinition(SyncStateDefinition):
     def __init__(self, system, m):
-        if isinstance(system.g.arr, Ring):
+        if isinstance(system.g.arr, Ring) or (isinstance(system.g.arr, Chain) and m ==0):
             super(TwistDefinition, self).__init__(system)
             self.m = m
         else:
@@ -639,10 +639,10 @@ class SyncState(object):
             func_root = self._plug_parameters_in_stability_function(b, kc, d_sum, tau, e[ie])
             funcs.append(func_root)
         return funcs
-    
+
     def _plug_parameters_in_stability_function(self, b, kc, d_sum, tau, e):
         return lambda l: self._stability_function(l, b, kc, d_sum, tau, e)
-        
+
     def get_coupling_derivative_matrix(self):
         dphi = self.get_dphi_matrix()
         h = self.sys.g.func
@@ -663,7 +663,7 @@ class SyncState(object):
                 v_tmp.append(v[:, ie])
         e_tmp = np.array(e_tmp)
         v_tmp = np.transpose(np.array(v_tmp))
-        
+
         # Sort the eigenvalues with respect to their real part
         i_sort = np.argsort(np.real(e_tmp))
         e_tmp = e_tmp[i_sort]
