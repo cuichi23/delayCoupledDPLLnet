@@ -189,7 +189,7 @@ class SweepFactory(object):
                    flat list of the possible states
         '''
         # Set up sweep loop
-        fsl = FlatStateList()
+        fsl = FlatStateList(sweep_factory=self)
         for i in range(len(self.values_sweep)):
             print i
 
@@ -213,10 +213,11 @@ class SweepFactory(object):
 
 class FlatStateList(object):
     '''Flat list of TwistStates'''
-    def __init__(self, tsim=0.0):
+    def __init__(self, tsim=0.0, sweep_factory=None):
         self.states = []
         self.n = 0
         self.tsim = tsim
+        self.sweep_factory = sweep_factory
 
     def add_states(self, s):
         '''Adds a single or a list of twist states to the list
@@ -414,11 +415,13 @@ class FlatStateList(object):
                 if isinstance(s, st.Twist):
                     x[i] = s.state_def.m
                 elif isinstance(s, st.Checkerboard):
-                    x[i] = s.sys.g.arr.get_n() / 2
+                    #x[i] = s.sys.g.arr.get_n() / 2
+                    x[i] = self.sweep_factory.m     # Required by Lucas' code
                 elif isinstance(s, st.CubicTwist):
                     x[i] = s.state_def.mx
                 elif isinstance(s, st.CubicCheckerboard):
-                    x[i] = s.sys.g.arr.nx / 2
+                    #x[i] = s.sys.g.arr.nx / 2
+                    x[i] = self.sweep_factory.mx    # Required by Lucas' code
                 else:
                    raise Exception('State not supported so far.')
             return x
@@ -437,7 +440,8 @@ class FlatStateList(object):
                 elif isinstance(s, st.CubicTwist):
                     x[i] = s.state_def.my
                 elif isinstance(s, st.CubicCheckerboard):
-                    x[i] = s.sys.g.arr.ny / 2
+                    # x[i] = s.sys.g.arr.ny / 2
+                    x[i] = self.sweep_factory.my        # Required by Lucas' code
                 else:
                     raise Exception('State not supported so far.')
             return x
