@@ -149,46 +149,37 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0
 		# phiSr[0] = initPhiPrime0												# set first dimension in rotated phase space constant for systems of more than 2 oscillators
 		#print('phiMr =', phiMr, '\n')
 	# the space about each twist solution is scanned in [phiM-pi, phiM+pi] where phiM are the initial phases of the m-twist under investigation
+	unit_cell = eva.PhaseDifferenceCell(N)
 	if N==2:
 		scanValues = np.zeros((N,paramDiscretization), dtype=np.float)			# create container for all points in the discretized rotated phase space, +/- pi around each dimension (unit area)
-		scanValues[0,:] = np.linspace(phiMr[0]-(np.pi), phiMr[0]+(np.pi), paramDiscretization) # all entries are in rotated, and reduced phase space
-		scanValues[1,:] = np.linspace(phiMr[1]-(np.pi), phiMr[1]+(np.pi), paramDiscretization) # all entries are in rotated, and reduced phase space
+		scanValues[0,:] = np.linspace(-(np.pi), +(np.pi), paramDiscretization) 	# all entries are in rotated, and reduced phase space
+		scanValues[1,:] = np.linspace(-(np.pi), +(np.pi), paramDiscretization) 	# all entries are in rotated, and reduced phase space
 		#print('row', i,'of matrix with all intervals of the rotated phase space:\n', scanValues[i,:], '\n')
 
-		max_scanValuesRotated_1 = eva.rotate_phases([0., phiMr[1]+np.pi],     isInverse=False) # get the largest length in the direction of the first dimension
-		min_scanValuesRotated_1 = eva.rotate_phases([0., phiMr[1]-np.pi],     isInverse=False)
-		max_scanValuesRotated_0 = eva.rotate_phases([0., phiMr[0]+2.0*np.pi], isInverse=False) # get the largest length in the direction of the 2nd dimension
-		min_scanValuesRotated_0 = eva.rotate_phases([0., 0.],                 isInverse=False)
-		delta1 = max_scanValuesRotated_1[0,1] - min_scanValuesRotated_1[0,1]; delta0 = max_scanValuesRotated_0[0,1] - min_scanValuesRotated_0[0,1];
-
-		if ( delta0 > 2.0*np.pi or delta0 < 1.9*np.pi or delta1 > 2.0*np.pi or delta1 < 1.9*np.pi):	 # if the borders of the reduced manifold in rotated phase space exceed the 2pi^N cube, adjust scanValues
-			scanValues = np.zeros((N,paramDiscretization), dtype=np.float)		# create container for all points in the discretized rotated phase space, +/- pi around each dimension (unit area)
-			scanValues[0,:] = np.linspace(phiMr[0], phiMr[0]+delta0, paramDiscretization) # all entries are in rotated, and reduced phase space
-			scanValues[1,:] = np.linspace(phiMr[1]-delta1*0.5, phiMr[1]+delta1*0.5, paramDiscretization) # all entries are in rotated, and reduced phase space
-
-		_allPoints = itertools.product(*scanValues)
-		allPoints = list(_allPoints)											# scanValues is a list of lists: create a new list that gives all the possible combinations of items between the lists
-		allPoints = np.array(allPoints) 										# convert the list to an array
+		_allPoints 			= itertools.product(*scanValues)
+		allPoints 			= list(_allPoints)									# scanValues is a list of lists: create a new list that gives all the possible combinations of items between the lists
+		allPoints 			= np.array(allPoints)								# convert the list to an array
+		allPoints_unitCell  = []
+		for point in allPoints:
+			if unit_cell.is_inside(point, isRotated=True):
+				allPoints_unitCell.append(point+phiMr)
+		allPoints			= np.array(allPoints_unitCell)
 	else:
-		# setup a matrix for all N-1 variables but the first, which is set later
-		scanValues = np.zeros((N-1,paramDiscretization), dtype=np.float)		# create container for all points in the discretized rotated phase space, +/- pi around each dimension (unit area)
-		for i in range (0, N-1):												# the different coordinates of the solution, discretize an interval plus/minus pi around each variable
+		# setup a matrix for all N variables/dimensions and create a cube around the origin with side lengths 2pi
+		scanValues = np.zeros((N,paramDiscretization), dtype=np.float)			# create container for all points in the discretized rotated phase space, +/- pi around each dimension (unit area)
+		for i in range (0, N):													# the different coordinates of the solution, discretize an interval plus/minus pi around each variable
 			# scanValues[i,:] = np.linspace(phiMr[i+1]-np.pi, phiMr[i+1]+np.pi, paramDiscretization) # all entries are in rotated, and reduced phase space
-			scanValues[i,:] = np.linspace(-np.pi, +np.pi, paramDiscretization) 	# all entries are in rotated, and reduced phase space
+			scanValues[i,:] = np.linspace(-(np.pi), +(np.pi), paramDiscretization) 	# all entries are in rotated, and reduced phase space
 			#print('row', i,'of matrix with all intervals of the rotated phase space:\n', scanValues[i,:], '\n')
 
-		# max_scanValuesRotated = []; min_scanValuesRotated = [];
-		# for i in range (0, N-1):												# the different coordinates of the solution, discretize an interval plus/minus pi around each variable
-		# 	print('max_scanValuesRotated: ', max_scanValuesRotated)
-		# 	max_scanValuesRotated = eva.rotate_phases(scanValues[i,-1], isInverse=True) # get the largest length in the direction of each dimension
-		# 	min_scanValuesRotated = eva.rotate_phases(scanValues[i, 0], isInverse=True) # get the largest length in the direction of each dimension
-		# 	delta[i] = max_scanValuesRotated[i] - min_scanValuesRotated[i]
-		# 	if ( delta[i] > 2.0*np.pi or delta[i] < 1.9*np.pi ):
-		# 		scanValues[i,:] = np.linspace(phiMr[i+1]-delta[i]*0.5, phiMr[i+1]+delta[i]*0.5, paramDiscretization) # all entries are in rotated, and reduced phase space
-
-		_allPoints = itertools.product(*scanValues)
-		allPoints = list(_allPoints)											# scanValues is a list of lists: create a new list that gives all the possible combinations of items between the lists
-		allPoints = np.array(allPoints) 										# convert the list to an array
+		_allPoints 			= itertools.product(*scanValues)
+		allPoints 			= list(_allPoints)									# scanValues is a list of lists: create a new list that gives all the possible combinations of items between the lists
+		allPoints 			= np.array(allPoints) 								# convert the list to an array
+		allPoints_unitCell  = []												# prepare container for points in the unit cell in rotated phase space
+		for point in allPoints:													# loop over all points and pick out the one that belong to the unit cell in rotated phase space
+			if unit_cell.is_inside(point, isRotated=True):
+				allPoints_unitCell.append(point+phiMr)
+		allPoints			= np.array(allPoints_unitCell[:,1:])				# since we operated in full coordinates, we now drop the first dimension (related to global phase shift)
 
 	#print( 'all points in rotated phase space:\n', allPoints, '\n type:', type(allPoints), '\n')
 	#print(_allPoints, '\n')
