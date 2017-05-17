@@ -181,7 +181,7 @@ if __name__ == '__main__':
 	# with that we are using the periodicity of m-twist solutions in the phase-space of phases (rotated phase space!)
 	unit_cell = eva.PhaseDifferenceCell(N)
 	# if any(phiSr[:]<-np.pi) | any(phiSr[:]> np.pi):
-	if not unit_cell.is_inside(phiSr, isRotated=True)							# check, whether point phiSr belongs to the unit cell
+	if not unit_cell.is_inside(phiSr, isRotated=True):							# check, whether point phiSr belongs to the unit cell
 		print(0)
 	else:
 		# print(simulatePllNetwork(mode, topology, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, False))
