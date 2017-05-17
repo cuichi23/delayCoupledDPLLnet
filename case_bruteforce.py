@@ -20,7 +20,7 @@ import datetime
 
 ''' SIMULATION CALL '''
 def simulatePllNetwork(mode,topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, cLF, Nx=0, Ny=0, kx=0, ky=0, isPlottingTimeSeries=False):
-	''' SIMULATION OF NETWORK '''
+	''' SIMULATION OF NETWORK & UNIT CELL CHECK '''
 	simresult = sim.simulateNetwork(mode,N,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,couplingfct,phiS,phiM,domega,diffconstK,cLF,Nx,Ny)
 	phi     = simresult['phases']
 	omega_0 = simresult['intrinfreq']
@@ -46,8 +46,13 @@ def multihelper(phiSr, initPhiPrime0, topology, couplingfct, F, Nsteps, dt, c, F
 		phiSr = np.insert(phiSr, 0, initPhiPrime0)								# insert the first variable in the rotated space, constant initPhiPrime0
 	phiS = eva.rotate_phases(phiSr, isInverse=False)							# rotate back into physical phase space
 	# print('TEST in multihelper, phiS:', phiS, ' and phiSr:', phiSr)
-	np.random.seed()
-	return simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, cLF, Nx, Ny, kx, ky, plot_Phases_Freq)
+	unit_cell = eva.PhaseDifferenceCell(N)
+	if not unit_cell.is_inside((phiS+phiM), isRotated=False):
+		return {'mean_order': -1., 'last_orderP': -1., 'stdev_orderP': np.zeros(1), 'phases': phiM,
+		 		'intrinfreq': np.zeros(1), 'coupling_strength': np.zeros(1), 'transdelays': delay}
+	else:
+		np.random.seed()
+		return simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, cLF, Nx, Ny, kx, ky, plot_Phases_Freq)
 
 def multihelper_star(dynparam_fixparam):
 	return multihelper(*dynparam_fixparam)
@@ -144,7 +149,6 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0
 	phiMr = eva.rotate_phases(phiM, isInverse=True)								# calculate phiM in terms of rotated phase space
 	print('m-twist phases phiM =', phiM, 'in coordinates of rotated system, phiMr =', phiMr, '\n')
 
-	unit_cell = eva.PhaseDifferenceCell(N)
 	if N > 2:
 		print('shift along the first axis in rotated phase space, equivalent to phase kick of all oscillators before simulation starts: phi`_0=', initPhiPrime0)
 		# phiSr[0] = initPhiPrime0												# set first dimension in rotated phase space constant for systems of more than 2 oscillators
@@ -159,11 +163,11 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0
 		_allPoints 			= itertools.product(*scanValues)
 		allPoints 			= list(_allPoints)									# scanValues is a list of lists: create a new list that gives all the possible combinations of items between the lists
 		allPoints 			= np.array(allPoints)								# convert the list to an array
-		allPoints_unitCell  = []
-		for point in allPoints:
-			if unit_cell.is_inside(point, isRotated=True):
-				allPoints_unitCell.append(point)
-		allPoints			= np.array(allPoints_unitCell)
+		# allPoints_unitCell  = []
+		# for point in allPoints:
+		# 	if unit_cell.is_inside(point, isRotated=True):
+		# 		allPoints_unitCell.append(point)
+		# allPoints			= np.array(allPoints_unitCell)
 	else:
 		# setup a matrix for all N variables/dimensions and create a cube around the origin with side lengths 2pi
 		scanValues = np.zeros((N-1,paramDiscretization), dtype=np.float)		# create container for all points in the discretized rotated phase space, +/- pi around each dimension (unit area)
@@ -175,13 +179,13 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0
 		_allPoints 			= itertools.product(*scanValues)
 		allPoints 			= list(_allPoints)									# scanValues is a list of lists: create a new list that gives all the possible combinations of items between the lists
 		allPoints 			= np.array(allPoints) 								# convert the list to an array
-		allPoints_unitCell  = []												# prepare container for points in the unit cell in rotated phase space
-		for point in allPoints:													# loop over all points and pick out the one that belong to the unit cell in rotated phase space
-			if unit_cell.is_inside(np.insert(point, 0, initPhiPrime0), isRotated=True):
-				allPoints_unitCell.append(point)
-		allPoints			= np.array(allPoints_unitCell)						# since we operated in full coordinates, we now drop the first dimension (related to global phase shift)
+		# allPoints_unitCell  = []												# prepare container for points in the unit cell in rotated phase space
+		# for point in allPoints:													# loop over all points and pick out the one that belong to the unit cell in rotated phase space
+		# 	if unit_cell.is_inside(np.insert(point, 0, initPhiPrime0), isRotated=True):
+		# 		allPoints_unitCell.append(point)
+		# allPoints			= np.array(allPoints_unitCell)						# since we operated in full coordinates, we now drop the first dimension (related to global phase shift)
 
-	print( 'all points in rotated phase space:\n', allPoints, '\n type:', type(allPoints), '\n')
+	# print( 'all points in rotated phase space:\n', allPoints, '\n type:', type(allPoints), '\n')
 	#print(_allPoints, '\n')
 	#print(itertools.product(*scanValues))
 

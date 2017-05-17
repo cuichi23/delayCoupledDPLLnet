@@ -244,11 +244,14 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	# "sh -e /etc/init.d/xvfb start"
 	# sleep 3 # give xvfb some time to start
 
+
+# scipy.interpolate.interp2d NOTE
+
 	print('results:', results.shape, '\n', results)
 	print('\nallPoints:', allPoints.shape, '\n', allPoints)
-	print('\nresults[:,0]:', results[:,0])
-	print('\nallPoints[:,0]+phiMr[d1]:', allPoints[:,0]+phiMr[d1])
-	print('\nallPoints[:,1]+phiMr[d2]:', allPoints[:,0]+phiMr[d1])
+	# print('\nresults[:,0]:', results[:,0])
+	# print('\nallPoints[:,0]+phiMr[d1]:', allPoints[:,0]+phiMr[d1])
+	# print('\nallPoints[:,1]+phiMr[d2]:', allPoints[:,0]+phiMr[d1])
 
 	''' IMPORTANT: since we add the perturbations additively, here we need to shift allPoints around the initial phases of the respective m-twist state, using phiMr '''
 	plt.figure(1)																# plot the mean of the order parameter over a period 2T
