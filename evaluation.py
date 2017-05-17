@@ -78,6 +78,72 @@ def rotate_phases(phi0, isInverse=False):
 	else:
 		return np.dot(np.transpose(r), phi0)									# transform back into physical phase space
 
+def get_dphi_matrix(n):
+	m = np.zeros((n * (n - 1), n))
+	x0 = 0
+	x1 = 0
+	for i in range(n * (n - 1)):
+		x0 = int(np.floor(i / float(n - 1)))
+		m[i, x0] = 1
+		if x1 == x0:
+			x1 += 1
+			x1 = np.mod(x1, n)
+
+		m[i, x1] = -1
+		x1 += 1
+		x1 = np.mod(x1, n)
+	return m
+	
+	
+class PhaseDifferenceCell(object):
+	def __init__(self, n):
+		self.n = n
+		self.dphi_matrix = get_dphi_matrix(n)
+		self.d_min = -np.pi
+		self.d_max = np.pi
+		
+	def is_inside(self, x, isRotated=False):
+		'''Checks if a vector is inside the phase difference unit cell.
+		
+		Parameters
+		----------
+		x  :  np.array
+ 				coordinate vector of length n which is the number of non-reduced dimensions
+		isRotated  :  boolean
+ 						True if x is given in rotated coordinates
+		
+		Returns
+		-------
+		is_inside  :  boolean
+ 						True if point is inside unit cell
+		'''
+		# Check if vector has the correct length
+		if len(x) != self.n:
+			raise Exception('Vector has not the required length n.')
+			
+		# Rotate back to initial coordinate system if required
+		if isRotated:
+			x_tmp = rotate_phases(x, isInverse=False)
+		else:
+			x_tmp = x
+
+		# Map to phase difference space
+		d = np.dot(self.dphi_matrix, x_tmp)
+
+		is_inside = True
+		for i in range(len(d)):
+			if d[i] < self.d_min:
+				is_inside = False
+				break
+			if d[i] > self.d_max:
+				is_inside = False
+				break
+
+		return is_inside		
+		
+		
+		
+		
 ''' CALCULATE KURAMOTO ORDER PARAMETER '''
 def calcKuramotoOrderParameter(phi):
 	'''Computes the Kuramoto order parameter r for in-phase synchronized states
@@ -85,13 +151,13 @@ def calcKuramotoOrderParameter(phi):
 	   Parameters
 	   ----------
 	   phi:  np.array
-	         real-valued 2d matrix or 1d vector of phases
-	         in the 2d case the columns of the matrix represent the individual oscillators
+	 		real-valued 2d matrix or 1d vector of phases
+	 		in the 2d case the columns of the matrix represent the individual oscillators
 
 	   Returns
 	   -------
 	   r  :  np.array
-	         real value or real-valued 1d vetor of the Kuramotot order parameter
+	 		real value or real-valued 1d vetor of the Kuramotot order parameter
 
 	   Authors
 	   -------
@@ -116,13 +182,13 @@ def mTwistOrderParameter(phi):
 	   Parameters
 	   ----------
 	   phi  :  np.array
-	           real-valued 2d matrix or 1d vector of phases
-	           in the 2d case the columns of the matrix represent the individual oscillators
+	   		real-valued 2d matrix or 1d vector of phases
+	   		in the 2d case the columns of the matrix represent the individual oscillators
 
 	   Returns
 	   -------
 	   rm  :  np.array
-	          complex-valued 1d vector or 2d matrix of the order parameter
+	  		complex-valued 1d vector or 2d matrix of the order parameter
 
 	   Authors
 	   -------
@@ -147,15 +213,15 @@ def oracle_mTwistOrderParameter(phi, k):
 	   Parameters
 	   ----------
 	   phi:  np.array
-	         real-valued 2d matrix or 1d vector of phases
-	         in the 2d case the columns of the matrix represent the individual oscillators
+	 		real-valued 2d matrix or 1d vector of phases
+	 		in the 2d case the columns of the matrix represent the individual oscillators
 	   k  :  integer
-	         the index of the requested Fourier order parameter
+	 		the index of the requested Fourier order parameter
 
 	   Returns
 	   -------
 	   rm  :  np.complex/np.array
-	          real value/real-valued 1d vector of the k-th order parameter
+	  		real value/real-valued 1d vector of the k-th order parameter
 
 	   Authors
 	   -------
