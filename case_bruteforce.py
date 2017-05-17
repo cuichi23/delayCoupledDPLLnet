@@ -144,12 +144,12 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0
 	phiMr = eva.rotate_phases(phiM, isInverse=True)								# calculate phiM in terms of rotated phase space
 	print('m-twist phases phiM =', phiM, 'in coordinates of rotated system, phiMr =', phiMr, '\n')
 
+	unit_cell = eva.PhaseDifferenceCell(N)
 	if N > 2:
 		print('shift along the first axis in rotated phase space, equivalent to phase kick of all oscillators before simulation starts: phi`_0=', initPhiPrime0)
 		# phiSr[0] = initPhiPrime0												# set first dimension in rotated phase space constant for systems of more than 2 oscillators
 		#print('phiMr =', phiMr, '\n')
 	# the space about each twist solution is scanned in [phiM-pi, phiM+pi] where phiM are the initial phases of the m-twist under investigation
-	unit_cell = eva.PhaseDifferenceCell(N)
 	if N==2:
 		scanValues = np.zeros((N,paramDiscretization), dtype=np.float)			# create container for all points in the discretized rotated phase space, +/- pi around each dimension (unit area)
 		scanValues[0,:] = np.linspace(-(np.pi), +(np.pi), paramDiscretization) 	# all entries are in rotated, and reduced phase space
@@ -162,12 +162,12 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0
 		allPoints_unitCell  = []
 		for point in allPoints:
 			if unit_cell.is_inside(point, isRotated=True):
-				allPoints_unitCell.append(point+phiMr)
+				allPoints_unitCell.append(point)
 		allPoints			= np.array(allPoints_unitCell)
 	else:
 		# setup a matrix for all N variables/dimensions and create a cube around the origin with side lengths 2pi
-		scanValues = np.zeros((N,paramDiscretization), dtype=np.float)			# create container for all points in the discretized rotated phase space, +/- pi around each dimension (unit area)
-		for i in range (0, N):													# the different coordinates of the solution, discretize an interval plus/minus pi around each variable
+		scanValues = np.zeros((N-1,paramDiscretization), dtype=np.float)		# create container for all points in the discretized rotated phase space, +/- pi around each dimension (unit area)
+		for i in range (0, N-1):													# the different coordinates of the solution, discretize an interval plus/minus pi around each variable
 			# scanValues[i,:] = np.linspace(phiMr[i+1]-np.pi, phiMr[i+1]+np.pi, paramDiscretization) # all entries are in rotated, and reduced phase space
 			scanValues[i,:] = np.linspace(-(np.pi), +(np.pi), paramDiscretization) 	# all entries are in rotated, and reduced phase space
 			#print('row', i,'of matrix with all intervals of the rotated phase space:\n', scanValues[i,:], '\n')
@@ -177,22 +177,18 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0
 		allPoints 			= np.array(allPoints) 								# convert the list to an array
 		allPoints_unitCell  = []												# prepare container for points in the unit cell in rotated phase space
 		for point in allPoints:													# loop over all points and pick out the one that belong to the unit cell in rotated phase space
-			if unit_cell.is_inside(point, isRotated=True):
-				allPoints_unitCell.append(point+phiMr)
-		allPoints			= np.array(allPoints_unitCell[:,1:])				# since we operated in full coordinates, we now drop the first dimension (related to global phase shift)
+			if unit_cell.is_inside(np.insert(point, 0, initPhiPrime0), isRotated=True):
+				allPoints_unitCell.append(point)
+		allPoints			= np.array(allPoints_unitCell)						# since we operated in full coordinates, we now drop the first dimension (related to global phase shift)
 
-	#print( 'all points in rotated phase space:\n', allPoints, '\n type:', type(allPoints), '\n')
+	print( 'all points in rotated phase space:\n', allPoints, '\n type:', type(allPoints), '\n')
 	#print(_allPoints, '\n')
 	#print(itertools.product(*scanValues))
 
 	t0 = time.time()
 	if multiproc:																# multiprocessing option for parameter sweep calulcations
-		if N == 2:
-			Nsim = paramDiscretization**N
-			print('multiprocessing', Nsim, 'realizations')
-		else:
-			Nsim = paramDiscretization**(N-1)
-			print('multiprocessing', paramDiscretization**(N-1), 'realizations')
+		Nsim = allPoints.shape[0]
+		print('multiprocessing', Nsim, 'realizations')
 		pool_data=[];
 		freeze_support()
 		pool = Pool(processes=numberCores)										# create a Pool object
