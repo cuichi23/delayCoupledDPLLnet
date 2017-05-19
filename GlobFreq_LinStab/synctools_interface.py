@@ -191,7 +191,10 @@ class SweepFactory(object):
         # Set up sweep loop
         fsl = FlatStateList(sweep_factory=self)
         for i in range(len(self.values_sweep)):
-            print i
+            print self.values_sweep[i]
+
+            # Set new value for sweep variable
+            self[self.key_sweep] = self.values_sweep[i]
 
             # Construct system
             pll_sys = self.init_system()
@@ -199,9 +202,6 @@ class SweepFactory(object):
             # Get states
             s = self.get_states(pll_sys)
             fsl.add_states(s)
-
-            # Set new value for sweep variable
-            self[self.key_sweep] = self.values_sweep[i]
 
         return fsl
 
