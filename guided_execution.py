@@ -331,7 +331,7 @@ def chooseCsvSaveOption(param_cases_csv, para_mat, topology, couplingfct, c):
 			while c_true:
 				# get user input on whether new parameter sets should be simulated, or JUST added to an csv file
 				decision1 = raw_input('\nSimulate new parameter sets? [y]es/[n]o Otherwise they will just be saved to csv-database! ')
-				print('New parameter sets will be saved to csv-database! {K, Fc, delay, Fomeg, m ,Tsim, id, ReLambda, EstSimseconds, topology, c}')
+				print('New parameter sets will be saved to csv-database! {K, Fc, delay, Fomeg, m ,Tsim, id, ReLambda, EstSimseconds, topology, c, N, couplingfct, Nx, Ny, mx, my}')
 				writeCsvFileNewCases(para_mat_new, topology, couplingfct, c)
 				if decision1 == 'y':
 					return para_mat_new											# returned for simulation
@@ -354,15 +354,15 @@ def writeCsvFileNewCases(para_mat_new, topology, couplingfct, c):
 	lastIDcsv = len(param_cases_csv.sort_values('id'))+3						# have to add 3 in order to account for the header of the csv file
 	# print('In write function! Here para_mat_new[0,7]: ', para_mat_new[0,7])
 	with open('GlobFreq_LinStab/DPLLParameters.csv', 'a') as f:				# 'a' means append to file! other modes: 'w' write only and replace existing file, 'r' readonly...
-		writer = csv.writer(f, delimiter=',') #, header=2, dtype={'K': np.float, 'Fc': np.float, 'delay': np.float, 'F_Omeg': np.float, 'k': np.int, 'Tsim': np.int, 'sim-time-approx': np.float, 'topology': np.str, 'c': np.float})
-		# write row K, Fc, delay, F_Omeg, k, Tsim, sim-time-approx, topology, c, Nx, Ny, mx, my
+		writer = csv.writer(f, delimiter=',') #, dtype={'K':np.float, 'Fc':np.float, 'delay':np.float, 'F_Omeg':np.float, 'k':np.int, 'Tsim':np.int, 'id':np.int, 'ReLambda':np.float, 'SimSeconds':np.float, 'topology':np.str, 'c':np.float, 'N':np.int, 'couplingfct':np.str, 'Nx':np.int, 'Ny':np.int, 'mx':np.int, 'my':np.int})
+		# write row K, Fc, delay, F_Omeg, k, Tsim, id, ReLambda, Tsim, topology, c, Nx, Ny, mx, my
 		for i in range (len(para_mat_new[:,0])):
 			id_line = lastIDcsv+1+i
-			temp = [ str(float(para_mat_new[i,2])), str(float(para_mat_new[i,3])), str(float(para_mat_new[i,4])), str(float(para_mat_new[i,6])),
+			temp = [str(float(para_mat_new[i,2])), str(float(para_mat_new[i,3])), str(float(para_mat_new[i,4])), str(float(para_mat_new[i,6])),
 						str(float(para_mat_new[i,5])), str(int(round(float(para_mat_new[i,9])))), str(id_line), str(para_mat_new[i,7]),
-						str(float(para_mat_new[i,9]/20.0)), str(topology), str(c), str(int(para_mat_new[i,0])), str(couplingfct),
-						str(para_mat_new[i,10]), str(para_mat_new[i,11]), str(para_mat_new[i,12]), str(para_mat_new[i,13])]
-			print('\n', temp, '\n')
+						str((float(para_mat_new[i,9])/25.0)), str(topology), str(c), str(int(para_mat_new[i,0])), str(couplingfct),
+						str(para_mat_new[i,10]), str(para_mat_new[i,11]), str(para_mat_new[i,12]), str(para_mat_new[i,13])] #list of strings, set by the parameters
+			print('\nWRITEOUT:', temp, '\n')
 			writer.writerow(temp)
 
 	return None
