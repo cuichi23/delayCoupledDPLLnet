@@ -191,7 +191,7 @@ class SweepFactory(object):
         # Set up sweep loop
         fsl = FlatStateList(sweep_factory=self)
         for i in range(len(self.values_sweep)):
-            print self.values_sweep[i]
+            print( self.values_sweep[i] )
 
             # Set new value for sweep variable
             self[self.key_sweep] = self.values_sweep[i]
@@ -465,5 +465,3 @@ class FlatStateList(object):
             return x
         else:
             return None
-
-
