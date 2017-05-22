@@ -5,6 +5,7 @@ from __future__ import print_function
 
 import evaluation as eva
 import numpy as np
+import numpy.ma as ma
 import matplotlib
 import os
 if not os.environ.get('SGE_ROOT') == None:										# this environment variable is set within the queue network, i.e., if it exists, 'Agg' mode to supress output
@@ -292,7 +293,8 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	ax.set_aspect('equal')
 	tempresults = results[:,0].reshape((paramDiscretization, paramDiscretization))   #np.flipud()
 	tempresults = np.transpose(tempresults)
-	plt.imshow(tempresults, interpolation='nearest', cmap=cm.coolwarm, aspect='auto', origin='lower', extent=(allPoints[:,0].min()+phiMr[d1], allPoints[:,0].max()+phiMr[d1], allPoints[:,1].min()+phiMr[d2], allPoints[:,1].max()+phiMr[d2]), vmin=0, vmax=1)
+	tempresults_ma = ma.masked_where(tempresults < 0, tempresults)				# Create masked array
+	plt.imshow(tempresults_ma, interpolation='nearest', cmap=cm.coolwarm, aspect='auto', origin='lower', extent=(allPoints[:,0].min()+phiMr[d1], allPoints[:,0].max()+phiMr[d1], allPoints[:,1].min()+phiMr[d2], allPoints[:,1].max()+phiMr[d2]), vmin=0, vmax=1)
 	plt.title(r'mean $R(t,m=%d )$, constant dim: $\phi_0^{\prime}=%.2f$' %(int(k) ,initPhiPrime0) )
 	plt.xlabel(r'$\phi_1^{\prime}$')
 	plt.ylabel(r'$\phi_2^{\prime}$')
@@ -310,7 +312,8 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	ax.set_aspect('equal')
 	tempresults = results[:,1].reshape((paramDiscretization, paramDiscretization))   #np.flipud()
 	tempresults = np.transpose(tempresults)
-	plt.imshow(tempresults, interpolation='nearest', cmap=cm.coolwarm, aspect='auto', origin='lower', extent=(allPoints[:,0].min()+phiMr[d1], allPoints[:,0].max()+phiMr[d1], allPoints[:,1].min()+phiMr[d2], allPoints[:,1].max()+phiMr[d2]), vmin=0, vmax=1)
+	tempresults_ma = ma.masked_where(tempresults < 0, tempresults)				# Create masked array
+	plt.imshow(tempresults_ma, interpolation='nearest', cmap=cm.coolwarm, aspect='auto', origin='lower', extent=(allPoints[:,0].min()+phiMr[d1], allPoints[:,0].max()+phiMr[d1], allPoints[:,1].min()+phiMr[d2], allPoints[:,1].max()+phiMr[d2]), vmin=0, vmax=1)
 	plt.title(r'last $R(t,m=%d )$, constant dim: $\phi_0^{\prime}=%.2f$' %(int(k) ,initPhiPrime0) )
 	plt.xlabel(r'$\phi_1^{\prime}$')
 	plt.ylabel(r'$\phi_2^{\prime}$')
