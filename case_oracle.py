@@ -98,15 +98,15 @@ if __name__ == '__main__':
 	# print('algorithm mode (Josefine)')
 	# process arguments -- provided on program call, e.g. python oracle.py [arg0] [arg1] ... [argN], call, e.g.: oracle.py ring 3 1 0.25 0.1 1.15 1 1. 1. 1. 0.0 0.0 0.0
 	topology	= str(sys.argv[1])												# topology: {global, chain, ring, square-open, square-periodic, hexagonal lattice, osctagon}
-	N 		 	= int(sys.argv[2])												# number of oscillators
+	N 		 	= int(float(sys.argv[2]))										# number of oscillators
 	K 			= float(sys.argv[3])											# coupling strength
 	Fc 			= float(sys.argv[4])											# cut-off frequency of the loop filter
 	delay 		= float(sys.argv[5])											# signal transmission delay
 	F_Omeg 		= float(sys.argv[6])											# frequency of the synchronized state under investigation - has to be obtained before
-	k 			= int(sys.argv[7])												# twist-number, specifies solutions of interest, important for setting initial conditions
+	k 			= int(float(sys.argv[7]))										# twist-number, specifies solutions of interest, important for setting initial conditions
 	Tsim 		= float(sys.argv[8])											# provide the multiples of the intrinsic frequencies for which the simulations runs
 	c 			= float(sys.argv[9])											# provide diffusion constant for GWN process, bzw. sigma^2 = 2*c  --> c = 0.5 variance
-	Nsim 		= int(sys.argv[10])												# number of realizations for parameterset -- should be one here
+	Nsim 		= int(float(sys.argv[10]))										# number of realizations for parameterset -- should be one here
 
 
 	# print('Note: here the cases with 2d-twist solutions still needs to be implemented!')

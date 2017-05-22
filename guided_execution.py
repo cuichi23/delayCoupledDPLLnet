@@ -360,7 +360,7 @@ def writeCsvFileNewCases(para_mat_new, topology, couplingfct, c):
 			id_line = lastIDcsv+1+i
 			temp = [str(float(para_mat_new[i,2])), str(float(para_mat_new[i,3])), str(float(para_mat_new[i,4])), str(float(para_mat_new[i,6])),
 						str(float(para_mat_new[i,5])), str(int(round(float(para_mat_new[i,9])))), str(id_line), str(para_mat_new[i,7]),
-						str((float(para_mat_new[i,9])/25.0)), str(topology), str(c), str(int(para_mat_new[i,0])), str(couplingfct),
+						str(int((float(para_mat_new[i,9])/25.0))), str(topology), str(float(c)), str(int(float(para_mat_new[i,0]))), str(couplingfct),
 						str(para_mat_new[i,10]), str(para_mat_new[i,11]), str(para_mat_new[i,12]), str(para_mat_new[i,13])] #list of strings, set by the parameters
 			print('\nWRITEOUT:', temp, '\n')
 			writer.writerow(temp)

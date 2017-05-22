@@ -315,19 +315,19 @@ if __name__ == '__main__':
 
 	# process arguments -- provided on program call, e.g. python oracle.py [arg0] [arg1] ... [argN]
 	topology	= str(sys.argv[1])												# topology: {global, chain, ring, square-open, square-periodic, hexagonal lattice, osctagon}
-	N 		 	= int(sys.argv[2])												# number of oscillators
+	N 		 	= int(float(sys.argv[2]))										# number of oscillators
 	K 			= float(sys.argv[3])											# coupling strength
 	Fc 			= float(sys.argv[4])											# cut-off frequency of the loop filter
 	delay 		= float(sys.argv[5])											# signal transmission delay
 	F_Omeg 		= float(sys.argv[6])											# frequency of the synchronized state under investigation - has to be obtained before
-	k 			= int(sys.argv[7])												# twist-number, specifies solutions of interest, important for setting initial conditions
+	k 			= int(float(sys.argv[7]))										# twist-number, specifies solutions of interest, important for setting initial conditions
 	Tsim 		= float(sys.argv[8])											# provide the multiples of the intrinsic frequencies for which the simulations runs
 	c 			= float(sys.argv[9])											# provide diffusion constant for GWN process, bzw. sigma^2 = 2*c  --> c = 0.5 variance
-	Nsim 		= int(sys.argv[10])												# number of realizations for parameterset -- should be one here
-	Nx			= int(sys.argv[11])												# number of oscillators in x-direction
-	Ny			= int(sys.argv[12])												# number of oscillators in y-direction
-	mx			= int(sys.argv[13])												# twist number in x-direction
-	my			= int(sys.argv[14])												# twist number in y-direction
+	Nsim 		= int(float(sys.argv[10]))										# number of realizations for parameterset -- should be one here
+	Nx			= int(float(sys.argv[11]))										# number of oscillators in x-direction
+	Ny			= int(float(sys.argv[12]))										# number of oscillators in y-direction
+	mx			= int(float(sys.argv[13]))										# twist number in x-direction
+	my			= int(float(sys.argv[14]))										# twist number in y-direction
 	cLF			= float(sys.argv[15])											# diff constant of GWN in LF
 
 	bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx, Ny, mx, my, [], False)
