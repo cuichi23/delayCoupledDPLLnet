@@ -253,13 +253,22 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	# print('\nresults[:,0]:', results[:,0])
 	# print('\nallPoints[:,0]+phiMr[d1]:', allPoints[:,0]+phiMr[d1])
 	# print('\nallPoints[:,1]+phiMr[d2]:', allPoints[:,0]+phiMr[d1])
+	''' prepare colormap for scatter plot that is always in [0, 1] or [min(results), max(results)] '''
+
+	cdict = {
+	  'red'  :  ( (0.0, 0.25, .25), (0.02, .59, .59), (1., 1., 1.)),
+	  'green':  ( (0.0, 0.0, 0.0), (0.02, .45, .45), (1., .97, .97)),
+	  'blue' :  ( (0.0, 1.0, 1.0), (0.02, .75, .75), (1., 0.45, 0.45))
+	}
+
+	colormap = matplotlib.colors.LinearSegmentedColormap('my_colormap', cdict, 1024)
 
 	''' IMPORTANT: since we add the perturbations additively, here we need to shift allPoints around the initial phases of the respective m-twist state, using phiMr '''
 	plt.figure(1)																# plot the mean of the order parameter over a period 2T
 	plt.clf()
 	ax = plt.subplot(1, 1, 1)
 	ax.set_aspect('equal')
-	plt.scatter(allPoints[:,0]+phiMr[d1], allPoints[:,1]+phiMr[d2], c=results[:,0], alpha=0.5, edgecolor='')
+	plt.scatter(allPoints[:,0]+phiMr[d1], allPoints[:,1]+phiMr[d2], c=results[:,0], alpha=0.5, edgecolor='', cmap=colormap, vmin=0, vmax=1)
 	plt.title(r'mean $R(t,m=%d )$, constant dim: $\phi_0^{\prime}=%.2f$' %(int(k) ,initPhiPrime0) )
 	plt.xlabel(r'$\phi_1^{\prime}$')
 	plt.ylabel(r'$\phi_2^{\prime}$')
@@ -275,7 +284,7 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	plt.clf()
 	ax = plt.subplot(1, 1, 1)
 	ax.set_aspect('equal')
-	plt.scatter(allPoints[:,0]+phiMr[d1], allPoints[:,1]+phiMr[d2], c=results[:,1], alpha=0.5, edgecolor='')
+	plt.scatter(allPoints[:,0]+phiMr[d1], allPoints[:,1]+phiMr[d2], c=results[:,1], alpha=0.5, edgecolor='', cmap=colormap, vmin=0, vmax=max(results[:,1]))
 	plt.title(r'last $R(t,m=%d )$, constant dim: $\phi_0^{\prime}=%.2f$' %(int(k) ,initPhiPrime0) )
 	plt.xlabel(r'$\phi_1^{\prime}$')
 	plt.ylabel(r'$\phi_2^{\prime}$')

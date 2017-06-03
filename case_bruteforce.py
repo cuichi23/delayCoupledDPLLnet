@@ -47,6 +47,12 @@ def multihelper(phiSr, initPhiPrime0, topology, couplingfct, F, Nsteps, dt, c, F
 	phiS = eva.rotate_phases(phiSr, isInverse=False)							# rotate back into physical phase space
 	# print('TEST in multihelper, phiS:', phiS, ' and phiSr:', phiSr)
 	unit_cell = eva.PhaseDifferenceCell(N)
+
+
+	SO anpassen, dass auch gegen verschobene Einheitszelle grprüft werden kann (e.g. if not k==0...)
+	ODER reicht schon:
+	if not unit_cell.is_inside(( phiS ), isRotated=False):   ???
+
 	if not unit_cell.is_inside((phiS+phiM), isRotated=False):
 		return {'mean_order': -1., 'last_orderP': -1., 'stdev_orderP': np.zeros(1), 'phases': phiM,
 		 		'intrinfreq': np.zeros(1), 'coupling_strength': np.zeros(1), 'transdelays': delay}
@@ -172,8 +178,8 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0
 		# setup a matrix for all N variables/dimensions and create a cube around the origin with side lengths 2pi
 		scanValues = np.zeros((N-1,paramDiscretization), dtype=np.float)		# create container for all points in the discretized rotated phase space, +/- pi around each dimension (unit area)
 		for i in range (0, N-1):													# the different coordinates of the solution, discretize an interval plus/minus pi around each variable
-			# scanValues[i,:] = np.linspace(phiMr[i+1]-np.pi, phiMr[i+1]+np.pi, paramDiscretization) # all entries are in rotated, and reduced phase space
-			scanValues[i,:] = np.linspace(-(np.pi), +(np.pi), paramDiscretization) 	# all entries are in rotated, and reduced phase space
+			scanValues[i,:] = np.linspace(phiMr[i+1]-np.pi, phiMr[i+1]+np.pi, paramDiscretization) # all entries are in rotated, and reduced phase space
+			#scanValues[i,:] = np.linspace(-(np.pi), +(np.pi), paramDiscretization) 	# all entries are in rotated, and reduced phase space
 			#print('row', i,'of matrix with all intervals of the rotated phase space:\n', scanValues[i,:], '\n')
 
 		_allPoints 			= itertools.product(*scanValues)
