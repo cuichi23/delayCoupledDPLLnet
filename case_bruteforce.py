@@ -47,13 +47,10 @@ def multihelper(phiSr, initPhiPrime0, topology, couplingfct, F, Nsteps, dt, c, F
 	phiS = eva.rotate_phases(phiSr, isInverse=False)							# rotate back into physical phase space
 	# print('TEST in multihelper, phiS:', phiS, ' and phiSr:', phiSr)
 	unit_cell = eva.PhaseDifferenceCell(N)
-
-
-	SO anpassen, dass auch gegen verschobene Einheitszelle grprüft werden kann (e.g. if not k==0...)
-	ODER reicht schon:
-	if not unit_cell.is_inside(( phiS ), isRotated=False):   ???
-
-	if not unit_cell.is_inside((phiS+phiM), isRotated=False):
+	# SO anpassen, dass auch gegen verschobene Einheitszelle geprueft werden kann (e.g. if not k==0...)
+	# ODER reicht schon:
+	# if not unit_cell.is_inside(( phiS ), isRotated=False):   ???
+	if not unit_cell.is_inside((phiS-phiM), isRotated=False):						# +phiM
 		return {'mean_order': -1., 'last_orderP': -1., 'stdev_orderP': np.zeros(1), 'phases': phiM,
 		 		'intrinfreq': np.zeros(1), 'coupling_strength': np.zeros(1), 'transdelays': delay}
 	else:
@@ -106,10 +103,14 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0
 	# this direction corresponds to the case where all phi_k in the original phase space are equal phi_0==phi_1==...==phi_N-1 or (all) have constant phase differences
 	initPhiPrime0 = ( 0.0 * np.pi )
 
+	twistdelta=0; cheqdelta=0; twistdelta_x=0; twistdelta_y=0;
 	if ( topology == 'square-open' or topology == 'square-periodic'  or topology == 'hexagon' or topology == 'octagon' ):
 		if topology == 'square-open':
 			cheqdelta_x = np.pi 												# phase difference between neighboring oscillators in a stable chequerboard state
 			cheqdelta_y = np.pi 												# phase difference between neighboring oscillators in a stable chequerboard state
+			twistdelta_x = cheqdelta_x											# important for evaluation
+			twistdelta_y = cheqdelta_x											# important for evaluation
+			twistdelta = twistdelta_x											# important for evaluation
 			# print('phase differences of',k,'-twist:', twistdelta, '\n')
 			if (k == 0 and kx == 0 and ky == 0):
 				phiM = np.zeros(N)												# phiM denotes the unperturbed initial phases according to the m-twist state under investigation
@@ -123,6 +124,7 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0
 		else:
 			twistdelta_x = ( 2.0 * np.pi * kx / ( float( Nx ) ) )				# phase difference between neighboring oscillators in a stable m-twist state
 			twistdelta_y = ( 2.0 * np.pi * ky / ( float( Ny ) ) )				# phase difference between neighboring oscillators in a stable m-twist state
+			twistdelta = twistdelta_x											# important for evaluation
 			# print('phase differences of',k,'-twist:', twistdelta, '\n')
 			if (k == 0 and kx == 0 and ky == 0):
 				phiM = np.zeros(N)												# phiM denotes the unperturbed initial phases according to the m-twist state under investigation
@@ -136,6 +138,7 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0
 	if ( topology == 'ring' or topology == 'chain' ):
 		if topology == 'chain':
 			cheqdelta = np.pi													# phase difference between neighboring oscillators in a stable chequerboard state
+			twistdelta = cheqdelta												# important for evaluation, cheqdelta is just a temporary variable here
 			print('phase differences of',k,' chequerboard:', cheqdelta, '\n')
 			if k == 0:
 				phiM = np.zeros(N)												# phiM denotes the unperturbed initial phases according to the chequerboard state under investigation
@@ -278,7 +281,7 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0
 	# np.savez('results/allInitPerturbPoints_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), allPoints=allPoints)
 
 	''' EXTRA EVALUATION '''
-	out.doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints, initPhiPrime0, phiMr, paramDiscretization, delays_0, show_plot)
+	out.doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints, initPhiPrime0, phiMr, paramDiscretization, delays_0, twistdelta_x, twistdelta_y, show_plot)
 
 	del results; del allPoints; del initPhiPrime0; del K_0;						# emtpy data container to free memory
 	return None

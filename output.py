@@ -205,7 +205,7 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, cLF_
 		plt.show()
 
 ''' EVALUATION BRUTE-FORCE BASIN OF ATTRACTION '''
-def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints, initPhiPrime0, phiMr, paramDiscretization, delays_0, show_plot=True):
+def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints, initPhiPrime0, phiMr, paramDiscretization, delays_0, twistdelta_x, twistdelta_y, show_plot=True):
 	''' Here addtional output, e.g., graphs or matrices can be implemented for testing '''
 	# we want to plot all the m-twist locations in rotated phase space: calculate phases, rotate and then plot into the results
 	twist_points  = np.zeros((N, N), dtype=np.float)							# twist points in physical phase space
