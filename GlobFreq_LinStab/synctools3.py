@@ -149,7 +149,7 @@ class Cubic2D(Arrangement):
         return np.array([y, x], dtype=np.int32)
 
     def coordinate2index(self, yx):
-        return self.nx * yx[0] + yx[0]
+        return self.nx * yx[0] + yx[1]
 
 
 
@@ -261,6 +261,7 @@ class Graph(object):
                 tmp = self.arr.wrap_coordinates(el)
                 tmp = self.arr.coordinate2index(tmp)
                 i_c.append(tmp)
+
         i_c = np.array(i_c)
 
         # Construct coupling vector in index space
