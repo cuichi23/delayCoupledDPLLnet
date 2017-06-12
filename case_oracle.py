@@ -21,7 +21,7 @@ import datetime
 ''' SIMULATION CALL '''
 def simulatePllNetwork(mode,topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, cLF, diffconstK, Nx=0, Ny=0, kx=0, ky=0, isPlottingTimeSeries=False):
 	''' SIMULATION OF NETWORK '''
-	simresult = sim.simulateNetwork(mode,N,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,couplingfct,phiS,phiM,domega,diffconstK,cLF,Nx,Ny)
+	simresult = sim.simulateNetwork(mode,N,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,couplingfct,phiS,phiM,domega,diffconstK,cLF,Nx,Ny) # kx and ky do not need to be handed over - already in phiM contained
 	phi		  = simresult['phases']
 	omega_0   = simresult['intrinfreq']
 	K_0       = simresult['coupling_strength']
@@ -107,15 +107,10 @@ if __name__ == '__main__':
 	Tsim 		= float(sys.argv[8])											# provide the multiples of the intrinsic frequencies for which the simulations runs
 	c 			= float(sys.argv[9])											# provide diffusion constant for GWN process, bzw. sigma^2 = 2*c  --> c = 0.5 variance
 	Nsim 		= int(float(sys.argv[10]))										# number of realizations for parameterset -- should be one here
-
-
-	# print('Note: here the cases with 2d-twist solutions still needs to be implemented!')
-
-
-	# Nx			= int(sys.argv[11])												# number of oscillators in x-direction
-	# Ny			= int(sys.argv[12])												# number of oscillators in y-direction
-	# mx			= int(sys.argv[13])												# twist number in x-direction
-	# my			= int(sys.argv[14])												# twist number in y-direction
+	Nx			= int(sys.argv[11])												# number of oscillators in x-direction
+	Ny			= int(sys.argv[12])												# number of oscillators in y-direction
+	mx			= int(sys.argv[13])												# twist number in x-direction
+	my			= int(sys.argv[14])												# twist number in y-direction
 	phiSr 		= np.asarray([float(phi) for phi in sys.argv[11:(11+N)]])		# this input allows to simulate specific points in !rotated phase space plane
 
 	Tsim 		= Tsim*(1.0/F)  												# simulation time in multiples of the period of the uncoupled oscillators
@@ -185,7 +180,7 @@ if __name__ == '__main__':
 		print(0)
 	else:
 		# print(simulatePllNetwork(mode, topology, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, False))
-		data = simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, cLF,  False)
+		data = simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, cLF, False)
 		results = np.array( [ data['mean_order'],  data['last_orderP'], data['stdev_orderP'] ] )
 		phi     = data['phases']
 		omega_0 = data['intrinfreq']
