@@ -257,8 +257,8 @@ if __name__ == '__main__':
 	Nsim 		= int(sys.argv[10])												# number of realizations for parameterset -- should be one here
 	Nx			= int(sys.argv[11])												# number of oscillators in x-direction
 	Ny			= int(sys.argv[12])												# number of oscillators in y-direction
-	mx			= int(sys.argv[13])												# twist number in x-direction
-	my			= int(sys.argv[14])												# twist number in y-direction
+	mx			= int(sys.argv[13])												# twist number in x-direction (also kx)
+	my			= int(sys.argv[14])												# twist number in y-direction (also ky)
 	cLF			= float(sys.argv[15])											# diff constant of GWN in LF
 	phiSr 		= np.asarray([float(phi) for phi in sys.argv[16:(16+N)]])		# this input allows to simulate specific points in !rotated phase space plane
 

@@ -409,6 +409,9 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,coupling
 		it is important however, to get the details associated to this transformation, concerning initial condition for the condtrol signal in the case of the ODE first order
 		or instead the continuous history in case of the integration '''
 	np.random.seed()															# restart pseudo random-number generator
+	if not Nx*Ny == Nplls:
+		print('Number of PLLs N needs to be equal to Nx*Ny! Here (Nplls, Nx, Ny)=', Nplls, Nx, Ny, 'Correcting now with Nplls=Nx*Ny.')
+		Nplls=Nx*Ny
 	# NOTE Generate PLL objects here
 	pll_list = generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,y0,phiM,domega,diffconstK,Nx,Ny,cLF,Trelax)	# create object lists of PLL objects of the network
 
@@ -719,6 +722,7 @@ def generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,
 									)  for idx_pll in range(Nplls) ]				# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
 			if couplingfct == 'triang':
 				# print('Initiate (phase shifted) PLL objects. Simulate with additive noise, triangular coupling function.')
+				print('The coupling topology is given by:', G, ' for topology:', topology)
 				pll_list = [ PhaseLockedLoop(									# setup PLLs and storage in a list as PLL class objects
 									Delayer(delay,dt),							# delayer takes a time series and returns values at t and t-tau
 									PhaseDetectorCombiner(idx_pll, G.neighbors(idx_pll)),

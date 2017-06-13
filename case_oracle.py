@@ -19,7 +19,7 @@ import time
 import datetime
 
 ''' SIMULATION CALL '''
-def simulatePllNetwork(mode,topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, cLF, diffconstK, Nx=0, Ny=0, kx=0, ky=0, isPlottingTimeSeries=False):
+def simulatePllNetwork(mode,topology,couplingfct,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,phiS,phiM,domega,cLF,diffconstK,Nx=0,Ny=0,kx=0,ky=0,isPlottingTimeSeries=False):
 	''' SIMULATION OF NETWORK '''
 	simresult = sim.simulateNetwork(mode,N,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,couplingfct,phiS,phiM,domega,diffconstK,cLF,Nx,Ny) # kx and ky do not need to be handed over - already in phiM contained
 	phi		  = simresult['phases']
@@ -109,9 +109,13 @@ if __name__ == '__main__':
 	Nsim 		= int(float(sys.argv[10]))										# number of realizations for parameterset -- should be one here
 	Nx			= int(sys.argv[11])												# number of oscillators in x-direction
 	Ny			= int(sys.argv[12])												# number of oscillators in y-direction
-	mx			= int(sys.argv[13])												# twist number in x-direction
-	my			= int(sys.argv[14])												# twist number in y-direction
-	phiSr 		= np.asarray([float(phi) for phi in sys.argv[11:(11+N)]])		# this input allows to simulate specific points in !rotated phase space plane
+	kx			= int(sys.argv[13])												# twist number in x-direction
+	ky			= int(sys.argv[14])												# twist number in y-direction
+	phiSr 		= np.asarray([float(phi) for phi in sys.argv[15:(15+N)]])		# this input allows to simulate specific points in !rotated phase space plane
+
+	if phiSr == []:
+		print('No perturbation vector provided, setting up a vector with N entries, all zero.')
+		phiSr=zeros(N)
 
 	Tsim 		= Tsim*(1.0/F)  												# simulation time in multiples of the period of the uncoupled oscillators
 	Nsteps 		= int(round(Tsim*Fsim))											# calculate number of iterations -- add output?
@@ -125,7 +129,7 @@ if __name__ == '__main__':
 	# considering only the perpendicular plane spanned by phi'_1, phi'_2, ..., phi'_N; if non-zero however, it introduces a global phase shift into the history, implying a different history
 	phiSr[0] = initPhiPrime0
 	# if looking for m-twists, this variable holds the phase difference between neighboring oscillators in a stable m-twist state
-	if ( topology == 'square-open' or topology == 'square-periodic'  or topology == 'hexagon' or topology == 'octagon' ):
+	if ( topology == 'square-open' or topology == 'square-periodic' or topology == 'hexagon' or topology == 'octagon' ):
 		if topology == 'square-open':
 			cheqdelta_x = np.pi 												# phase difference between neighboring oscillators in a stable chequerboard state
 			cheqdelta_y = np.pi 												# phase difference between neighboring oscillators in a stable chequerboard state
@@ -176,11 +180,11 @@ if __name__ == '__main__':
 	# with that we are using the periodicity of m-twist solutions in the phase-space of phases (rotated phase space!)
 	unit_cell = eva.PhaseDifferenceCell(N)
 	# if any(phiSr[:]<-np.pi) | any(phiSr[:]> np.pi):
-	if not unit_cell.is_inside(phiSr, isRotated=True):							# check, whether point phiSr belongs to the unit cell
+	if not unit_cell.is_inside((phiS-phiM), isRotated=False):					# check, whether point phiSr belongs to the unit cell
 		print(0)
 	else:
 		# print(simulatePllNetwork(mode, topology, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, False))
-		data = simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, cLF, False)
+		data = simulatePllNetwork(mode,topology,couplingfct,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,phiS,phiM,domega,cLF,diffconstK,Nx,Ny,kx,ky,False)
 		results = np.array( [ data['mean_order'],  data['last_orderP'], data['stdev_orderP'] ] )
 		phi     = data['phases']
 		omega_0 = data['intrinfreq']
