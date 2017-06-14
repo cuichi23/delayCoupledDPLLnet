@@ -537,7 +537,7 @@ class SyncStateFactory(object):
         h_min = self.sys.g.func.min()
         h_max = self.sys.g.func.max()
         c_bar = self.sys.g.get_single_site_coupling(k)
-        c_bar_sum = np.sum(c_bar)       # should be 1 for normalized coupling
+        c_bar_sum = np.sum(c_bar)                                               # should be 1 for normalized coupling
         h_sum_min = c_bar_sum * h_min
         h_sum_max = c_bar_sum * h_max
 

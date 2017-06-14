@@ -105,7 +105,7 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny
 			print('values of initial phase in ORIGINAL phase space:', phiS, '\n')
 	else:
 		print('phiSr: ', phiSr)
-		print('Either no initial perturbations given, or Error in parameters - supply: \ncase_[sim_mode].py [topology] [#osci] [K] [F_c] [delay] [F_Omeg] [k] [Tsim] [c] [Nsim] [N entries for the value of the perturbation to oscis]')
+		print('Either no initial perturbations given, or Error in parameters - supply:\ncase_[sim_mode].py [topology] [#osci] [K] [F_c] [delay] [F_Omeg] [k] [Tsim] [c] [Nsim] [Nx] [Ny] [mx] [my] [cLF] [N entries for the value of the perturbation to oscis]')
 		# sys.exit(0)
 		phiSValues = np.zeros(N, dtype=np.float)								# create vector that will contain the initial perturbation (in the history) for each realizations
 		print('\nNo perturbation set, hence all perturbations have the default value zero (in original phase space of phases)!')

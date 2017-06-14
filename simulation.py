@@ -648,6 +648,10 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,coupling
 
 ''' CREATE PLL LIST '''
 def generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,y0,phiM,domega,diffconstK,Nx,Ny,cLF,Trelax=0):
+	if not Nplls == Nx*Ny:
+		print()
+		Nplls = Nx*Ny
+
 	if topology == 'global':
 		G = nx.complete_graph(Nplls)
 		# print('G and G.neighbors(PLL0):', G, G.neighbors(0))
@@ -658,7 +662,7 @@ def generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,
 	else:
 		N = np.sqrt(Nplls)
 		if Nx == Ny:
-			if N.is_integer():
+			if N.is_integer():													# indirect check, whether N is an integer, which it should be for Nx=Ny as above checked
 				N = int(N)
 			else:
 				raise ValueError('Npll is not valid: sqrt(N) is not an integer')
@@ -667,14 +671,14 @@ def generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,
 		elif topology == 'square-periodic':
 			G=nx.grid_2d_graph(Nx,Ny, periodic=True)                            # for periodic boundary conditions:
 		elif topology == 'hexagon':
-			G=nx.grid_2d_graph(N,N)
+			G=nx.grid_2d_graph(N,N)												# why not ..._graph(Nx,Ny) ? NOTE the for n in G: loop has to be changed, loop over nx and ny respectively, etc....
 			for n in G:
 				x,y=n
 				if x>0 and y>0:
 					G.add_edge(n,(x-1,y-1))
 				if x<N-1 and y<N-1:
 					G.add_edge(n,(x+1,y+1))
-		elif topology == 'octagon':
+		elif topology == 'octagon':												# why not ..._graph(Nx,Ny) ? NOTE the for n in G: loop has to be changed, loop over nx and ny respectively, etc....
 			G=nx.grid_2d_graph(N,N)
 			for n in G:
 				x,y=n
