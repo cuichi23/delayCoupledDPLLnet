@@ -413,7 +413,7 @@ def setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanv
 			while b_true:
 				# get user input on number of oscis in the network
 				number 	   = int(raw_input('\nWhich oscillator id [integer] in [1, %d] should be perturbed: ' %(N-1) ))
-				pert_value = float(raw_input('Please provide perturbation as float in (0, 2pi] to be added to oscillator id=%d' %number))
+				pert_value = float(raw_input('Please provide perturbation as float in (0, 2pi] to be added to oscillator id=%d: ' %number))
 				if (type(number) == int and number > 0  and number < N and pert_value>0 and pert_value<2.0*np.pi ):
 					phiS[number] = pert_value
 					break

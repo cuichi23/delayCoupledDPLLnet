@@ -93,25 +93,25 @@ def get_dphi_matrix(n):
 		x1 += 1
 		x1 = np.mod(x1, n)
 	return m
-	
-	
+
+
 class PhaseDifferenceCell(object):
 	def __init__(self, n):
 		self.n = n
 		self.dphi_matrix = get_dphi_matrix(n)
 		self.d_min = -np.pi
 		self.d_max = np.pi
-		
+
 	def is_inside(self, x, isRotated=False):
 		'''Checks if a vector is inside the phase difference unit cell.
-		
+
 		Parameters
 		----------
 		x  :  np.array
  				coordinate vector of length n which is the number of non-reduced dimensions
 		isRotated  :  boolean
  						True if x is given in rotated coordinates
-		
+
 		Returns
 		-------
 		is_inside  :  boolean
@@ -120,7 +120,7 @@ class PhaseDifferenceCell(object):
 		# Check if vector has the correct length
 		if len(x) != self.n:
 			raise Exception('Vector has not the required length n.')
-			
+
 		# Rotate back to initial coordinate system if required
 		if isRotated:
 			x_tmp = rotate_phases(x, isInverse=False)
@@ -139,11 +139,11 @@ class PhaseDifferenceCell(object):
 				is_inside = False
 				break
 
-		return is_inside		
-		
-		
-		
-		
+		return is_inside
+
+
+
+
 ''' CALCULATE KURAMOTO ORDER PARAMETER '''
 def calcKuramotoOrderParameter(phi):
 	'''Computes the Kuramoto order parameter r for in-phase synchronized states
@@ -212,10 +212,10 @@ def oracle_mTwistOrderParameter(phi, k):
 
 	   Parameters
 	   ----------
-	   phi:  np.array
+	   phi: np.array
 	 		real-valued 2d matrix or 1d vector of phases
 	 		in the 2d case the columns of the matrix represent the individual oscillators
-	   k  :  integer
+	   k  : integer
 	 		the index of the requested Fourier order parameter
 
 	   Returns
