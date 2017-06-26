@@ -726,7 +726,7 @@ def generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,
 									)  for idx_pll in range(Nplls) ]				# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
 			if couplingfct == 'triang':
 				# print('Initiate (phase shifted) PLL objects. Simulate with additive noise, triangular coupling function.')
-				print('The coupling topology is given by:', G, ' for topology:', topology)
+				# NOTE print('The coupling topology is given by:', G, ' for topology:', topology)
 				pll_list = [ PhaseLockedLoop(									# setup PLLs and storage in a list as PLL class objects
 									Delayer(delay,dt),							# delayer takes a time series and returns values at t and t-tau
 									PhaseDetectorCombiner(idx_pll, G.neighbors(idx_pll)),

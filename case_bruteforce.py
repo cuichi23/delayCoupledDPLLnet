@@ -50,7 +50,7 @@ def multihelper(phiSr, initPhiPrime0, topology, couplingfct, F, Nsteps, dt, c, F
 	# SO anpassen, dass auch gegen verschobene Einheitszelle geprueft werden kann (e.g. if not k==0...)
 	# ODER reicht schon:
 	# if not unit_cell.is_inside(( phiS ), isRotated=False):   ???
-	if not unit_cell.is_inside((phiS-phiM), isRotated=False):						# +phiM
+	if not unit_cell.is_inside((phiS-phiM), isRotated=False):					# and not N == 2:	# +phiM
 		return {'mean_order': -1., 'last_orderP': -1., 'stdev_orderP': np.zeros(1), 'phases': phiM,
 		 		'intrinfreq': np.zeros(1), 'coupling_strength': np.zeros(1), 'transdelays': delay}
 	else:
@@ -156,7 +156,7 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0
 
 
 	phiMr = eva.rotate_phases(phiM, isInverse=True)								# calculate phiM in terms of rotated phase space
-	print('m-twist phases phiM =', phiM, 'in coordinates of rotated system, phiMr =', phiMr, '\n')
+	print('m-twist or chequerboard phases phiM =', phiM, 'in coordinates of rotated system, phiMr =', phiMr, '\n')
 
 	if N > 2:
 		print('shift along the first axis in rotated phase space, equivalent to phase kick of all oscillators before simulation starts: phi`_0=', initPhiPrime0)
@@ -165,8 +165,8 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0
 	# the space about each twist solution is scanned in [phiM-pi, phiM+pi] where phiM are the initial phases of the m-twist under investigation
 	if N==2:
 		scanValues = np.zeros((N,paramDiscretization), dtype=np.float)			# create container for all points in the discretized rotated phase space, +/- pi around each dimension (unit area)
-		scanValues[0,:] = np.linspace(-(np.pi), +(np.pi), paramDiscretization) 	# all entries are in rotated, and reduced phase space
-		scanValues[1,:] = np.linspace(-(np.pi), +(np.pi), paramDiscretization) 	# all entries are in rotated, and reduced phase space
+		scanValues[0,:] = np.linspace(phiMr[0]-(np.pi), phiMr[0]+(np.pi), paramDiscretization) 	# all entries are in rotated, and reduced phase space
+		scanValues[1,:] = np.linspace(phiMr[1]-(np.pi), phiMr[1]+(np.pi), paramDiscretization) 	# all entries are in rotated, and reduced phase space
 		#print('row', i,'of matrix with all intervals of the rotated phase space:\n', scanValues[i,:], '\n')
 
 		_allPoints 			= itertools.product(*scanValues)
@@ -281,7 +281,7 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0
 	# np.savez('results/allInitPerturbPoints_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), allPoints=allPoints)
 
 	''' EXTRA EVALUATION '''
-	out.doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints, initPhiPrime0, phiMr, paramDiscretization, delays_0, twistdelta_x, twistdelta_y, show_plot)
+	out.doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints, initPhiPrime0, phiMr, paramDiscretization, delays_0, twistdelta_x, twistdelta_y, topology, show_plot)
 
 	del results; del allPoints; del initPhiPrime0; del K_0;						# emtpy data container to free memory
 	return None

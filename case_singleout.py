@@ -28,14 +28,14 @@ def simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg
 	delays_0= simresult['transdelays']
 	cLF_t   = simresult['cLF']
 	# print('\n\ncLF_t:', cLF_t, '\n\n')
-	# print('type phi:', type(phi), 'phi:', phi)
+	print('type(phi), phi.shape:', type(phi), phi.shape, '    phi:', phi)
 
 	''' KURAMOTO ORDER PARAMETER '''
 	if F > 0:																	# for f=0, there would otherwies be a float division by zero
 		F1=F
 	else:
 		F1=F+1E-3
-	r = eva.oracle_mTwistOrderParameter(phi[-int(2*1.0/(F1*dt)):, :], k)			# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
+	r = eva.oracle_mTwistOrderParameter(phi[-int(2*1.0/(F1*dt)):, :], k)		# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
 	orderparam = eva.oracle_mTwistOrderParameter(phi[:, :], k)					# calculate the m-twist order parameter for all times
 	print('mean of modulus of the order parameter, R, over 2T:', np.mean(r), ' last value of R', r[-1])
 

@@ -307,7 +307,7 @@ def chooseCsvSaveOption(param_cases_csv, para_mat, topology, couplingfct, c):
 									& (param_cases_csv['Nx']==int(para_mat[i,10])) & (param_cases_csv['Ny']==int(para_mat[i,11]))
 									& (param_cases_csv['mx']==int(para_mat[i,12])) & (param_cases_csv['my']==int(para_mat[i,13]))].sort_values(by='K') #guided_execution.py:270: FutureWarning: sort(columns=....) is deprecated, use sort_values(by=.....)
 		if len(temp) == 0:														# if temp is empty
-			print('\nno existing cases found for set with values (para_mat[',i,'][:]) found:', para_mat[i][:])
+			print('\nno existing cases found for set with values (para_mat[',i,'][:]) found! Here the search goal parameter set:', para_mat[i][:])
 			para_mat_new.append(para_mat[i,:])
 		else:
 			exist_set.append( temp )
@@ -320,6 +320,7 @@ def chooseCsvSaveOption(param_cases_csv, para_mat, topology, couplingfct, c):
 	para_mat_tmp = np.array(para_mat_new)
 	if not len(para_mat_tmp) == 0:
 		para_mat_new = simulateOnlyLinStableCases(para_mat_tmp)    				# this fct. corrects for negative Tsim if user decides to simulate also linearly unstable solutions
+		print('These are the linear stable cases:', para_mat_new)
 
 	b_true = True
 	while b_true:
@@ -342,9 +343,8 @@ def chooseCsvSaveOption(param_cases_csv, para_mat, topology, couplingfct, c):
 					print('Please provide [y]es/[n]o input!')
 			break
 		elif decision == 'n':
-			print('New parameter sets will not be saved to csv-database!')
+			print('New parameter sets will not be saved to csv-database! Simulate these cases: ', para_mat_new)
 			return para_mat_new
-			break
 		else:
 			print('Please provide [y]es/[n]o input!')
 
@@ -1400,6 +1400,7 @@ def bruteForce(params, param_cases_csv):
 				N = Nx*Ny
 				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
 				k = kx															# set to dummy value
+				#if topology == "square-open" and ( kx != 0 or ky != 0 ):
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
 				k = chooseTwistNumber(N)										# choose twist under investigation

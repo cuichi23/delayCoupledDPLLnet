@@ -207,7 +207,7 @@ def mTwistOrderParameter(phi):
 		rm = None
 	return rm
 
-def oracle_mTwistOrderParameter(phi, k):
+def oracle_mTwistOrderParameter(phi, k):   #, kx, ky
 	'''Computes the absolute value of k-th Fourier order parameter 'rm' for all m-twist synchronized states
 
 	   Parameters
@@ -220,8 +220,8 @@ def oracle_mTwistOrderParameter(phi, k):
 
 	   Returns
 	   -------
-	   rm  :  np.complex/np.array
-	  		real value/real-valued 1d vector of the k-th order parameter
+	   rm  : np.complex/np.array
+	  		 real value/real-valued 1d vector of the k-th order parameter
 
 	   Authors
 	   -------
