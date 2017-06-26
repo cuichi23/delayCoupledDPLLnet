@@ -176,6 +176,17 @@ def calcKuramotoOrderParameter(phi):
 
 	return r
 
+
+def  mTwistOrderParameter2d(phi, nx, ny):
+	'''Computes the 2d twist order parameters for 2d states. Phi is supposed
+	   to be 1d vector of phases. The result is returned as an array of shape (ny, nx)
+	'''
+	phi_2d = np.reshape(phi, (ny, nx))
+	r = np.fft.fft2(np.exp(1j * phi_2d))
+	return np.abs(r) / float(len(phi))
+
+
+
 def mTwistOrderParameter(phi):
 	'''Computes the Fourier order parameter 'rm' for all m-twist synchronized states
 
