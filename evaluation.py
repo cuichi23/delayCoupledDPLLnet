@@ -237,6 +237,23 @@ def oracle_mTwistOrderParameter(phi, k):
 		rk = None
 	return rk
 
+
+def CheckerboardOrderParameter2d(phi, nx, ny):
+	'''Computes the 2d Checkerboard order parameters for 2d states. Phi is supposed
+	   to be 1d vector of phases.
+	'''
+	k = np.array([[0, np.pi], [np.pi, 0], [np.pi, np.pi]])
+	r = np.zeros(3, dtype=np.complex)
+	phi_2d = np.reshape(phi, (ny, nx))
+	for ik in range(3):
+		for iy in range(ny):
+			for ix in range(nx):
+				r[ik] += np.exp(1j * phi_2d[iy, ix]) * np.exp(-1j * (k[ik, 0] * iy + k[ik, 1] * ix))
+	r = np.abs(r) / float(len(phi))
+	return r
+
+
+
 ''' CALCULATE SPECTRUM '''
 def calcSpectrum(phi,Fsample,waveform=None,decayTimeSlowestMode=None):
 	Pxx_db=[]; f=[];
