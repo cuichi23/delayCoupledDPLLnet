@@ -176,6 +176,17 @@ def calcKuramotoOrderParameter(phi):
 
 	return r
 
+
+def  mTwistOrderParameter2d(phi, nx, ny):
+	'''Computes the 2d twist order parameters for 2d states. Phi is supposed
+	   to be 1d vector of phases. The result is returned as an array of shape (ny, nx)
+	'''
+	phi_2d = np.reshape(phi, (ny, nx))
+	r = np.fft.fft2(np.exp(1j * phi_2d))
+	return np.abs(r) / float(len(phi))
+
+
+
 def mTwistOrderParameter(phi):
 	'''Computes the Fourier order parameter 'rm' for all m-twist synchronized states
 
@@ -236,6 +247,33 @@ def oracle_mTwistOrderParameter(phi, k):   #, kx, ky
 		print( 'Error: phi with wrong dimensions' )
 		rk = None
 	return rk
+
+
+def CheckerboardOrderParameter2d(phi, nx, ny):
+	'''Computes the 2d checkerboard order parameters for 2d states. Phi is supposed
+	   to be 1d vector of phases. Please note that there are three different checkerboard states in 2d.
+	'''
+	k = np.array([[0, np.pi], [np.pi, 0], [np.pi, np.pi]])
+	r = np.zeros(3, dtype=np.complex)
+	phi_2d = np.reshape(phi, (ny, nx))
+	for ik in range(3):
+		for iy in range(ny):
+			for ix in range(nx):
+				r[ik] += np.exp(1j * phi_2d[iy, ix]) * np.exp(-1j * (k[ik, 0] * iy + k[ik, 1] * ix))
+	r = np.abs(r) / float(len(phi))
+	return r
+
+
+def CheckerboardOrderParameter1d(phi):
+	'''Computes the 1d checkerboard order parameters for 1d states. Phi is supposed
+	   to be 1d vector of phases without time evolution.
+	'''
+	r = 0.0
+	for ix in range(nx):
+		r += np.exp(1j * phi[ix]) * np.exp(-1j * np.pi * ix)
+	r = np.abs(r) / float(len(phi))
+	return r
+
 
 ''' CALCULATE SPECTRUM '''
 def calcSpectrum(phi,Fsample,waveform=None,decayTimeSlowestMode=None):
