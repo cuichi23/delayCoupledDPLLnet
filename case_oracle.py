@@ -29,9 +29,25 @@ def simulatePllNetwork(mode,topology,couplingfct,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,d
 	# print('type phi:', type(phi), 'phi:', phi)
 
 	''' KURAMOTO ORDER PARAMETER '''
+	# if topology == "square-periodic":
+	# 	mTwistOrderParameter2d
+	# elif topology == "square-open" or topology == "hexagon" or topology == "octagon":
+	# 	CheckerboardOrderParameter2d
+	# elif topology == "chain":
+	# 	CheckerboardOrderParameter1d
+	# elif topology == "ring":
+	# 	r = eva.oracle_mTwistOrderParameter(phi[-int(2*1.0/(F*dt)):, :], k)		# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
+	# 	orderparam = eva.oracle_mTwistOrderParameter(phi[:, :], k)				# calculate the m-twist order parameter for all times
+
+
+
 	r = eva.oracle_mTwistOrderParameter(phi[-int(2*1.0/(F*dt)):, :], k)			# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
 	orderparam = eva.oracle_mTwistOrderParameter(phi[:, :], k)					# calculate the m-twist order parameter for all times
 	#print('mean of modulus of the order parameter, R, over 2T:', np.mean(r), ' last value of R', r[-1])
+
+
+
+
 
 	''' PLOT PHASE & FREQUENCY TIME SERIES '''
 	if isPlottingTimeSeries:
@@ -178,10 +194,10 @@ if __name__ == '__main__':
 	phiS = eva.rotate_phases(phiSr, isInverse=False)							# rotate initial phases into physical phase space of phases for simulation
 	# check input values -- we only want to check in a 2pi periodic interval [phiS'-pi, phiS'+pi] (for all phiS) around each solution in phase-space
 	# with that we are using the periodicity of m-twist solutions in the phase-space of phases (rotated phase space!)
-	unit_cell = eva.PhaseDifferenceCell(N)
+	unit_cell = eva.PhaseDifferenceCell(N)										# call object of class PhaseDifferenceCell
 	# if any(phiSr[:]<-np.pi) | any(phiSr[:]> np.pi):
-	if not unit_cell.is_inside((phiS-phiM), isRotated=False):					# check, whether point phiSr belongs to the unit cell
-		print(0)
+	if not unit_cell.is_inside((phiS), isRotated=False):						# check, whether point phiSr belongs to the unit cell
+		print(-1)																# NOTE: here different compared to brute-force, since pool of points always centered around zero (no perturbation) and NOT about the twist-coordinate
 	else:
 		# print(simulatePllNetwork(mode, topology, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, False))
 		data = simulatePllNetwork(mode,topology,couplingfct,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,phiS,phiM,domega,cLF,diffconstK,Nx,Ny,kx,ky,False)

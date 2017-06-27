@@ -180,7 +180,7 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0
 	else:
 		# setup a matrix for all N variables/dimensions and create a cube around the origin with side lengths 2pi
 		scanValues = np.zeros((N-1,paramDiscretization), dtype=np.float)		# create container for all points in the discretized rotated phase space, +/- pi around each dimension (unit area)
-		for i in range (0, N-1):													# the different coordinates of the solution, discretize an interval plus/minus pi around each variable
+		for i in range (0, N-1):												# the different coordinates of the solution, discretize an interval plus/minus pi around each variable
 			scanValues[i,:] = np.linspace(phiMr[i+1]-np.pi, phiMr[i+1]+np.pi, paramDiscretization) # all entries are in rotated, and reduced phase space
 			#scanValues[i,:] = np.linspace(-(np.pi), +(np.pi), paramDiscretization) 	# all entries are in rotated, and reduced phase space
 			#print('row', i,'of matrix with all intervals of the rotated phase space:\n', scanValues[i,:], '\n')
