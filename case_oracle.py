@@ -29,12 +29,14 @@ def simulatePllNetwork(mode,topology,couplingfct,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,d
 	# print('type phi:', type(phi), 'phi:', phi)
 
 	''' KURAMOTO ORDER PARAMETER '''
-	# if topology == "square-periodic":
-	# 	mTwistOrderParameter2d
+	# if topology == "square-periodic" or topology == "hexagon-periodic" or topology == "octagon-periodic":
+	# 	rmat = oracle_mTwistOrderParameter2d(phi[-int(2*1.0/(F*dt)):, :], nx, ny, kx, ky)
 	# elif topology == "square-open" or topology == "hexagon" or topology == "octagon":
-	# 	CheckerboardOrderParameter2d
+	# 	rmat = oracle_CheckerboardOrderParameter2d(phi[-int(2*1.0/(F*dt)):, :], nx, ny, kx, ky)# returns 2d results array with the first dimension for the y-direction, the second for x
+	# 	ry = np.nonzero(rmat > 0.995)[0]
+	# 	rx = np.nonzero(rmat > 0.995)[1]
 	# elif topology == "chain":
-	# 	CheckerboardOrderParameter1d
+	# 	r = oracle_CheckerboardOrderParameter1d
 	# elif topology == "ring":
 	# 	r = eva.oracle_mTwistOrderParameter(phi[-int(2*1.0/(F*dt)):, :], k)		# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
 	# 	orderparam = eva.oracle_mTwistOrderParameter(phi[:, :], k)				# calculate the m-twist order parameter for all times
