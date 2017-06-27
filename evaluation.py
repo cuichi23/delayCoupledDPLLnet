@@ -223,6 +223,7 @@ def _CheckerboardOrderParameter(phi):
 def CheckerboardOrderParameter(phi):
 	'''Computes the 1d checkerboard order parameters for 1d states. Phi can be a 1d or 2d vector whose first index
 	   corresponds to different times.
+	   :rtype: np.ndarray
 	'''
 	if len(phi.shape) == 1:
 		return _CheckerboardOrderParameter(phi)
@@ -312,6 +313,23 @@ def oracle_mTwistOrderParameter(phi, k):  # , kx, ky
 		print('Error: phi with wrong dimensions')
 		rk = None
 	return rk
+
+
+def oracle_CheckerboardOrderParameter(phi):
+	return CheckerboardOrderParameter(phi)
+
+
+def oracle_mTwistOrderParameter2d(phi, nx, ny, kx, ky):
+	return mTwistOrderParameter2d(phi, nx, ny)[:, ky, kx]
+
+
+def oracle_CheckerboardOrderParameter2d(phi, nx, ny, k):
+	"""
+			k == 0 : x checkerboard state
+			k == 1 : y checkerboard state
+			k == 2 : xy checkerboard state
+		"""
+	return CheckerboardOrderParameter2d(phi, nx, ny)[:, k]
 
 
 ''' CALCULATE SPECTRUM '''
