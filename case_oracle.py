@@ -37,13 +37,18 @@ def simulatePllNetwork(mode,topology,couplingfct,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,d
 				k == 0 : x  checkerboard state
 				k == 1 : y  checkerboard state
 				k == 2 : xy checkerboard state
+				k == 3 : in-phase synchronized
 			"""
 		r = oracle_CheckerboardOrderParameter2d(phi[-int(2*1.0/(F*dt)):, :], nx, ny, k) # returns 2d results array with the first dimension for the y-direction, the second for x
 		# ry = np.nonzero(rmat > 0.995)[0]
 		# rx = np.nonzero(rmat > 0.995)[1]
 		orderparam = eva.oracle_CheckerboardOrderParameter2d((phi[:, :], nx, ny, k))
 	elif topology == "chain":
-		r = oracle_CheckerboardOrderParameter1d(phi[-int(2*1.0/(F*dt)):, :])
+		"""
+				k  > 0 : x  checkerboard state
+				k == 0 : in-phase synchronized
+			"""
+		r = oracle_CheckerboardOrderParameter1d(phi[-int(2*1.0/(F*dt)):, :], k)
 		orderparam = eva.oracle_CheckerboardOrderParameter1d(phi[:, :])			# calculate the order parameter for all times
 	elif topology == "ring":
 		r = eva.oracle_mTwistOrderParameter(phi[-int(2*1.0/(F*dt)):, :], k)		# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
@@ -148,14 +153,15 @@ if __name__ == '__main__':
 	# considering only the perpendicular plane spanned by phi'_1, phi'_2, ..., phi'_N; if non-zero however, it introduces a global phase shift into the history, implying a different history
 	phiSr[0] = initPhiPrime0
 	# if looking for m-twists, this variable holds the phase difference between neighboring oscillators in a stable m-twist state
-	if ( topology == 'square-open' or topology == 'square-periodic' or topology == 'hexagon' or topology == 'octagon' ):
-		if topology == 'square-open':
+	if ( topology == 'square-open' or topology == 'square-periodic' or topology == 'hexagon' or topology == 'octagon' or topology == 'hexagon' or topology == 'octagon' ):
+		if topology == 'square-open' or topology == 'hexagon' or topology == 'octagon':
 			cheqdelta_x = np.pi 												# phase difference between neighboring oscillators in a stable chequerboard state
 			cheqdelta_y = np.pi 												# phase difference between neighboring oscillators in a stable chequerboard state
 			# print('phase differences of',k,'-twist:', twistdelta, '\n')
 			if (k == 0 and kx == 0 and ky == 0):
 				phiM = np.zeros(N)												# phiM denotes the unperturbed initial phases according to the m-twist state under investigation
 			else:
+				print('CHECK THIS FOR HEXAGON AND OCTAGON!')
 				phiM=[]
 				for rows in range(Ny):											# set the mx-my-twist state's initial condition (history of "perfect" configuration)
 					phiMtemp = np.arange(cheqdelta_y*rows, Nx*cheqdelta_x+cheqdelta_y*rows, cheqdelta_x)

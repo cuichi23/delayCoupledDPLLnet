@@ -150,12 +150,12 @@ def chooseTwistNumber(N, topology):												# ask user-input for twist number
 	return int(k)
 
 def get2DTwistNumbers(Nx, Ny, topology):										# ask user-input for twist number
-	if topology == "square-open" or topology == "hexagon-open" or topology == "octagon-open" or topology == "chain":
+	if topology == "square-open" or topology == "hexagon" or topology == "octagon" or topology == "chain":
 		a_true = True
 		while a_true:
 			print('\nTopology with open boundary conditions has been chosen and no m-twist states exist. Only chequerboard and in-phase.')
 			# get user input on number of oscis in the network
-			kx = raw_input('\nPlease specify the whether to investigare chequerboard [integer>0] or in-phase [0] synchronized state: ')
+			kx = raw_input('\nPlease specify: chequerboard only in x-direction [0], only in y-direction [1], in x- and y-direction [2], or in-phase [3] synchronized state: ')
 			ky = kx
 			if ( int(kx)>=0 and int(ky)>=0 ):
 				break
