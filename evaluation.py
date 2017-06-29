@@ -315,8 +315,17 @@ def oracle_mTwistOrderParameter(phi, k):  # , kx, ky
 	return rk
 
 
-def oracle_CheckerboardOrderParameter1d(phi):
-	return CheckerboardOrderParameter(phi)
+def oracle_CheckerboardOrderParameter1d(phi, k=1):
+	"""
+		k == 0 : global sync state
+		k == 1 : checkerboard state
+	"""
+	if k == 0:
+		return calcKuramotoOrderParameter(phi)
+	elif k == 1:
+		return CheckerboardOrderParameter(phi)
+	else:
+		raise Exception('Non-valid value for k')
 
 
 def oracle_mTwistOrderParameter2d(phi, nx, ny, kx, ky):
@@ -328,8 +337,14 @@ def oracle_CheckerboardOrderParameter2d(phi, nx, ny, k):
 			k == 0 : x checkerboard state
 			k == 1 : y checkerboard state
 			k == 2 : xy checkerboard state
+			k == 3 : global sync state
 		"""
-	return CheckerboardOrderParameter2d(phi, nx, ny)[:, k]
+	if k == 0 or k == 1 or k == 2:
+		return CheckerboardOrderParameter2d(phi, nx, ny)[:, k]
+	elif k == 3:
+		return calcKuramotoOrderParameter(phi)
+	else:
+		raise Exception('Non-valid value for k')
 
 
 ''' CALCULATE SPECTRUM '''
