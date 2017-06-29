@@ -315,7 +315,7 @@ def oracle_mTwistOrderParameter(phi, k):  # , kx, ky
 	return rk
 
 
-def oracle_CheckerboardOrderParameter(phi):
+def oracle_CheckerboardOrderParameter1d(phi):
 	return CheckerboardOrderParameter(phi)
 
 

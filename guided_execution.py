@@ -35,11 +35,11 @@ def chooseTopology():															# ask user-input for topology
 	a_true = True
 	while a_true:
 		# get user input to know which topology should be analyzed
-		topology = str(raw_input('\nPlease specify topology from 1-dim [chain, ring], 2-dim [square-open, square-periodic, hexagon, octagon] or mean-field [global] to be analyzed: '))
+		topology = str(raw_input('\nPlease specify topology from 1-dim [chain, ring], 2-dim [square-open, square-periodic, hexagon, octagon, hexagon-periodic, octagon-periodic] or mean-field [global] to be analyzed: '))
 		if ( topology == 'square-open' or topology == 'square-periodic' or topology == 'hexagon' or topology == 'octagon' or topology == 'chain' or topology == 'ring' or topology == 'global' ):
 			break
 		else:
-			print('Please provide one of these input-strings: [chain, ring, square-open, square-periodic, hexagon, octagon, global]!')
+			print('Please provide one of these input-strings: [chain, ring, square-open, square-periodic, hexagon, octagon, hexagon-periodic, octagon-periodic, global]!')
 
 	return str(topology)
 
@@ -116,28 +116,61 @@ def chooseTransDelay():															# ask user-input for delay
 
 	return float(delay)
 
-def chooseTwistNumber(N):														# ask user-input for twist number
-	a_true = True
-	while a_true:
-		# get user input on number of oscis in the network
-		k = raw_input('\nPlease specify the m-twist number (NOTE that for non-periodic b.c. ANY m > 0 yields a chequerboard configuration) [integer] in [0, ..., %d] [dimless]: ' %(N-1))
-		if ( int(k)>=0 ):
-			break
-		else:
-			print('Please provide input as an [integer] in [0, %d]!' %(N-1))
+def chooseTwistNumber(N, topology):												# ask user-input for twist number
+	if topology == "chain":
+		a_true = True
+		while a_true:
+			print('\nTopology with open boundary conditions has been chosen and no m-twist states exist. Only chequerboard and in-phase.')
+			# get user input on number of oscis in the network
+			k = raw_input('\nPlease specify whether to investigare chequerboard [integer>0] or in-phase [0] synchronized state: ')  # (NOTE that for non-periodic b.c. ANY m > 0 yields a chequerboard configuration)
+			if ( int(k)>=0 ):
+				break
+			else:
+				print('Please provide input as an [integer] in [0, oo]!')
+	elif topology == "square-open" or topology == "hexagon" or topology == "octagon":
+		a_true = True
+		while a_true:
+			print('\n2d topology with open boundary conditions has been chosen and no m-twist states exist. Only chequerboard (in x-, in y- and in x- and y-direction) and in-phase.')
+			# get user input on number of oscis in the network
+			k = raw_input('\nPlease specify whether to investigare chequerboard in x-, in y- in xy-direction [, ,], or the synchronized state [0]: ')  # (NOTE that for non-periodic b.c. ANY m > 0 yields a chequerboard configuration)
+			if ( int(k)>=0 ):
+				break
+			else:
+				print('Please provide input as an [integer] in [0, oo]!')
+	else:
+		a_true = True
+		while a_true:
+			# get user input on number of oscis in the network
+			k = raw_input('\nPlease specify the m-twist number [integer] in [0, ..., %d] [dimless]: ' %(N-1))
+			if ( int(k)>=0 ):
+				break
+			else:
+				print('Please provide input as an [integer] in [0, %d]!' %(N-1))
 
 	return int(k)
 
-def get2DTwistNumbers(Nx, Ny):													# ask user-input for twist number
-	a_true = True
-	while a_true:
-		# get user input on number of oscis in the network
-		kx = raw_input('\nPlease specify the mx-twist number [integer] in [0, ..., %d] [dimless]: ' %(Nx-1))
-		ky = raw_input('\nPlease specify the my-twist number [integer] in [0, ..., %d] [dimless]: ' %(Ny-1))
-		if ( int(kx)>=0 and int(ky)>=0 ):
-			break
-		else:
-			print('Please provide input as an [integer] in [0, Nx/Ny]!')
+def get2DTwistNumbers(Nx, Ny, topology):										# ask user-input for twist number
+	if topology == "square-open" or topology == "hexagon-open" or topology == "octagon-open" or topology == "chain":
+		a_true = True
+		while a_true:
+			print('\nTopology with open boundary conditions has been chosen and no m-twist states exist. Only chequerboard and in-phase.')
+			# get user input on number of oscis in the network
+			kx = raw_input('\nPlease specify the whether to investigare chequerboard [integer>0] or in-phase [0] synchronized state: ')
+			ky = kx
+			if ( int(kx)>=0 and int(ky)>=0 ):
+				break
+			else:
+				print('Please provide input as an [integer] in [0, oo]!')
+	else:
+		a_true = True
+		while a_true:
+			# get user input on number of oscis in the network
+			kx = raw_input('\nPlease specify the mx-twist number [integer] in [0, ..., %d] [dimless]: ' %(Nx-1))
+			ky = raw_input('\nPlease specify the my-twist number [integer] in [0, ..., %d] [dimless]: ' %(Ny-1))
+			if ( int(kx)>=0 and int(ky)>=0 ):
+				break
+			else:
+				print('Please provide input as an [integer] in [0, Nx/Ny]!')
 
 	return int(kx), int(ky)
 
@@ -470,14 +503,14 @@ def singleAdiabatChange(params):
 			print('\nWill start with this cLF-value: ', cLF_value, ', and relaxation time Trelax: ', Trelax, '\n\n')
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
-			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' ):
+			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' or topology == 'hexagon-open' or topology = 'octagon-open'):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
-				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
+				kx, ky = get2DTwistNumbers(Nx, Ny, topology)					# choose 2d-twist under investigation
 				k = kx															# set to dummy value
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
-				k = chooseTwistNumber(N)										# choose twist under investigation
+				k = chooseTwistNumber(N, topology)								# choose twist under investigation
 				kx = k; ky = -999; Nx = N; Ny = 1;
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
@@ -536,14 +569,14 @@ def singleAdiabatChange(params):
 			print('\nWill start with this c-value: ', c_value, ', and relaxation time Trelax: ', Trelax, '\n\n')
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
-			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' ):
+			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' or topology == 'hexagon-open' or topology = 'octagon-open'):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
-				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
+				kx, ky = get2DTwistNumbers(Nx, Ny, topology)					# choose 2d-twist under investigation
 				k = kx															# set to dummy value
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
-				k = chooseTwistNumber(N)										# choose twist under investigation
+				k = chooseTwistNumber(N, topology)								# choose twist under investigation
 				kx = k; ky = -999; Nx = N; Ny = 1;
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
@@ -614,14 +647,14 @@ def singleRealization(params):
 			print('Sweep these K-values: ', new_K_values, '\n')
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
-			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' ):
+			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' or topology == 'hexagon-open' or topology = 'octagon-open'):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
-				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
+				kx, ky = get2DTwistNumbers(Nx, Ny, topology)					# choose 2d-twist under investigation
 				k = kx															# set to dummy value
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
-				k = chooseTwistNumber(N)										# choose twist under investigation
+				k = chooseTwistNumber(N, topology)								# choose twist under investigation
 				kx = k; ky = -999; Nx = N; Ny = 1;
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
@@ -702,14 +735,14 @@ def singleRealization(params):
 			new_Fc_values	 = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
-			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' ):
+			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' or topology == 'hexagon-open' or topology = 'octagon-open'):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
-				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
+				kx, ky = get2DTwistNumbers(Nx, Ny, topology)					# choose 2d-twist under investigation
 				k = kx															# set to dummy value
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
-				k = chooseTwistNumber(N)										# choose twist under investigation
+				k = chooseTwistNumber(N, topology)								# choose twist under investigation
 				kx = k; ky = -999; Nx = N; Ny = 1;
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
@@ -789,14 +822,14 @@ def singleRealization(params):
 			new_delay_values = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
-			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' ):
+			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' or topology == 'hexagon-open' or topology = 'octagon-open'):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
-				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
+				kx, ky = get2DTwistNumbers(Nx, Ny, topology)					# choose 2d-twist under investigation
 				k = kx															# set to dummy value
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
-				k = chooseTwistNumber(N)										# choose twist under investigation
+				k = chooseTwistNumber(N, topology)								# choose twist under investigation
 				kx = k; ky = -999; Nx = N; Ny = 1;
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
@@ -877,14 +910,14 @@ def singleRealization(params):
 			print('\nWill scan these cLF-values: ', new_cLF_values, '\n\n')
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
-			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' ):
+			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' or topology == 'hexagon-open' or topology = 'octagon-open'):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
-				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
+				kx, ky = get2DTwistNumbers(Nx, Ny, topology)					# choose 2d-twist under investigation
 				k = kx															# set to dummy value
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
-				k = chooseTwistNumber(N)										# choose twist under investigation
+				k = chooseTwistNumber(N, topology)								# choose twist under investigation
 				kx = k; ky = -999; Nx = N; Ny = 1;
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
@@ -981,14 +1014,14 @@ def noisyStatistics(params):
 			new_K_values	 = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
-			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' ):
+			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' or topology == 'hexagon-open' or topology = 'octagon-open'):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
-				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
+				kx, ky = get2DTwistNumbers(Nx, Ny, topology)					# choose 2d-twist under investigation
 				k = kx															# set to dummy value
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
-				k = chooseTwistNumber(N)										# choose twist under investigation
+				k = chooseTwistNumber(N, topology)								# choose twist under investigation
 				kx = k; ky = -999; Nx = N; Ny = 1;
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
@@ -1062,14 +1095,14 @@ def noisyStatistics(params):
 			print('\nWill scan these c-values: ', new_c_values, '\n\n')
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
-			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' ):
+			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' or topology == 'hexagon-open' or topology = 'octagon-open'):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
-				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
+				kx, ky = get2DTwistNumbers(Nx, Ny, topology)					# choose 2d-twist under investigation
 				k = kx															# set to dummy value
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
-				k = chooseTwistNumber(N)										# choose twist under investigation
+				k = chooseTwistNumber(N, topology)								# choose twist under investigation
 				kx = k; ky = -999; Nx = N; Ny = 1;
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
@@ -1147,14 +1180,14 @@ def noisyStatistics(params):
 			new_Fc_values	 = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
-			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' ):
+			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' or topology == 'hexagon-open' or topology = 'octagon-open'):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
-				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
+				kx, ky = get2DTwistNumbers(Nx, Ny, topology)					# choose 2d-twist under investigation
 				k = kx															# set to dummy value
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
-				k = chooseTwistNumber(N)										# choose twist under investigation
+				k = chooseTwistNumber(N, topology)								# choose twist under investigation
 				kx = k; ky = -999; Nx = N; Ny = 1;
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
@@ -1226,14 +1259,14 @@ def noisyStatistics(params):
 			print('\nWill scan these cLF-values: ', new_cLF_values, '\n\n')
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
-			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' ):
+			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' or topology == 'hexagon-open' or topology = 'octagon-open'):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
-				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
+				kx, ky = get2DTwistNumbers(Nx, Ny, topology)					# choose 2d-twist under investigation
 				k = kx															# set to dummy value
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
-				k = chooseTwistNumber(N)										# choose twist under investigation
+				k = chooseTwistNumber(N, topology)								# choose twist under investigation
 				kx = k; ky = -999; Nx = N; Ny = 1;
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
@@ -1307,14 +1340,14 @@ def noisyStatistics(params):
 			new_delay_values = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
-			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' ):
+			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' or topology == 'hexagon-open' or topology = 'octagon-open'):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
-				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
+				kx, ky = get2DTwistNumbers(Nx, Ny, topology)					# choose 2d-twist under investigation
 				k = kx															# set to dummy value
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
-				k = chooseTwistNumber(N)										# choose twist under investigation
+				k = chooseTwistNumber(N, topology)								# choose twist under investigation
 				kx = k; ky = -999; Nx = N; Ny = 1;
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
@@ -1395,15 +1428,15 @@ def bruteForce(params, param_cases_csv):
 			print('new K-values: ', new_K_values)
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
-			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' ):
+			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' or topology == 'hexagon-open' or topology = 'octagon-open'):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
-				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
+				kx, ky = get2DTwistNumbers(Nx, Ny, topology)					# choose 2d-twist under investigation
 				k = kx															# set to dummy value
 				#if topology == "square-open" and ( kx != 0 or ky != 0 ):
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
-				k = chooseTwistNumber(N)										# choose twist under investigation
+				k = chooseTwistNumber(N, topology)								# choose twist under investigation
 				kx = k; ky = -999; Nx = N; Ny = 1;
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
@@ -1464,14 +1497,14 @@ def bruteForce(params, param_cases_csv):
 			print('new Fc-values: ', new_Fc_values)
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
-			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' ):
+			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' or topology == 'hexagon-open' or topology = 'octagon-open'):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
-				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
+				kx, ky = get2DTwistNumbers(Nx, Ny, topology)					# choose 2d-twist under investigation
 				k = kx															# set to dummy value
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
-				k = chooseTwistNumber(N)										# choose twist under investigation
+				k = chooseTwistNumber(N, topology)								# choose twist under investigation
 				kx = k; ky = -999; Nx = N; Ny = 1;
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
@@ -1528,14 +1561,14 @@ def bruteForce(params, param_cases_csv):
 			print('new delay-values: ', new_delay_values)
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
-			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' ):
+			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' or topology == 'hexagon-open' or topology = 'octagon-open'):
 				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
 				N = Nx*Ny
-				kx, ky = get2DTwistNumbers(Nx, Ny)								# choose 2d-twist under investigation
+				kx, ky = get2DTwistNumbers(Nx, Ny, topology)					# choose 2d-twist under investigation
 				k = kx															# set to dummy value
 			else:
 				N = chooseNumber()												# calls function that asks user for input of number of oscis
-				k = chooseTwistNumber(N)										# choose twist under investigation
+				k = chooseTwistNumber(N, topology)								# choose twist under investigation
 				kx = k; ky = -999; Nx = N; Ny = 1;
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
