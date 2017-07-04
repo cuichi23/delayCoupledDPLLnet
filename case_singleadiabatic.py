@@ -36,20 +36,25 @@ def simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg
 	else:
 		F1=F+1E-3
 	if topology == "square-periodic" or topology == "hexagon-periodic" or topology == "octagon-periodic":
-		r = oracle_mTwistOrderParameter2d(phi[-int(2*1.0/(F*dt)):, :], nx, ny, kx, ky)
-		orderparam = eva.oracle_mTwistOrderParameter2d((phi[:, :], nx, ny, kx, ky))
+		r = eva.oracle_mTwistOrderParameter2d(phi[-int(2*1.0/(F*dt)):, :], Nx, Ny, kx, ky)
+		orderparam = eva.oracle_mTwistOrderParameter2d((phi[:, :], Nx, Ny, kx, ky))
 	elif topology == "square-open" or topology == "hexagon" or topology == "octagon":
 		"""
 				k == 0 : x  checkerboard state
 				k == 1 : y  checkerboard state
 				k == 2 : xy checkerboard state
+				k == 3 : in-phase synchronized
 			"""
-		r = oracle_CheckerboardOrderParameter2d(phi[-int(2*1.0/(F*dt)):, :], nx, ny, k) # returns 2d results array with the first dimension for the y-direction, the second for x
+		r = eva.oracle_CheckerboardOrderParameter2d(phi[-int(2*1.0/(F*dt)):, :], Nx, Ny, k) # returns 2d results array with the first dimension for the y-direction, the second for x
 		# ry = np.nonzero(rmat > 0.995)[0]
 		# rx = np.nonzero(rmat > 0.995)[1]
-		orderparam = eva.oracle_CheckerboardOrderParameter2d((phi[:, :], nx, ny, k))
+		orderparam = eva.oracle_CheckerboardOrderParameter2d(phi[:, :], Nx, Ny, k)
 	elif topology == "chain":
-		r = oracle_CheckerboardOrderParameter1d(phi[-int(2*1.0/(F*dt)):, :])
+		"""
+				k  > 0 : x  checkerboard state
+				k == 0 : in-phase synchronized
+			"""
+		r = eva.oracle_CheckerboardOrderParameter1d(phi[-int(2*1.0/(F*dt)):, :], k)
 		orderparam = eva.oracle_CheckerboardOrderParameter1d(phi[:, :])			# calculate the order parameter for all times
 	elif topology == "ring":
 		r = eva.oracle_mTwistOrderParameter(phi[-int(2*1.0/(F*dt)):, :], k)		# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
@@ -146,19 +151,36 @@ def singleadiabatic(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Trelax, 
 	print('Test single evaluation and plot phase and frequency time series, PROVIDE initial condition in ROTATED phase space!')
 	print('Total simulation time in multiples of the eigentfrequency:', int(Tsim*F),'\n')
 
+	twistdelta=0; cheqdelta=0; twistdelta_x=0; twistdelta_y=0;
 	if ( topology == 'square-open' or topology == 'square-periodic'  or topology == 'hexagon' or topology == 'octagon' ):
-		if topology == 'square-open':
+		if topology == 'square-open' or topology == 'hexagon' or topology == 'octagon':
 			cheqdelta_x = np.pi 												# phase difference between neighboring oscillators in a stable chequerboard state
 			cheqdelta_y = np.pi 												# phase difference between neighboring oscillators in a stable chequerboard state
 			# print('phase differences of',k,'-twist:', twistdelta, '\n')
-			if (k == 0 and kx == 0 and ky == 0):
+			if (kx == 0 and ky == 0):
 				phiM = np.zeros(N)												# phiM denotes the unperturbed initial phases according to the m-twist state under investigation
-			else:
+
+			elif (kx =! 0 and ky =! 0):
 				phiM=[]
 				for rows in range(Ny):											# set the mx-my-twist state's initial condition (history of "perfect" configuration)
 					phiMtemp = np.arange(cheqdelta_y*rows, Nx*cheqdelta_x+cheqdelta_y*rows, cheqdelta_x)
 					phiM.append(phiMtemp)
-				phiM = np.array(phiM)
+				phiM = np.array(phiM)%(2.0*np.pi)
+				phiM = phiM.flatten(); # print('phiM: ', phiM)
+			elif (kx == 0 and ky =! 0):											# prepare chequerboard only in y-direction
+				phiM=[]
+				for rows in range(Ny):											# set the chequerboard state's initial condition (history of "perfect" configuration)
+					phiMtemp = np.arange(0.0, (Nx-1)*cheqdelta_x, cheqdelta_x)
+					phiM.append(phiMtemp)
+				phiM = np.array(phiM)%(2.0*np.pi)
+				phiM = phiM.flatten(); # print('phiM: ', phiM)
+
+			elif (kx =! 0 and ky == 0):											# prepare chequerboard only in x-direction
+				phiM=[]
+				for columns in range(Nx):										# set the chequerboard state's initial condition (history of "perfect" configuration)
+					phiMtemp = np.arange(0.0, (Ny-1)*cheqdelta_y, cheqdelta_y)
+					phiM.append(phiMtemp)
+				phiM = np.array(phiM)%(2.0*np.pi)
 				phiM = phiM.flatten(); # print('phiM: ', phiM)
 		else:
 			twistdelta_x = ( 2.0 * np.pi * kx / ( float( Nx ) ) )				# phase difference between neighboring oscillators in a stable m-twist state
