@@ -138,14 +138,14 @@ def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny=
 			if (kx == 0 and ky == 0):
 				phiM = np.zeros(N)												# phiM denotes the unperturbed initial phases according to the m-twist state under investigation
 
-			elif (kx =! 0 and ky =! 0):
+			elif (kx != 0 and ky != 0):
 				phiM=[]
 				for rows in range(Ny):											# set the mx-my-twist state's initial condition (history of "perfect" configuration)
 					phiMtemp = np.arange(cheqdelta_y*rows, Nx*cheqdelta_x+cheqdelta_y*rows, cheqdelta_x)
 					phiM.append(phiMtemp)
 				phiM = np.array(phiM)%(2.0*np.pi)
 				phiM = phiM.flatten(); # print('phiM: ', phiM)
-			elif (kx == 0 and ky =! 0):											# prepare chequerboard only in y-direction
+			elif (kx == 0 and ky != 0):											# prepare chequerboard only in y-direction
 				phiM=[]
 				for rows in range(Ny):											# set the chequerboard state's initial condition (history of "perfect" configuration)
 					phiMtemp = np.arange(0.0, (Nx-1)*cheqdelta_x, cheqdelta_x)
@@ -153,7 +153,7 @@ def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny=
 				phiM = np.array(phiM)%(2.0*np.pi)
 				phiM = phiM.flatten(); # print('phiM: ', phiM)
 
-			elif (kx =! 0 and ky == 0):											# prepare chequerboard only in x-direction
+			elif (kx != 0 and ky == 0):											# prepare chequerboard only in x-direction
 				phiM=[]
 				for columns in range(Nx):										# set the chequerboard state's initial condition (history of "perfect" configuration)
 					phiMtemp = np.arange(0.0, (Ny-1)*cheqdelta_y, cheqdelta_y)
