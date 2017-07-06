@@ -151,16 +151,23 @@ def chooseTwistNumber(N, topology):												# ask user-input for twist number
 
 def get2DTwistNumbers(Nx, Ny, topology):										# ask user-input for twist number
 	if topology == "square-open" or topology == "hexagon" or topology == "octagon" or topology == "chain":
-		a_true = True
+		a_true = True;
 		while a_true:
 			print('\nTopology with open boundary conditions has been chosen and no m-twist states exist. Only chequerboard and in-phase.')
 			# get user input on number of oscis in the network
-			kx = raw_input('\nPlease specify: chequerboard only in x-direction [0], only in y-direction [1], in x- and y-direction [2], or in-phase [3] synchronized state: ')
-			ky = kx
-			if ( int(kx)>=0 and int(ky)>=0 ):
+			k = raw_input('\nPlease specify: in-phase [0] or chequerboard synchronized state only in x-direction [1], only in y-direction [2], in x- and y-direction [3]: ')
+			if int(k)==0:
+				kx=0; ky=0;
+			elif int(k)==1:
+				kx=1; ky=0;
+			elif int(k)==2:
+				kx=0; ky=1;
+			elif int(k)==3:
+				kx=1; ky=1;
+			if ( int(k)==0 or int(k)==1 or int(k)==2 or int(k)==3 ):
 				break
 			else:
-				print('Please provide input as an [integer] in [0, oo]!')
+				print('Please provide input as an [integer] in [0, 3]!')
 	else:
 		a_true = True
 		while a_true:
@@ -688,15 +695,16 @@ def singleRealization(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
-			upper_TSim = 2000
-			lower_TSim = 50
-			for i in range (len(para_mat[:,0])):
-				if para_mat[i,9]<10:
-					para_mat[i,9]=lower_TSim
-				if para_mat[i,9]>upper_TSim:
-					para_mat[i,9]=upper_TSim
-
 			if not para_mat == [] and not len(para_mat) == 0:
+
+				upper_TSim = 2000
+				lower_TSim = 50
+				for i in range (len(para_mat[:,0])):
+					if para_mat[i,9]<10:
+						para_mat[i,9]=lower_TSim
+					if para_mat[i,9]>upper_TSim:
+						print('\n\nNOTE: here the simulation time has been altered to a SMALLER value... correct for that if necessary! \n\n')
+						para_mat[i,9]=upper_TSim
 
 				if len(para_mat[:,0]) == 1:
 					print('Estimated time until perturbations have decayed to exp(-25) times the initial perturbations: ', para_mat[0,9])
@@ -776,15 +784,16 @@ def singleRealization(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
-			upper_TSim = 2000
-			lower_TSim = 50
-			for i in range (len(para_mat[:,0])):
-				if para_mat[i,9]<10:
-					para_mat[i,9]=lower_TSim
-				if para_mat[i,9]>upper_TSim:
-					para_mat[i,9]=upper_TSim
-
 			if not para_mat == [] and not len(para_mat) == 0:
+
+				upper_TSim = 2000
+				lower_TSim = 50
+				for i in range (len(para_mat[:,0])):
+					if para_mat[i,9]<10:
+						para_mat[i,9]=lower_TSim
+					if para_mat[i,9]>upper_TSim:
+						print('\n\nNOTE: here the simulation time has been altered to a SMALLER value... correct for that if necessary! \n\n')
+						para_mat[i,9]=upper_TSim
 
 				if len(para_mat[:,0]) == 1:
 					print('Estimated time until perturbations have decayed to exp(-25) times the initial perturbations: ', para_mat[0,9])
@@ -863,15 +872,16 @@ def singleRealization(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
-			upper_TSim = 2000
-			lower_TSim = 50
-			for i in range (len(para_mat[:,0])):
-				if para_mat[i,9]<10:
-					para_mat[i,9]=lower_TSim
-				if para_mat[i,9]>upper_TSim:
-					para_mat[i,9]=upper_TSim
-
 			if not para_mat == [] and not len(para_mat) == 0:
+
+				upper_TSim = 2000
+				lower_TSim = 50
+				for i in range (len(para_mat[:,0])):
+					if para_mat[i,9]<10:
+						para_mat[i,9]=lower_TSim
+					if para_mat[i,9]>upper_TSim:
+						print('\n\nNOTE: here the simulation time has been altered to a SMALLER value... correct for that if necessary! \n\n')
+						para_mat[i,9]=upper_TSim
 
 				if len(para_mat[:,0]) == 1:
 					print('Estimated time until perturbations have decayed to exp(-25) times the initial perturbations: ', para_mat[0,9])
@@ -950,18 +960,18 @@ def singleRealization(params):
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {N, F, K, Fc, delay, m, F_Omeg, ReLambda, ImLambda, Tsim, Nx, Ny, mx, my}: \n', para_mat)
 
-			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
-
-			upper_TSim = 2000
-			lower_TSim = 50
-			for i in range (len(para_mat[:,0])):
-				if para_mat[i,9]<10:
-					para_mat[i,9]=lower_TSim
-				if para_mat[i,9]>upper_TSim:
-					para_mat[i,9]=upper_TSim
-
+			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)...
 
 			if not ( para_mat == [] and len(para_mat) == 0 and new_cLF_values == [] ):
+
+				upper_TSim = 2000
+				lower_TSim = 50
+				for i in range (len(para_mat[:,0])):
+					if para_mat[i,9]<10:
+						para_mat[i,9]=lower_TSim
+					if para_mat[i,9]>upper_TSim:
+						print('\n\nNOTE: here the simulation time has been altered to a SMALLER value... correct for that if necessary! \n\n')
+						para_mat[i,9]=upper_TSim
 
 				if len(para_mat[:,0]) == 1:
 					print('Estimated time until perturbations have decayed to exp(-25) times the initial perturbations: ', para_mat[0,9])
@@ -1058,14 +1068,15 @@ def noisyStatistics(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
-			upper_TSim = 2000
-			lower_TSim = 50
-			for i in range (len(para_mat[:,0])):
-				if para_mat[i,9]<10:
-					para_mat[i,9]=80
-
 			if not para_mat == [] and not len(para_mat) == 0:
 				print('length of para_mat[:,0]:', len(para_mat[:,0]))
+
+				upper_TSim = 2000
+				lower_TSim = 50
+				for i in range (len(para_mat[:,0])):
+					if para_mat[i,9]<10:
+						para_mat[i,9]=80
+
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:
@@ -1137,18 +1148,19 @@ def noisyStatistics(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
-			upper_TSim = 2000
-			lower_TSim = 50
-			for i in range (len(para_mat[:,0])):
-				if para_mat[i,9]<10:
-					para_mat[i,9]=80
-
 			# print('sum pert: ', np.sum(pert))
 			# if np.sum(pert) == 0.0:
 			# 	print('limit Tsim since there is no perturbation and the system is set up in the synced state')
 			# 	para_mat[i,9]=lower_TSim
 
 			if not ( para_mat == [] and new_c_values == [] ):
+
+				upper_TSim = 2000
+				lower_TSim = 50
+				for i in range (len(para_mat[:,0])):
+					if para_mat[i,9]<10:
+						para_mat[i,9]=80
+
 				# print( 'length of para_mat[:,0]:', len(para_mat[:,0]) )
 				# print( 'length of new_c_values :', len(new_c_values)  )
 				if ( len(para_mat[:,0]) > 1 or len(new_c_values) > 1 ):
@@ -1223,15 +1235,17 @@ def noisyStatistics(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
-			upper_TSim = 2000
-			lower_TSim = 50
-			for i in range (len(para_mat[:,0])):
-				if para_mat[i,9]<10:
-					para_mat[i,9]=lower_TSim
-				if para_mat[i,9]>upper_TSim:
-					para_mat[i,9]=upper_TSim
-
 			if not para_mat == [] and not len(para_mat) == 0:
+
+				upper_TSim = 2000
+				lower_TSim = 50
+				for i in range (len(para_mat[:,0])):
+					if para_mat[i,9]<10:
+						para_mat[i,9]=lower_TSim
+					if para_mat[i,9]>upper_TSim:
+						print('\n\nNOTE: here the simulation time has been altered to a SMALLER value... correct for that if necessary! \n\n')
+						para_mat[i,9]=upper_TSim
+
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:
@@ -1302,15 +1316,17 @@ def noisyStatistics(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
-			upper_TSim = 2000
-			lower_TSim = 50
-			for i in range (len(para_mat[:,0])):
-				if para_mat[i,9]<10:
-					para_mat[i,9]=lower_TSim
-				if para_mat[i,9]>upper_TSim:
-					para_mat[i,9]=upper_TSim
-
 			if not ( para_mat == [] and new_cLF_values == [] ):
+
+				upper_TSim = 2000
+				lower_TSim = 50
+				for i in range (len(para_mat[:,0])):
+					if para_mat[i,9]<10:
+						para_mat[i,9]=lower_TSim
+					if para_mat[i,9]>upper_TSim:
+						print('\n\nNOTE: here the simulation time has been altered to a SMALLER value... correct for that if necessary! \n\n')
+						para_mat[i,9]=upper_TSim
+
 				# print( 'length of para_mat[:,0]:', len(para_mat[:,0]) )
 				# print( 'length of new_c_values :', len(new_c_values)  )
 				if ( len(para_mat[:,0]) > 1 or len(new_cLF_values) > 1 ):
@@ -1387,6 +1403,7 @@ def noisyStatistics(params):
 				if para_mat[i,9]<10:
 					para_mat[i,9]=lower_TSim
 				if para_mat[i,9]>upper_TSim:
+					print('\n\nNOTE: here the simulation time has been altered to a SMALLER value... correct for that if necessary! \n\n')
 					para_mat[i,9]=upper_TSim
 
 			if not para_mat == [] and not len(para_mat) == 0:

@@ -39,16 +39,24 @@ def simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg
 		r = eva.oracle_mTwistOrderParameter2d(phi[-int(2*1.0/(F*dt)):, :], Nx, Ny, kx, ky)
 		orderparam = eva.oracle_mTwistOrderParameter2d((phi[:, :], Nx, Ny, kx, ky))
 	elif topology == "square-open" or topology == "hexagon" or topology == "octagon":
+		if kx==1 and ky==1:
+			ktemp=2
+		elif kx==1 and ky==0:
+			ktemp=0
+		elif kx==0 and ky==1:
+			ktemp=1
+		elif kx==0 and ky==0:
+			ktemp=3
 		"""
 				k == 0 : x  checkerboard state
 				k == 1 : y  checkerboard state
 				k == 2 : xy checkerboard state
 				k == 3 : in-phase synchronized
 			"""
-		r = eva.oracle_CheckerboardOrderParameter2d(phi[-int(2*1.0/(F*dt)):, :], Nx, Ny, k)
+		r = eva.oracle_CheckerboardOrderParameter2d(phi[-int(2*1.0/(F*dt)):, :], Nx, Ny, ktemp)
 		# ry = np.nonzero(rmat > 0.995)[0]
 		# rx = np.nonzero(rmat > 0.995)[1]
-		orderparam = eva.oracle_CheckerboardOrderParameter2d(phi[:, :], Nx, Ny, k)
+		orderparam = eva.oracle_CheckerboardOrderParameter2d(phi[:, :], Nx, Ny, ktemp)
 	elif topology == "chain":
 		"""
 				k  > 0 : x  checkerboard state
