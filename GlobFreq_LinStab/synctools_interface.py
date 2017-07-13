@@ -37,8 +37,7 @@ def generate_delay_plot(n, ny, nx, w, k, h, wc, m, mx, my, topology, isRadians=T
     fsl = sf.sweep()
 
     # Create figure
-    plt.figure(1, figsize=(8, 8))
-    plt.clf()
+    plt.figure(figsize=(8, 8))
 
     plt.subplot(2, 1, 1)
     plt.plot(fsl.get_tau(), fsl.get_omega(), '.')
