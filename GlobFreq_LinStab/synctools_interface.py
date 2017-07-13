@@ -1,3 +1,6 @@
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 import numpy as np
 
 import synctools3 as st
@@ -19,6 +22,48 @@ COUPLING_FUNCTION_TRIANGLE = 'triang'
 
 
 # #############################################################################
+
+
+
+def generate_delay_plot(n, ny, nx, w, k, h, wc, m, mx, my, topology, isRadians=True, filename=None):
+    # Setup sweep factory and create state list
+    n_points = 250
+    if isRadians:
+        tau_max = 2.0 / (w / (2 * np.pi))
+    else:
+        tau_max = 2.0 / w
+    tau = np.linspace(0, tau_max, n_points)
+    sf = SweepFactory(n, ny, nx, w, k, tau, h, wc, m, mx, my, topology, 0, isRadians=isRadians)
+    fsl = sf.sweep()
+
+    # Create figure
+    plt.figure(1, figsize=(8, 8))
+    plt.clf()
+
+    plt.subplot(2, 1, 1)
+    plt.plot(fsl.get_tau(), fsl.get_omega(), '.')
+    plt.grid(True, ls='--')
+    plt.xlabel('Delay [s]')
+    plt.ylabel('Synch. frequency [rad/s]')
+    plt.tight_layout()
+
+    plt.subplot(2, 1, 2)
+    plt.axhline(0, color='k')
+    plt.plot(fsl.get_tau(), np.real(fsl.get_l()), '.')
+    plt.grid(True, ls='--')
+    plt.xlabel('Delay [s]')
+    plt.ylabel('Stability [Hz]')
+    plt.tight_layout()
+    plt.draw()
+
+    # Save figure
+    if filename == None:
+        filename = 'delay_plot'
+    plt.savefig(filename + '.png', dpi=150)
+    plt.savefig(filename + '.pdf')
+
+    # # Show figure?
+    # plt.show()
 
 
 
@@ -191,7 +236,8 @@ class SweepFactory(object):
         # Set up sweep loop
         fsl = FlatStateList(sweep_factory=self)
         for i in range(len(self.values_sweep)):
-            print( self.values_sweep[i] )
+            msg_str = 'Sweep value: %.3e' % self.values_sweep[i]
+            print msg_str + '\r',
 
             # Set new value for sweep variable
             self[self.key_sweep] = self.values_sweep[i]
@@ -465,3 +511,5 @@ class FlatStateList(object):
             return x
         else:
             return None
+
+
