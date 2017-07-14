@@ -1,5 +1,10 @@
-import matplotlib
-matplotlib.use('Agg')
+import datetime
+import os
+
+# Required when plot windows should not be displayed
+#import matplotlib
+#matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -30,20 +35,34 @@ def generate_delay_plot(n, ny, nx, w, k, h, wc, m, mx, my, topology, isRadians=T
     n_points = 250
     if isRadians:
         tau_max = 2.0 / (w / (2 * np.pi))
+        f = w / (2 * np.pi)
+        fc = wc / (2 * np.pi)
+        kc = k  / (2 * np.pi)
     else:
         tau_max = 2.0 / w
+        f = w
+        fc = wc
+        kc = k
     tau = np.linspace(0, tau_max, n_points)
     sf = SweepFactory(n, ny, nx, w, k, tau, h, wc, m, mx, my, topology, 0, isRadians=isRadians)
     fsl = sf.sweep()
 
+    # Create parameter string
+    str_para = ''
+    str_para += 'k = %i   kx = %i   ky = %i' % (m, mx, my)
+    str_para += '\n%s topology' % topology
+    str_para += ' n = %i   nx = %i   ny = %i' % (n, nx, ny)
+    str_para += '\nF = %.2f Hz   Fc = %.2f Hz   Kc = %.2f Hz' % (f, fc, kc)
+
     # Create figure
-    plt.figure(figsize=(8, 8))
+    plt.figure(figsize=(8, 8.2))
 
     plt.subplot(2, 1, 1)
+    plt.title(str_para)
     plt.plot(fsl.get_tau(), fsl.get_omega(), '.')
     plt.grid(True, ls='--')
     plt.xlabel('Delay [s]')
-    plt.ylabel('Synch. frequency [rad/s]')
+    plt.ylabel('Sync. frequency [rad/s]')
     plt.tight_layout()
 
     plt.subplot(2, 1, 2)
@@ -51,18 +70,20 @@ def generate_delay_plot(n, ny, nx, w, k, h, wc, m, mx, my, topology, isRadians=T
     plt.plot(fsl.get_tau(), np.real(fsl.get_l()), '.')
     plt.grid(True, ls='--')
     plt.xlabel('Delay [s]')
-    plt.ylabel('Stability [Hz]')
+    plt.ylabel('Stability [rad/s]')
     plt.tight_layout()
     plt.draw()
 
     # Save figure
     if filename == None:
-        filename = 'delay_plot'
+        dt = datetime.datetime.now()
+        str_time = dt.strftime('%Y%m%d_%H%M%S')
+        filename = os.path.join('results', 'delay_plot_' + str_time)
     plt.savefig(filename + '.png', dpi=150)
     plt.savefig(filename + '.pdf')
 
-    # # Show figure?
-    # plt.show()
+    # Show figure
+    plt.show()
 
 
 
