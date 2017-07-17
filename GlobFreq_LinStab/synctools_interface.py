@@ -76,6 +76,14 @@ def generate_delay_plot(n, ny, nx, w, k, h, wc, m, mx, my, topology, isRadians=T
     plt.tight_layout()
     plt.draw()
 
+    # Check if results folder exists
+    if not os.path.isdir('results'):
+        try:
+            os.makedirs('results')
+        except:
+            raise Exception('results folder does not exist and could not be created')
+
+
     # Save figure
     if filename == None:
         dt = datetime.datetime.now()
