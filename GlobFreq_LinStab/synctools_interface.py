@@ -16,8 +16,10 @@ TOPO_1D_RING = 'ring'
 TOPO_1D_CHAIN = 'chain'
 TOPO_2D_CUBIC_OPEN = 'square-open'
 TOPO_2D_CUBIC_PERIODIC = 'square-periodic'
-TOPO_2D_HEXAGONAL_PERIODIC = 'hexagon'
-TOPO_2D_OCTAGONAL_PERIODIC = 'octagon'
+TOPO_2D_HEXAGONAL_OPEN = 'hexagon-open'
+TOPO_2D_HEXAGONAL_PERIODIC = 'hexagon-periodic'
+TOPO_2D_OCTAGONAL_OPEN = 'octagon-open'
+TOPO_2D_OCTAGONAL_PERIODIC = 'octagon-periodic'
 
 
 COUPLING_FUNCTION_COS = 'cos'
@@ -200,9 +202,15 @@ class SweepFactory(object):
         elif self.topology == TOPO_2D_CUBIC_PERIODIC:
             arr = st.PeriodicCubic2D(self.nx, self.ny)
             g = st.CubicNearestNeighbor(arr, h_func, self.k, self.tau, hasNormalizedCoupling=True)
+        elif self.topology == TOPO_2D_HEXAGONAL_OPEN:
+            arr = st.OpenCubic2D(self.nx, self.ny)
+            g = st.CubicHexagonal(arr, h_func, self.k, self.tau, hasNormalizedCoupling=True)
         elif self.topology == TOPO_2D_HEXAGONAL_PERIODIC:
             arr = st.PeriodicCubic2D(self.nx, self.ny)
             g = st.CubicHexagonal(arr, h_func, self.k, self.tau, hasNormalizedCoupling=True)
+        elif self.topology == TOPO_2D_OCTAGONAL_OPEN:
+            arr = st.OpenCubic2D(self.nx, self.ny)
+            g = st.CubicOctagonal(arr, h_func, self.k, self.tau, hasNormalizedCoupling=True)
         elif self.topology == TOPO_2D_OCTAGONAL_PERIODIC:
             arr = st.PeriodicCubic2D(self.nx, self.ny)
             g = st.CubicOctagonal(arr, h_func, self.k, self.tau, hasNormalizedCoupling=True)
@@ -218,25 +226,23 @@ class SweepFactory(object):
         return pll_sys
 
     def get_states(self, pll_sys):
+        # 1d twist state
         if self.topology == TOPO_1D_RING:
-            # 1d twist state
             state_def = st.TwistDefinition(pll_sys, self.m)
+        # 1d global sync state for non-periodic boundray conditions
         elif self.topology == TOPO_1D_CHAIN and self.m == 0:
-            # 1d global sync state for non-periodic boundray conditions
             state_def = st.TwistDefinition(pll_sys, 0)
+        # 1d Checkerboard states for non-periodic boundray conditions and m > 0
         elif self.topology == TOPO_1D_CHAIN:
-            # 1d Checkerboard states for non-periodic boundray conditions and m > 0
             state_def = st.CheckerboardDefinition(pll_sys)
-        elif self.topology == TOPO_2D_CUBIC_OPEN and self.mx == 0 and self.my ==0:
-            # Global sync state for open 2d cubic lattice
+        # Global sync state for open 2d cubic lattice
+        elif (self.topology == TOPO_2D_CUBIC_OPEN or self.topology == TOPO_2D_HEXAGONAL_OPEN or self.topology == TOPO_2D_OCTAGONAL_OPEN) and self.mx == 0 and self.my == 0:
             state_def = st.CubicTwistDefinition(pll_sys, 0, 0)
-        elif self.topology == TOPO_2D_CUBIC_OPEN and (self.mx > 0 or self.my >0):
-            # Checkerboar state for open cubic 2d lattice
+        # Checkerboard state for open cubic 2d lattice
+        elif (self.topology == TOPO_2D_CUBIC_OPEN or self.topology == TOPO_2D_HEXAGONAL_OPEN or self.topology == TOPO_2D_OCTAGONAL_OPEN) and (self.mx > 0 or self.my > 0):
             state_def = st.CubicCheckerboardDefinition(pll_sys)
-        elif (self.topology == TOPO_2D_CUBIC_PERIODIC or
-              self.topology == TOPO_2D_HEXAGONAL_PERIODIC or
-              self.topology == TOPO_2D_OCTAGONAL_PERIODIC):
-            # Twist states for periodic cubic 2d lattice
+        # Twist states for periodic cubic 2d lattice
+        elif (self.topology == TOPO_2D_CUBIC_PERIODIC or self.topology == TOPO_2D_HEXAGONAL_PERIODIC or self.topology == TOPO_2D_OCTAGONAL_PERIODIC):
             state_def = st.CubicTwistDefinition(pll_sys, self.mx, self.my)
         else:
             raise Exception('Interface does not support topology yet.')
