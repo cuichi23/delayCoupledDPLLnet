@@ -37,7 +37,7 @@ def simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg
 		F1=F+1E-3
 	if topology == "square-periodic" or topology == "hexagon-periodic" or topology == "octagon-periodic":
 		r = eva.oracle_mTwistOrderParameter2d(phi[-int(2*1.0/(F*dt)):, :], Nx, Ny, kx, ky)
-		orderparam = eva.oracle_mTwistOrderParameter2d((phi[:, :], Nx, Ny, kx, ky))
+		orderparam = eva.oracle_mTwistOrderParameter2d(phi[:, :], Nx, Ny, kx, ky)
 	elif topology == "square-open" or topology == "hexagon" or topology == "octagon":
 		if kx==1 and ky==1:
 			ktemp=2
@@ -160,7 +160,7 @@ def singleadiabatic(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Trelax, 
 	print('Total simulation time in multiples of the eigentfrequency:', int(Tsim*F),'\n')
 
 	twistdelta=0; cheqdelta=0; twistdelta_x=0; twistdelta_y=0;
-	if ( topology == 'square-open' or topology == 'square-periodic'  or topology == 'hexagon' or topology == 'octagon' ):
+	if not ( topology == 'ring' or topology == 'chain' ):
 		if topology == 'square-open' or topology == 'hexagon' or topology == 'octagon':
 			cheqdelta_x = np.pi 												# phase difference between neighboring oscillators in a stable chequerboard state
 			cheqdelta_y = np.pi 												# phase difference between neighboring oscillators in a stable chequerboard state
@@ -190,7 +190,7 @@ def singleadiabatic(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Trelax, 
 					phiM.append(phiMtemp)
 				phiM = np.array(phiM)%(2.0*np.pi)
 				phiM = phiM.flatten(); # print('phiM: ', phiM)
-		else:
+		elif (topology == 'hexagon-periodic' or topology == 'octagon-periodic' or topology == 'square-periodic'):
 			twistdelta_x = ( 2.0 * np.pi * kx / ( float( Nx ) ) )				# phase difference between neighboring oscillators in a stable m-twist state
 			twistdelta_y = ( 2.0 * np.pi * ky / ( float( Ny ) ) )				# phase difference between neighboring oscillators in a stable m-twist state
 			# print('phase differences of',k,'-twist:', twistdelta, '\n')

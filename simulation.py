@@ -687,7 +687,7 @@ def generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,
 					G.add_edge(n,(x+1,y+1))
 
 		elif topology == 'hexagon-periodic':
-			G=nx.grid_2d_graph(Nx,Ny, periodic=True)							
+			G=nx.grid_2d_graph(Nx,Ny, periodic=True)
 			for n in G:
 				x,y=n
 				G.add_edge(n, ((x-1)%Nx, (y-1)%Ny))
@@ -695,17 +695,17 @@ def generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,
 		elif topology == 'octagon':												# why not ..._graph(Nx,Ny) ? NOTE the for n in G: loop has to be changed, loop over nx and ny respectively, etc....
 			print('\nIf Nx =! Ny, then check the graph that is generated again!')
 			G=nx.grid_2d_graph(Nx,Ny)
-			for n in G:
+			for n in G:                                      
 				x,y=n
 				if x>0 and y>0:
 					G.add_edge(n,(x-1,y-1))
-				if x<N-1 and y<N-1:
+				if x<Nx-1 and y<Ny-1:
 					G.add_edge(n,(x+1,y+1))
-				if x<N-1 and y>0:
+				if x<Nx-1 and y>0:
 					G.add_edge(n,(x+1,y-1))
-				if x<N-1 and y>0:
+				if x<Nx-1 and y>0:
 					G.add_edge(n,(x+1,y-1))
-				if x>0 and y<N-1:
+				if x>0 and y<Ny-1:
 					G.add_edge(n,(x-1,y+1))
 
 		elif topology == 'octagon-periodic':
