@@ -195,15 +195,25 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny
 			twistdelta_x = ( 2.0 * np.pi * kx / ( float( Nx ) ) )				# phase difference between neighboring oscillators in a stable m-twist state
 			twistdelta_y = ( 2.0 * np.pi * ky / ( float( Ny ) ) )				# phase difference between neighboring oscillators in a stable m-twist state
 			# print('phase differences of',k,'-twist:', twistdelta, '\n')
+			# print('N =', N, '    Nx =', Nx, '    Ny =', Ny, '    k =', k, '    kx =', kx, '    ky =', ky)
 			if (k == 0 and kx == 0 and ky == 0):
 				phiM = np.zeros(N)												# phiM denotes the unperturbed initial phases according to the m-twist state under investigation
+				print('Length, type and shape of phiM:', len(phiM), type(phiM), phiM.shape)
 			else:
 				phiM=[]
+				print('type phiM at initialization', type(phiM))
+				# print('Entering loop over Ny to set initial phiM.')
 				for rows in range(Ny):											# set the mx-my-twist state's initial condition (history of "perfect" configuration)
+					print('loop #', rows)
 					phiMtemp = np.arange(twistdelta_y*rows, Nx*twistdelta_x+twistdelta_y*rows, twistdelta_x)
+					print('phiMtemp=', phiMtemp, '    of type ', type(phiMtemp))
 					phiM.append(phiMtemp)
+					print('phiM(list)=', phiM, '    of type ', type(phiM))
+
 				phiM = np.array(phiM)
-				phiM = phiM.flatten(); # print('phiM: ', phiM)
+				print('phiM(array)=', phiM, '    of type ', type(phiM), '    and shape ', phiM.shape)
+				phiM = phiM.flatten(); print('phiMflattened: ', phiM)
+				print('Length, type and shape of phiMflattened that was generated:', len(phiM), type(phiM), phiM.shape)
 	if ( topology == 'ring' or topology == 'chain' ):
 		if topology == 'chain':
 			cheqdelta = np.pi													# phase difference between neighboring oscillators in a stable chequerboard state

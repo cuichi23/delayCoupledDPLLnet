@@ -494,7 +494,7 @@ def setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanv
 																				# [min_pert, max_pert] or a gamma-distribution with shape and scale parameter
 			perturbation_vec = chooseDeltaPertDistAndBounds(N, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, False)		# call with 'False' flag in order to get perturbations returned in rotated phase space as needed
 
-	print( '\norder parameter for system after delta-perturbation: ', eva.oracle_mTwistOrderParameter(perturbation_vec, k), ' and twist number: ', k, '\n' )
+	print( '\n(unchanged, i.e., only in-phase represented by R=1) order parameter for system after delta-perturbation: ', eva.oracle_mTwistOrderParameter(perturbation_vec, k), ' and twist number: ', k, '\n' )
 	return perturbation_vec
 
 ''' SINGLE REALIZATION, ADIABATIC CHANGE OF c_LF AFTER TRANSIENT DECAY TIME '''

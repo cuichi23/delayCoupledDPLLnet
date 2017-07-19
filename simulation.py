@@ -695,7 +695,7 @@ def generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,
 		elif topology == 'octagon':												# why not ..._graph(Nx,Ny) ? NOTE the for n in G: loop has to be changed, loop over nx and ny respectively, etc....
 			print('\nIf Nx =! Ny, then check the graph that is generated again!')
 			G=nx.grid_2d_graph(Nx,Ny)
-			for n in G:                                      
+			for n in G:
 				x,y=n
 				if x>0 and y>0:
 					G.add_edge(n,(x-1,y-1))
@@ -750,6 +750,7 @@ def generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,
 			if couplingfct == 'triang':
 				# print('Initiate (phase shifted) PLL objects. Simulate with additive noise, triangular coupling function.')
 				# NOTE print('The coupling topology is given by:', G, ' for topology:', topology)
+				print('Container with initial perturbations, length, type, shape:', len(phiM), type(phiM), phiM.shape)
 				pll_list = [ PhaseLockedLoop(									# setup PLLs and storage in a list as PLL class objects
 									Delayer(delay,dt),							# delayer takes a time series and returns values at t and t-tau
 									PhaseDetectorCombiner(idx_pll, G.neighbors(idx_pll)),
@@ -776,6 +777,7 @@ def generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,
 									)  for idx_pll in range(Nplls) ]			# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
 			if couplingfct == 'triang':
 				# print('Initiate (phase shifted) PLL objects. Simulate with additive noise, triangular coupling function.')
+				print('phiM in setup PLLs:', phiM)
 				pll_list = [ PhaseLockedLoop(										# setup PLLs and storage in a list as PLL class objects
 									Delayer(delay,dt),								# delayer takes a time series and returns values at t and t-tau
 									PhaseDetectorCombiner(idx_pll, G.neighbors(idx_pll)),
