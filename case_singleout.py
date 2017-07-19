@@ -200,20 +200,33 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny
 				phiM = np.zeros(N)												# phiM denotes the unperturbed initial phases according to the m-twist state under investigation
 				print('Length, type and shape of phiM:', len(phiM), type(phiM), phiM.shape)
 			else:
-				phiM=[]
-				print('type phiM at initialization', type(phiM))
+				phiMt=[]
+				print('type phiM at initialization', type(phiMt))
 				# print('Entering loop over Ny to set initial phiM.')
 				for rows in range(Ny):											# set the mx-my-twist state's initial condition (history of "perfect" configuration)
-					print('loop #', rows)
+					# print('loop #', rows)
 					phiMtemp = np.arange(twistdelta_y*rows, Nx*twistdelta_x+twistdelta_y*rows, twistdelta_x)
-					print('phiMtemp=', phiMtemp, '    of type ', type(phiMtemp))
-					phiM.append(phiMtemp)
-					print('phiM(list)=', phiM, '    of type ', type(phiM))
+					# print('phiMtemp=', phiMtemp, '    of type ', type(phiMtemp))
+					phiMt.append(phiMtemp)
+					# print('phiM(list)=', phiMt, '    of type ', type(phiMt))
 
-				phiM = np.array(phiM)
-				print('phiM(array)=', phiM, '    of type ', type(phiM), '    and shape ', phiM.shape)
-				phiM = phiM.flatten(); print('phiMflattened: ', phiM)
-				print('Length, type and shape of phiMflattened that was generated:', len(phiM), type(phiM), phiM.shape)
+				phiM = np.array(phiMt)
+				# print('phiM[1,]', phiM[1,])
+				# print('phiM(array)=', phiM, '    of type ', type(phiM), '    and shape ', phiM.shape)
+
+				phiMreorder=np.zeros(Nx*Ny); counter=0;
+				for i in range(Nx):
+					for j in range(Ny):
+						# print('counter:', counter)
+						phiMreorder[counter]=phiM[i][j]; counter=counter+1;
+				phiM = phiMreorder
+				# print('phiMreorderd: ', phiM, '    of type ', type(phiM), '    and shape ', phiM.shape)
+
+				# NOPE phiM = np.reshape(phiM, (np.product(phiM.shape),))
+				# phiM = phiM.flatten();
+				# phiM = phiM[:][:].flatten();
+				# print('phiMflattened: ', phiM, '    of type ', type(phiM), '    and shape ', phiM.shape)
+				# print('Length, type and shape of phiMflattened that was generated:', len(phiM), type(phiM), phiM.shape)
 	if ( topology == 'ring' or topology == 'chain' ):
 		if topology == 'chain':
 			cheqdelta = np.pi													# phase difference between neighboring oscillators in a stable chequerboard state
