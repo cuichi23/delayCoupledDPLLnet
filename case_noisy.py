@@ -180,7 +180,12 @@ def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny=
 					phiMtemp = np.arange(twistdelta_y*rows, Nx*twistdelta_x+twistdelta_y*rows, twistdelta_x)
 					phiM.append(phiMtemp)
 				phiM = np.array(phiM)
-				phiM = phiM.flatten(); # print('phiM: ', phiM)
+				for i in range(Nx):
+					for j in range(Ny):
+						# print('counter:', counter)
+						phiMreorder[counter]=phiM[i][j]; counter=counter+1;
+				phiM = phiMreorder
+				# phiM = phiM.flatten(); # print('phiM: ', phiM)
 	if ( topology == 'ring' or topology == 'chain' ):
 		if topology == 'chain':
 			cheqdelta = np.pi													# phase difference between neighboring oscillators in a stable chequerboard state
