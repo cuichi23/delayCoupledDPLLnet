@@ -201,14 +201,15 @@ if __name__ == '__main__':
 			else:
 				phiM=[]
 				for rows in range(Ny):											# set the mx-my-twist state's initial condition (history of "perfect" configuration)
-					phiMtemp = np.arange(twistdelta_y*rows, Nx*twistdelta_x+twistdelta_y*rows, twistdelta_x)
+					#phiMtemp = np.arange(twistdelta_y*rows, Nx*twistdelta_x+twistdelta_y*rows, twistdelta_x)
+					phiMtemp = twistdelta_x * np.arange(Nx) + twistdelta_y * rows
 					phiM.append(phiMtemp)
 				phiM = np.array(phiM)
 				for i in range(Nx):
 					for j in range(Ny):
 						# print('counter:', counter)
 						phiMreorder[counter]=phiM[i][j]; counter=counter+1;
-				phiM = phiMreorder
+				phiM = phiMreorder%(2.0*np.pi)
 				# phiM = phiM.flatten(); # print('phiM: ', phiM)
 	if ( topology == 'ring' or topology == 'chain' ):
 		if topology == 'chain':
