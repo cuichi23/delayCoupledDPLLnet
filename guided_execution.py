@@ -667,8 +667,8 @@ def singleRealization(params):
 			if len(new_K_values)==1:
 				isRadian=False
 				print('\nGenerate plot of collective frequency and linear stability against delay to support decision. Please wait, then pick a value and close the figure to proceed.')
-				print('Deactivated temporarily.')
-				# synctools.generate_delay_plot(N, Ny, Nx, F, new_K_values, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, isRadians=isRadian)
+				# print('Deactivated temporarily.')
+				synctools.generate_delay_plot(N, Ny, Nx, F, new_K_values, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, isRadians=isRadian)
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
 			cLF		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)

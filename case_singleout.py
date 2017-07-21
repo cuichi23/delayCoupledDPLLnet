@@ -219,8 +219,8 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny
 					for j in range(Ny):
 						# print('counter:', counter)
 						phiMreorder[counter]=phiM[i][j]; counter=counter+1;
-				phiM = phiMreorder
-				# print('phiMreorderd: ', phiM, '    of type ', type(phiM), '    and shape ', phiM.shape)
+				phiM = phiMreorder%(2.0*np.pi)
+				print('phiMreorderd: ', phiM, '    of type ', type(phiM), '    and shape ', phiM.shape)
 
 				# NOPE phiM = np.reshape(phiM, (np.product(phiM.shape),))
 				# phiM = phiM.flatten();
