@@ -205,7 +205,8 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny
 				# print('Entering loop over Ny to set initial phiM.')
 				for rows in range(Ny):											# set the mx-my-twist state's initial condition (history of "perfect" configuration)
 					# print('loop #', rows)
-					phiMtemp = np.arange(twistdelta_y*rows, Nx*twistdelta_x+twistdelta_y*rows, twistdelta_x)
+					#phiMtemp = np.arange(twistdelta_y*rows, Nx*twistdelta_x+twistdelta_y*rows, twistdelta_x)
+					phiMtemp = twistdelta_x * np.arange(Nx) + twistdelta_y * rows
 					print('phiMtemp=', phiMtemp, '    of type ', type(phiMtemp), '    and length ', len(phiMtemp))
 					phiM.append(phiMtemp)
 					# print('phiM(list)=', phiMt, '    of type ', type(phiMt))
