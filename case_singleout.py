@@ -200,17 +200,17 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny
 				phiM = np.zeros(N)												# phiM denotes the unperturbed initial phases according to the m-twist state under investigation
 				print('Length, type and shape of phiM:', len(phiM), type(phiM), phiM.shape)
 			else:
-				phiMt=[]
-				print('type phiM at initialization', type(phiMt))
+				phiM=[]
+				# print('type phiM at initialization', type(phiM))
 				# print('Entering loop over Ny to set initial phiM.')
 				for rows in range(Ny):											# set the mx-my-twist state's initial condition (history of "perfect" configuration)
 					# print('loop #', rows)
 					phiMtemp = np.arange(twistdelta_y*rows, Nx*twistdelta_x+twistdelta_y*rows, twistdelta_x)
-					# print('phiMtemp=', phiMtemp, '    of type ', type(phiMtemp))
-					phiMt.append(phiMtemp)
+					print('phiMtemp=', phiMtemp, '    of type ', type(phiMtemp), '    and length ', len(phiMtemp))
+					phiM.append(phiMtemp)
 					# print('phiM(list)=', phiMt, '    of type ', type(phiMt))
 
-				phiM = np.array(phiMt)
+				phiM = np.array(phiM)
 				# print('phiM[1,]', phiM[1,])
 				# print('phiM(array)=', phiM, '    of type ', type(phiM), '    and shape ', phiM.shape)
 
