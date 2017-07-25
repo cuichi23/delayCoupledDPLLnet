@@ -649,7 +649,7 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,coupling
 ''' CREATE PLL LIST '''
 def generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,y0,phiM,domega,diffconstK,Nx,Ny,cLF,Trelax=0):
 	if not Nplls == Nx*Ny:
-		print()
+		print('Nplls was unequal to Nx*Ny, corrected for that, now Nplls=Nx*Ny.')
 		Nplls = Nx*Ny
 
 	if topology == 'global':
@@ -751,6 +751,8 @@ def generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,
 				# print('Initiate (phase shifted) PLL objects. Simulate with additive noise, triangular coupling function.')
 				# NOTE print('The coupling topology is given by:', G, ' for topology:', topology)
 				print('Container with initial perturbations, length, type, shape:', len(phiM), type(phiM), phiM.shape)
+				for idx_pll in range(Nplls):
+					print('index PLLs:',idx_pll, '    and G.neighbors(index_pll):', G.neighbors(idx_pll))
 				pll_list = [ PhaseLockedLoop(									# setup PLLs and storage in a list as PLL class objects
 									Delayer(delay,dt),							# delayer takes a time series and returns values at t and t-tau
 									PhaseDetectorCombiner(idx_pll, G.neighbors(idx_pll)),
@@ -894,5 +896,14 @@ def generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,
 
 	else:
 		print('If Trelax>0, also cLF(initial) needs to be > zero. Noise diff const c should be zero!');
+
+	# import matplotlib
+	# import matplotlib.pyplot as plt
+	#
+	# Gsquare=nx.grid_2d_graph(Nx,Ny)
+	#
+	# fig, axs = plt.subplots(1,1)
+	# nx.draw(G, pos=nx.spectral_layout(G))
+	# labels=nx.draw_networkx_labels(G,pos=nx.spectral_layout(G))
 
 	return pll_list
