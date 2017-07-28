@@ -11,7 +11,7 @@ import datetime
 
 ''' CLASSES
 
-authors: Alexandros Pollakis, Lucas Wetzel [emails]
+authors: Alexandros Pollakis, Lucas Wetzel [ lwetzel@pks.mpg.de ]
 '''
 
 # PLL
@@ -715,7 +715,7 @@ def generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,
 				G.add_edge(n, ((x-1)%Nx, (y-1)%Ny))
 				G.add_edge(n, ((x-1)%Nx, (y+1)%Ny))
 
-		G = nx.convert_node_labels_to_integers(G)
+		G = nx.convert_node_labels_to_integers(G, first_label=0, ordering='sorted')
 
 	# print('c=',c,' coupling-function:', couplingfct,'\n')
 	# print('Complete this part for all cases, e.g. the case of K drawn from a distribution.')
@@ -750,9 +750,20 @@ def generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,
 			if couplingfct == 'triang':
 				# print('Initiate (phase shifted) PLL objects. Simulate with additive noise, triangular coupling function.')
 				# NOTE print('The coupling topology is given by:', G, ' for topology:', topology)
+
+				''' Test and check '''
 				print('Container with initial perturbations, length, type, shape:', len(phiM), type(phiM), phiM.shape)
 				for idx_pll in range(Nplls):
 					print('index PLLs:',idx_pll, '    and G.neighbors(index_pll):', G.neighbors(idx_pll))
+
+				import matplotlib
+				import matplotlib.pyplot as plt
+				fig, axs = plt.subplots(1,2)
+				labels=nx.draw_networkx_labels(G, pos=nx.spring_layout(G), ax=axs[0])
+				nx.draw(G, pos=nx.spring_layout(G), node_size=(0.5+phiM)*1000 ,ax=axs[0])
+				nx.draw(G, node_size=(0.5+phiM)*1000,ax=axs[1])
+				''' Test and check '''
+
 				pll_list = [ PhaseLockedLoop(									# setup PLLs and storage in a list as PLL class objects
 									Delayer(delay,dt),							# delayer takes a time series and returns values at t and t-tau
 									PhaseDetectorCombiner(idx_pll, G.neighbors(idx_pll)),
@@ -896,14 +907,5 @@ def generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,
 
 	else:
 		print('If Trelax>0, also cLF(initial) needs to be > zero. Noise diff const c should be zero!');
-
-	# import matplotlib
-	# import matplotlib.pyplot as plt
-	#
-	# Gsquare=nx.grid_2d_graph(Nx,Ny)
-	#
-	# fig, axs = plt.subplots(1,1)
-	# nx.draw(G, pos=nx.spectral_layout(G))
-	# labels=nx.draw_networkx_labels(G,pos=nx.spectral_layout(G))
 
 	return pll_list
