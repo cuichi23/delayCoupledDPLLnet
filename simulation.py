@@ -715,7 +715,8 @@ def generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,
 				G.add_edge(n, ((x-1)%Nx, (y-1)%Ny))
 				G.add_edge(n, ((x-1)%Nx, (y+1)%Ny))
 
-		G = nx.convert_node_labels_to_integers(G, first_label=0, ordering='sorted')
+		# G = nx.convert_node_labels_to_integers(G)
+		G = nx.convert_node_labels_to_integers(G, first_label=0, ordering='sorted') # converts 2d coordinates to 1d index of integers, e.g., k=0,...,N-1
 
 	# print('c=',c,' coupling-function:', couplingfct,'\n')
 	# print('Complete this part for all cases, e.g. the case of K drawn from a distribution.')
