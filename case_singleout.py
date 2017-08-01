@@ -28,7 +28,7 @@ def simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg
 	delays_0= simresult['transdelays']
 	cLF_t   = simresult['cLF']
 	# print('\n\ncLF_t:', cLF_t, '\n\n')
-	print('type(phi), phi.shape:', type(phi), phi.shape, '    phi:', phi)
+	# print('type(phi), phi.shape:', type(phi), phi.shape, '    phi:', phi)
 
 	''' MODIFIED KURAMOTO ORDER PARAMETERS '''
 	if F > 0:																	# for f=0, there would otherwies be a float division by zero
@@ -207,7 +207,7 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny
 					# print('loop #', rows)
 					#phiMtemp = np.arange(twistdelta_y*rows, Nx*twistdelta_x+twistdelta_y*rows, twistdelta_x)
 					phiMtemp = twistdelta_x * np.arange(Nx) + twistdelta_y * rows
-					print('phiMtemp=', phiMtemp, '    of type ', type(phiMtemp), '    and length ', len(phiMtemp))
+					# print('phiMtemp=', phiMtemp, '    of type ', type(phiMtemp), '    and length ', len(phiMtemp))
 					phiM.append(phiMtemp)
 					# print('phiM(list)=', phiMt, '    of type ', type(phiMt))
 
@@ -221,7 +221,7 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny
 						# print('counter:', counter)
 						phiMreorder[counter]=phiM[i][j]; counter=counter+1;
 				phiM = phiMreorder%(2.0*np.pi)
-				print('phiMreorderd: ', phiM, '    of type ', type(phiM), '    and shape ', phiM.shape)
+				# print('phiMreorderd: ', phiM, '    of type ', type(phiM), '    and shape ', phiM.shape)
 
 				# NOPE phiM = np.reshape(phiM, (np.product(phiM.shape),))
 				# phiM = phiM.flatten();

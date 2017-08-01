@@ -752,18 +752,18 @@ def generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,
 				# print('Initiate (phase shifted) PLL objects. Simulate with additive noise, triangular coupling function.')
 				# NOTE print('The coupling topology is given by:', G, ' for topology:', topology)
 
-				''' Test and check '''
-				print('Container with initial perturbations, length, type, shape:', len(phiM), type(phiM), phiM.shape)
-				for idx_pll in range(Nplls):
-					print('index PLLs:',idx_pll, '    and G.neighbors(index_pll):', G.neighbors(idx_pll))
-
-				import matplotlib
-				import matplotlib.pyplot as plt
-				fig, axs = plt.subplots(1,2)
-				labels=nx.draw_networkx_labels(G, pos=nx.spring_layout(G), ax=axs[0])
-				nx.draw(G, pos=nx.spring_layout(G), node_size=(0.5+phiM)*1000 ,ax=axs[0])
-				nx.draw(G, node_size=(0.5+phiM)*1000,ax=axs[1])
-				''' Test and check '''
+				# ''' Test and check '''
+				# print('Container with initial perturbations, length, type, shape:', len(phiM), type(phiM), phiM.shape)
+				# for idx_pll in range(Nplls):
+				# 	print('index PLLs:',idx_pll, '    and G.neighbors(index_pll):', G.neighbors(idx_pll))
+				#
+				# import matplotlib
+				# import matplotlib.pyplot as plt
+				# fig, axs = plt.subplots(1,2)
+				# labels=nx.draw_networkx_labels(G, pos=nx.spring_layout(G), ax=axs[0])
+				# nx.draw(G, pos=nx.spring_layout(G), node_size=(0.5+phiM)*1000 ,ax=axs[0])
+				# nx.draw(G, node_size=(0.5+phiM)*1000,ax=axs[1])
+				# ''' Test and check '''
 
 				pll_list = [ PhaseLockedLoop(									# setup PLLs and storage in a list as PLL class objects
 									Delayer(delay,dt),							# delayer takes a time series and returns values at t and t-tau
