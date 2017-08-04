@@ -124,7 +124,7 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny
 			phiSr = phiSrtemp; del phiSrtemp
 			print('\nvalues of the perturbations in ROTATED phase space, i.e., last time-step of history set as initial condition:', phiSr)
 			phiS = eva.rotate_phases(phiSr.flatten(), isInverse=False)		  	# rotate back into physical phase space for simulation
-			print('values of initial phase plus the perturbation in ORIGINAL phase space:', phiM+phiS, '\n')
+			print('dirac delta phase perturbation in ORIGINAL phase space:', phiS, '\n')
 	elif len(phiSrtemp.shape)==2:
 		if len(phiSrtemp[0,:])==N:
 			print('Parameters set, perturbations provided manually in rotated phase space of phases.')
