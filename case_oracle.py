@@ -205,6 +205,7 @@ if __name__ == '__main__':
 					phiMtemp = twistdelta_x * np.arange(Nx) + twistdelta_y * rows
 					phiM.append(phiMtemp)
 				phiM = np.array(phiM)
+				phiMreorder=np.zeros(Nx*Ny); counter=0;
 				for i in range(Nx):
 					for j in range(Ny):
 						# print('counter:', counter)

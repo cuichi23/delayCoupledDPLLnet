@@ -202,6 +202,7 @@ def singleadiabatic(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Trelax, 
 					phiMtemp = np.arange(twistdelta_y*rows, Nx*twistdelta_x+twistdelta_y*rows, twistdelta_x)
 					phiM.append(phiMtemp)
 				phiM = np.array(phiM)
+				phiMreorder=np.zeros(Nx*Ny); counter=0;
 				for i in range(Nx):
 					for j in range(Ny):
 						# print('counter:', counter)
