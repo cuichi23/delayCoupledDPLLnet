@@ -325,7 +325,7 @@ class Graph(object):
 class AllToAll(Graph):
     def __init__(self, arrangement, function, strength, delay, hasNormalizedCoupling):
         if isinstance(arrangement, Linear):
-            super(NearestNeighbor, self).__init__(arrangement, function, strength, delay, hasNormalizedCoupling)
+            super(AllToAll, self).__init__(arrangement, function, strength, delay, hasNormalizedCoupling)
             self.d = np.array([-1, 1])
         else:
             raise Exception('Incompatible spatial lattice class')
