@@ -11,7 +11,7 @@ import numpy as np
 import synctools3 as st
 
 
-TOPO_0D_GLOABL = 'global'
+TOPO_0D_GLOBAL = 'global'
 TOPO_1D_RING = 'ring'
 TOPO_1D_CHAIN = 'chain'
 TOPO_2D_CUBIC_OPEN = 'square-open'
@@ -192,7 +192,7 @@ class SweepFactory(object):
             h_func = st.Triangle(1.0 / (2.0 * np.pi))
         elif self.h == COUPLING_FUNCTION_COS:
             h_func = st.Cos(1.0 / (2.0 * np.pi))
-        elif self.h == COUPLING_FUNCTION_COS:
+        elif self.h == COUPLING_FUNCTION_SIN:
             h_func = st.Sin(1.0 / (2.0 * np.pi))
         else:
             raise Exception('Non-valid coupling function string')
@@ -222,6 +222,9 @@ class SweepFactory(object):
         elif self.topology == TOPO_2D_OCTAGONAL_PERIODIC:
             arr = st.PeriodicCubic2D(self.nx, self.ny)
             g = st.CubicOctagonal(arr, h_func, self.k, self.tau, hasNormalizedCoupling=True)
+        elif self.topology == TOPO_0D_GLOBAL:
+            arr = st.Global(self.nx, self.ny)
+            g = st.AllToAll(arr, h_func, self.k, self.tau, hasNormalizedCoupling=True)
         else:
             raise Exception('Non-valid topology string')
 
@@ -545,5 +548,3 @@ class FlatStateList(object):
             return x
         else:
             return None
-
-

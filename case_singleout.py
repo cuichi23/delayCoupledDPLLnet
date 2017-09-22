@@ -212,7 +212,6 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny
 					# print('phiM(list)=', phiMt, '    of type ', type(phiMt))
 
 				phiM = np.array(phiM)
-				phiMreorder=np.zeros(Nx*Ny); counter=0;
 				# print('phiM[1,]', phiM[1,])
 				# print('phiM(array)=', phiM, '    of type ', type(phiM), '    and shape ', phiM.shape)
 

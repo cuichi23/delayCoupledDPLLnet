@@ -181,7 +181,6 @@ def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny=
 					phiMtemp = twistdelta_x * np.arange(Nx) + twistdelta_y * rows
 					phiM.append(phiMtemp)
 				phiM = np.array(phiM)
-				phiMreorder=np.zeros(Nx*Ny); counter=0;
 				for i in range(Nx):
 					for j in range(Ny):
 						# print('counter:', counter)
@@ -313,7 +312,7 @@ if __name__ == '__main__':
 		square:
 		hexagon:
 		octagon:
-	Fc		   : cut-off frequency of the low-pass LF
+	Fc		   : cut-off frequency of the low-pass LF in Hz
 	F_Omeg     : frequency of state of initial history
 	K          : sensetivity of the PLLs
 

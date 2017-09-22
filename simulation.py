@@ -331,7 +331,7 @@ class PhaseDetectorCombiner:													# this class creates PD objects, these 
 class SinPhaseDetectComb(PhaseDetectorCombiner):								# child class for different coupling function - here cosinusoidal
 	def __init__(self,idx_self,idx_neighbours):
 		# print('Phasedetector and Combiner: sin(x)')
-		self.h = lambda x: np.sin(x)											# set the type of coupling function, here a sine-function
+		self.h = lambda x: np.sin(x) #+ 0.8 * np.cos(6.0*x)								# set the type of coupling function, here a sine-function
 		self.idx_self = idx_self												# assigns the index
 		self.idx_neighbours = idx_neighbours									# assigns the neighbors according to the coupling topology
 

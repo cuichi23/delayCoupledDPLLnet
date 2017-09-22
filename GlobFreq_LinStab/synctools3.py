@@ -178,8 +178,9 @@ class OpenCubic2D(Cubic2D):
             return None
 
 
-
-
+class Global(global_noD)
+    def site_exists(self, yx):
+        return True
 
 
 # #############################################################################
@@ -199,6 +200,39 @@ class CouplingFunction(object):
     def min(self):
         raise NotImplementedError
 
+class Sin(CouplingFunction):
+    ''' Periodic sine signal vertically centered around 0'''
+    def __init__(self, freq=1.0 / (2 * np.pi)):
+        self.freq = freq
+
+    def __call__(self, t):
+        return np.sin(2 * np.pi * self.freq * t)
+
+    def get_derivative(self):
+        return 2.0*np.pi*Cos(self.freq)
+
+    def max(self):
+        return 1.0
+
+    def min(self):
+        return -1.0
+
+class Cos(CouplingFunction):
+    ''' Periodic sine signal vertically centered around 0'''
+    def __init__(self, freq=1.0 / (2 * np.pi)):
+        self.freq = freq
+
+    def __call__(self, t):
+        return np.cos(2 * np.pi * self.freq * t)
+
+    def get_derivative(self):
+        return -2.0*np.pi*Sin(self.freq)
+
+    def max(self):
+        return 1.0
+
+    def min(self):
+        return -1.0
 
 class Triangle(CouplingFunction):
     ''' Periodic triangle signal vertically centered around 0'''
@@ -287,6 +321,14 @@ class Graph(object):
         for ii in range(n):
             m[ii, :] = self.get_single_site_coupling(ii)
         return m
+
+class AllToAll(Graph):
+    def __init__(self, arrangement, function, strength, delay, hasNormalizedCoupling):
+        if isinstance(arrangement, Linear):
+            super(NearestNeighbor, self).__init__(arrangement, function, strength, delay, hasNormalizedCoupling)
+            self.d = np.array([-1, 1])
+        else:
+            raise Exception('Incompatible spatial lattice class')
 
 
 class NearestNeighbor(Graph):
