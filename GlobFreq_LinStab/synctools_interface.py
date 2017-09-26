@@ -198,7 +198,10 @@ class SweepFactory(object):
             raise Exception('Non-valid coupling function string')
 
         # Initialize arrangement/ and coupling
-        if self.topology == TOPO_1D_CHAIN:
+        if self.topology == TOPO_0D_GLOBAL:
+            arr = st.Ring(self.n)
+            g = st.AllToAll(arr, h_func, self.k, self.tau, hasNormalizedCoupling=True)
+        elif self.topology == TOPO_1D_CHAIN:
             arr = st.Chain(self.n)
             g = st.NearestNeighbor(arr, h_func, self.k, self.tau, hasNormalizedCoupling=True)
         elif self.topology == TOPO_1D_RING:
@@ -222,9 +225,6 @@ class SweepFactory(object):
         elif self.topology == TOPO_2D_OCTAGONAL_PERIODIC:
             arr = st.PeriodicCubic2D(self.nx, self.ny)
             g = st.CubicOctagonal(arr, h_func, self.k, self.tau, hasNormalizedCoupling=True)
-        elif self.topology == TOPO_0D_GLOBAL:
-            arr = st.Global(self.nx, self.ny)
-            g = st.AllToAll(arr, h_func, self.k, self.tau, hasNormalizedCoupling=True)
         else:
             raise Exception('Non-valid topology string')
 

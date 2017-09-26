@@ -178,9 +178,8 @@ class OpenCubic2D(Cubic2D):
             return None
 
 
-class Global(global_noD)
-    def site_exists(self, yx):
-        return True
+
+
 
 
 # #############################################################################
@@ -276,9 +275,9 @@ class Square(CouplingFunction):
 # #############################################################################
 
 class Graph(object):
-    def __init__(self, arrangement, function, strength, delay, hasNormalizedCoupling):
+    def __init__(self, arrangement, coupling_func, strength, delay, hasNormalizedCoupling):
         self.arr = arrangement
-        self.func = function
+        self.func = coupling_func
         self.k = strength
         self.tau = delay
         self.hasNormalizedCoupling = hasNormalizedCoupling
@@ -323,27 +322,36 @@ class Graph(object):
         return m
 
 class AllToAll(Graph):
-    def __init__(self, arrangement, function, strength, delay, hasNormalizedCoupling):
+    def __init__(self, arrangement, coupling_func, strength, delay, hasNormalizedCoupling):
         if isinstance(arrangement, Linear):
-            super(AllToAll, self).__init__(arrangement, function, strength, delay, hasNormalizedCoupling)
-            self.d = np.array([-1, 1])
+            super(AllToAll, self).__init__(arrangement, coupling_func, strength, delay, hasNormalizedCoupling)
         else:
             raise Exception('Incompatible spatial lattice class')
 
+    def get_single_site_coupling(self, i):
+        # Construct coupling vector in index space
+        v = np.ones(self.arr.get_n())
+
+        # Normalize coupling by number of neighbors
+        if self.hasNormalizedCoupling:
+            v = v / np.sum(v)
+
+        return v
+
 
 class NearestNeighbor(Graph):
-    def __init__(self, arrangement, function, strength, delay, hasNormalizedCoupling):
+    def __init__(self, arrangement, coupling_func, strength, delay, hasNormalizedCoupling):
         if isinstance(arrangement, Linear):
-            super(NearestNeighbor, self).__init__(arrangement, function, strength, delay, hasNormalizedCoupling)
+            super(NearestNeighbor, self).__init__(arrangement, coupling_func, strength, delay, hasNormalizedCoupling)
             self.d = np.array([-1, 1])
         else:
             raise Exception('Incompatible spatial lattice class')
 
 
 class CubicNearestNeighbor(Graph):
-    def __init__(self, arrangement, function, strength, delay, hasNormalizedCoupling):
+    def __init__(self, arrangement, coupling_func, strength, delay, hasNormalizedCoupling):
         if isinstance(arrangement, Cubic2D):
-            super(CubicNearestNeighbor, self).__init__(arrangement, function, strength, delay, hasNormalizedCoupling)
+            super(CubicNearestNeighbor, self).__init__(arrangement, coupling_func, strength, delay, hasNormalizedCoupling)
             d = []
             d.append([-1,  0])
             d.append([ 0, -1])
@@ -355,9 +363,9 @@ class CubicNearestNeighbor(Graph):
 
 
 class CubicHexagonal(Graph):
-    def __init__(self, arrangement, function, strength, delay, hasNormalizedCoupling):
+    def __init__(self, arrangement, coupling_func, strength, delay, hasNormalizedCoupling):
         if isinstance(arrangement, Cubic2D):
-            super(CubicHexagonal, self).__init__(arrangement, function, strength, delay, hasNormalizedCoupling)
+            super(CubicHexagonal, self).__init__(arrangement, coupling_func, strength, delay, hasNormalizedCoupling)
             d = []
             d.append([-1, -1])
             d.append([-1,  0])
@@ -371,9 +379,9 @@ class CubicHexagonal(Graph):
 
 
 class CubicOctagonal(Graph):
-    def __init__(self, arrangement, function, strength, delay, hasNormalizedCoupling):
+    def __init__(self, arrangement, coupling_func, strength, delay, hasNormalizedCoupling):
         if isinstance(arrangement, Cubic2D):
-            super(CubicOctagonal, self).__init__(arrangement, function, strength, delay, hasNormalizedCoupling)
+            super(CubicOctagonal, self).__init__(arrangement, coupling_func, strength, delay, hasNormalizedCoupling)
             d = []
             d.append([-1, -1])
             d.append([-1,  0])
