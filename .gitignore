@@ -11,4 +11,4 @@ cmr12
 GlobFreq_LinStab/DPLLParameters_backup20170509.csv
 GlobFreq_LinStab/DPLLParameters_backup20170509.ods
 *.ipynb
-
+*.pyc

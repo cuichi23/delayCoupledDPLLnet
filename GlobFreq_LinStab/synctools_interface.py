@@ -237,13 +237,16 @@ class SweepFactory(object):
         return pll_sys
 
     def get_states(self, pll_sys):
+        # 0d global coupling
+        if self.topology == TOPO_0D_GLOBAL:
+            state_def = st.TwistDefinition(pll_sys, 0)
         # 1d twist state
-        if self.topology == TOPO_1D_RING:
+        elif self.topology == TOPO_1D_RING:
             state_def = st.TwistDefinition(pll_sys, self.m)
-        # 1d global sync state for non-periodic boundray conditions
+        # 1d global sync state for non-periodic boundary conditions
         elif self.topology == TOPO_1D_CHAIN and self.m == 0:
             state_def = st.TwistDefinition(pll_sys, 0)
-        # 1d Checkerboard states for non-periodic boundray conditions and m > 0
+        # 1d Checkerboard states for non-periodic boundary conditions and m > 0
         elif self.topology == TOPO_1D_CHAIN:
             state_def = st.CheckerboardDefinition(pll_sys)
         # Global sync state for open 2d cubic lattice
