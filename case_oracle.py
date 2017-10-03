@@ -58,7 +58,7 @@ def simulatePllNetwork(mode,topology,couplingfct,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,d
 			"""
 		r = eva.oracle_CheckerboardOrderParameter1d(phi[-int(2*1.0/(F*dt)):, :], k)
 		orderparam = eva.oracle_CheckerboardOrderParameter1d(phi[:, :])			# calculate the order parameter for all times
-	elif topology == "ring":
+	elif ( topology == "ring" or topology == 'global'):
 		r = eva.oracle_mTwistOrderParameter(phi[-int(2*1.0/(F*dt)):, :], k)		# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
 		orderparam = eva.oracle_mTwistOrderParameter(phi[:, :], k)				# calculate the m-twist order parameter for all times
 
@@ -228,6 +228,8 @@ if __name__ == '__main__':
 			else:
 				phiM = np.arange(0.0, N*twistdelta, twistdelta)					# vector mit N entries from 0 increasing by twistdelta for every element, i.e., the phase-configuration
 				# print('phiM: ', phiM)											# in the original phase space of an m-twist solution
+	if topology == 'global':
+		phiM = np.zeros(N)														# for all-to-all coupling we assume no twist states with m > 0
 
 
 	phiS = eva.rotate_phases(phiSr, isInverse=False)							# rotate initial phases into physical phase space of phases for simulation

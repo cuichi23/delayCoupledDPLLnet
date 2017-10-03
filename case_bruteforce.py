@@ -58,7 +58,7 @@ def simulatePllNetwork(mode,topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg,
 			"""
 		r = eva.oracle_CheckerboardOrderParameter1d(phi[-int(2*1.0/(F*dt)):, :], k)
 		orderparam = eva.oracle_CheckerboardOrderParameter1d(phi[:, :])			# calculate the order parameter for all times
-	elif topology == "ring":
+	elif ( topology == "ring" or topology == 'global'):
 		r = eva.oracle_mTwistOrderParameter(phi[-int(2*1.0/(F*dt)):, :], k)		# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
 		orderparam = eva.oracle_mTwistOrderParameter(phi[:, :], k)				# calculate the m-twist order parameter for all times
 
@@ -84,7 +84,7 @@ def multihelper(phiSr, initPhiPrime0, topology, couplingfct, F, Nsteps, dt, c, F
 	# ODER reicht schon:
 	# if not unit_cell.is_inside(( phiS ), isRotated=False):   ???
 	# if not unit_cell.is_inside((phiS-phiM), isRotated=False):					# and not N == 2:	# +phiM
-	if not unit_cell.is_inside((phiS), isRotated=False):						# NOTE this case is for scanValues set only in -pi to pi 
+	if not unit_cell.is_inside((phiS), isRotated=False):						# NOTE this case is for scanValues set only in -pi to pi
 		return {'mean_order': -1., 'last_orderP': -1., 'stdev_orderP': np.zeros(1), 'phases': phiM,
 		 		'intrinfreq': np.zeros(1), 'coupling_strength': np.zeros(1), 'transdelays': delay}
 	else:
@@ -208,6 +208,8 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0
 			else:
 				phiM = np.arange(0.0, N*twistdelta, twistdelta)					# vector mit N entries from 0 increasing by twistdelta for every element, i.e., the phase-configuration
 				# print('phiM: ', phiM)											# in the original phase space of an m-twist solution
+	if topology == 'global':
+		phiM = np.zeros(N)														# for all-to-all coupling we assume no twist states with m > 0
 
 
 	phiMr = eva.rotate_phases(phiM, isInverse=True)								# calculate phiM in terms of rotated phase space
