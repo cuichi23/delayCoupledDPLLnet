@@ -1694,6 +1694,7 @@ if __name__ == '__main__':
 	Fsim 				= float(params['DEFAULT']['Fsim'])						# 6 simulate phase model with given sample frequency -- goal: about 100 samples per period
 	domega     			= float(params['DEFAULT']['domega'])					# 7 the diffusion constant [variance=2*diffconst] of the gaussian distribution for the intrinsic frequencies
 	diffconstK 			= float(params['DEFAULT']['diffconstK'])				# 8 the diffusion constant [variance=2*diffconst] of the gaussian distribution for the coupling strength
+	diffconstSendDelay	= float(params['DEFAULT']['diffconstSendDelay'])		# the diffusion constant [variance=2*diffconst] of the gaussian distribution for the transmission delays
 	# Tsim				= float(params['DEFAULT']['Tsim'])						# 9 the simulation time for each realization -- load above from csv
 
 	a_true = True
@@ -1758,6 +1759,7 @@ if __name__ == '__main__':
 			Fsim 				= float(params['DEFAULT']['Fsim'])				# 6 simulate phase model with given sample frequency -- goal: about 100 samples per period
 			domega     			= float(params['DEFAULT']['domega'])			# 7 the diffusion constant [variance=2*diffconst] of the gaussian distribution for the intrinsic frequencies
 			diffconstK 			= float(params['DEFAULT']['diffconstK'])		# 8 the diffusion constant [variance=2*diffconst] of the gaussian distribution for the coupling strength
+			diffconstSendDelay	= float(params['DEFAULT']['diffconstSendDelay'])# the diffusion constant [variance=2*diffconst] of the gaussian distribution for the transmission delays
 			# Tsim				= float(params['DEFAULT']['Tsim'])				# 9 the simulation time for each realization -- load above from csv
 			break
 		elif decision1 == 'n':
@@ -1770,6 +1772,7 @@ if __name__ == '__main__':
 			Fsim 				= float(params['DEFAULT']['Fsim'])				# 6 simulate phase model with given sample frequency -- goal: about 100 samples per period
 			domega     			= float(params['DEFAULT']['domega'])			# 7 the diffusion constant [variance=2*diffconst] of the gaussian distribution for the intrinsic frequencies
 			diffconstK 			= float(params['DEFAULT']['diffconstK'])		# 8 the diffusion constant [variance=2*diffconst] of the gaussian distribution for the coupling strength
+			diffconstSendDelay	= float(params['DEFAULT']['diffconstSendDelay'])# the diffusion constant [variance=2*diffconst] of the gaussian distribution for the transmission delays
 			# Tsim				= float(params['DEFAULT']['Tsim'])				# 9 the simulation time for each realization -- load above from csv
 			break
 		else:

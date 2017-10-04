@@ -20,9 +20,9 @@ import datetime
 
 
 ''' SIMULATION CALL '''
-def simulatePllNetwork(mode,topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, cLF, Nx=0, Ny=0, kx=0, ky=0, isPlottingTimeSeries=False):
+def simulatePllNetwork(mode,topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, diffconstSendDelay, cLF, Nx=0, Ny=0, kx=0, ky=0, isPlottingTimeSeries=False):
 	''' SIMULATION OF NETWORK '''
-	simresult = sim.simulateNetwork(mode,N,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,couplingfct,phiS,phiM,domega,diffconstK,cLF,Nx,Ny)
+	simresult = sim.simulateNetwork(mode,N,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,couplingfct,phiS,phiM,domega,diffconstK,diffconstSendDelay,cLF,Nx,Ny)
 	phi     = simresult['phases']
 	omega_0 = simresult['intrinfreq']
 	K_0     = simresult['coupling_strength']
@@ -83,7 +83,7 @@ def multihelper(phiSr, initPhiPrime0, topology, couplingfct, F, Nsteps, dt, c, F
 		phiSr = np.insert(phiSr, 0, initPhiPrime0)								# insert the first variable in the rotated space, constant initPhiPrime0
 	phiS = eva.rotate_phases(phiSr, isInverse=False)							# rotate back into physical phase space
 	np.random.seed()
-	return simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, cLF, Nx, Ny, kx, ky, plot_Phases_Freq)
+	return mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, cLF, Nx, Ny, kx, ky, plot_Phases_Freq)
 
 def multihelper_star(dynparam_fixparam):
 	return multihelper(*dynparam_fixparam)
@@ -103,6 +103,7 @@ def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny=
 	Fsim 				= float(params['DEFAULT']['Fsim'])						# 6 simulate phase model with given sample frequency -- goal: about 100 samples per period
 	domega     			= float(params['DEFAULT']['domega'])					# 7 the diffusion constant [variance=2*diffconst] of the gaussian distribution for the intrinsic frequencies
 	diffconstK 			= float(params['DEFAULT']['diffconstK'])				# 8 the diffusion constant [variance=2*diffconst] of the gaussian distribution for the coupling strength
+	diffconstSendDelay	= float(params['DEFAULT']['diffconstSendDelay'])		# the diffusion constant [variance=2*diffconst] of the gaussian distribution for the transmission delays
 	# Tsim 				= int(params['DEFAULT']['Tsim'])						# simulation time in multiples of the period of the uncoupled oscillators
 
 	dt					= 1.0/Fsim												# [ dt = T / #samples ] -> #samples per period... with [ T = 1 / F -> dt = 1 / ( #samples * F ) ]
@@ -257,7 +258,7 @@ def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny=
 			#print( 'allPoints[i] =', allPoints[i], '\n')
 			#print( 'type of phiS', type(phiS))
 			#print( 'phiS = ', phiS, '\n')
-			data = simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, cLF, Nx, Ny, kx, ky, plot_Phases_Freq, mode)
+			data = simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, diffconstSendDelay, cLF, Nx, Ny, kx, ky, plot_Phases_Freq, mode)
 
 			''' evaluate dictionaries '''
 			results.append( [ data['mean_order'],  data['last_orderP'], data['stdev_orderP'] ] )

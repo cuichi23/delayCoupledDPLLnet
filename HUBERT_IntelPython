@@ -1,0 +1,27 @@
+Dear users,
+
+starting from now Intel Python for Python 2 and 3 is available.
+Intel Python is supposed to show better performance than the
+regular Python installation. Intel Python comes with a lot of
+Python modules like e.g. jupyter, ipython, numpy, scipy.
+In case you are going to use Python in our queuing system,
+please be sure to limit the number of cores used by Python to
+the number of cores you requested for upon job submission.
+Please add a line
+
+export OMP_NUM_THREADS=$NSLOTS  (for bash/sh)
+or
+setenv OMP_NUM_THREADS $NSLOTS  (for csh/tcsh)
+
+in your job script somewhere before starting python.
+
+In order to use Intel Python, please first call
+
+module add intelpython2 (Python 2.7)
+or
+module add intelpython3 (Python 3.6)
+
+before starting python.
+
+Kind regards,
+Hubert
