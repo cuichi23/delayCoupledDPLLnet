@@ -324,8 +324,10 @@ class PhaseDetectorCombiner:													# this class creates PD objects, these 
 				# print('x_neighbours.shape:', x_neighbours.shape )
 				# print('phase detector signal:', self.y)
 			return self.y
-		except:																	# if there is no input (uncoupled PLL?), then the phase detector output is zero
-			return 0.0
+		except:
+			print('NOTE: check again how to set this for XOR, multiplication and flip flop') # if there is no input (uncoupled PLL), then the phase detector output is zero
+			print('Also, this has to be set individually for each type of PD!')
+			return -1.0
 
 # y = 1 / n * sum h( x_delayed_neighbours - x_self )
 class SinPhaseDetectComb(PhaseDetectorCombiner):								# child class for different coupling function - here sinusoidal
@@ -361,7 +363,7 @@ class Delayer:
 		if std_dist_delay != 0:
 			self.delay = np.random.normal(loc=delay, scale=std_dist_delay)		# process variation, the delays in the network are gaussian distributed about the mean delay
 			print('Transmission delays from gaussian dist.:', self.delay, 'for diffusion constant std_dist_delay:', self.std_dist_delay)
-			print('NOTE: at the moment these heterogeneous transmission delays are always such that an oscillator receives equally delayed signals from all neighbors!')
+			print('NOTE: at the moment these heterogeneous transmission delays are always such that an oscillator receives equally delayed signals from all its neighbors!')
 		else:
 			self.delay = delay
 																				# NOTE: static distribution of transmission delays - ensure that max delay determines the length of the history vector
@@ -429,8 +431,13 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,coupling
 	pll_list = generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,F,F_Omeg,K,Fc,y0,phiM,domega,diffconstK,diffconstSendDelay,Nx,Ny,cLF,Trelax)	# create object lists of PLL objects of the network
 
 	if diffconstSendDelay != 0:
-		delay_steps = np.max(pll_list[0].delayer.delay_steps)
-		print('ADD HERE... SAVE HISTOGRAM OF DELAYS DRAWN\n')
+		all_delay_steps=[]
+		for i in range(Nplls):
+			all_delay_steps = pll_list[i].delayer.delay_steps
+		delay_steps = np.max(all_delay_steps)
+		now = datetime.datetime.now()
+		np.savez('results/dist_delays_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cLF%.7e_diffK%.7e_diffCDelay%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, cLF, diffconstK, diffconstSendDelay, now.year, now.month, now.day), delays=all_delay_steps)
+		print('distributed transmission delays set, see 1params.txt!\n')
 	else:
 		delay_steps = pll_list[0].delayer.delay_steps      						# get the number of steps representing the delay at a given time-step from delayer of PLL_0
 	#WHY Nsteps + delay_steps? generate a container with 'delay_steps+1' and cycle through it
