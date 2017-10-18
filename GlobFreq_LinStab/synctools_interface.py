@@ -24,7 +24,10 @@ TOPO_2D_OCTAGONAL_PERIODIC = 'octagon-periodic'
 
 COUPLING_FUNCTION_COS = 'cos'
 COUPLING_FUNCTION_SIN = 'sin'
+COUPLING_FUNCTION_SINCOS = 'sincos'
 COUPLING_FUNCTION_TRIANGLE = 'triang'
+COUPLING_FUNCTION_TRIANGSHIFT = 'triangshift'
+
 
 
 
@@ -194,6 +197,10 @@ class SweepFactory(object):
             h_func = st.Cos(1.0 / (2.0 * np.pi))
         elif self.h == COUPLING_FUNCTION_SIN:
             h_func = st.Sin(1.0 / (2.0 * np.pi))
+        elif self.h == COUPLING_FUNCTION_TRIANGSHIFT:
+            h_func = st.Triangle(1.0 / (2.0 * np.pi))
+        elif self.h == COUPLING_FUNCTION_SINCOS:
+            h_func = st.Sin(1.0 / (2.0 * np.pi)) + 0.8 * st.Cos(6.0 * 1.0 / (2.0 * np.pi))
         else:
             raise Exception('Non-valid coupling function string')
 

@@ -5,8 +5,8 @@ multiproc = True
 paramdiscretization = 50
 #3: number of processors that can be used --> with intel ht: 2*number of cores of proc.
 numbercores = 7
-#4: type of coupling function -- choose from {triang(ular), cos(ine), sin(e), sincos}
-couplingfct = triang
+#4: type of coupling function -- choose from {triang(ular), cos(ine), sin(e), sincos, triangshift}
+couplingfct = sincos
 #5: free-running frequency of the plls [hz] test-997, 1
 f = 1.0
 #6: sample phases with fsim [hz] multiples of the intrinsic frequency -> goal: about 100 samples per period test-100000, 125
@@ -16,6 +16,7 @@ domega = 0
 #8: diffusion constant [variance=2*diffconst] of the gaussian distribution for the coupling strength
 diffconstk = 0
 #9: diffusion constant [variance=2*diffconst] of the gaussian distribution for the transmission delays
+#current: every osci has a receiving delay from all neighbors
 diffconstSendDelay = 0
 #10: multiples of the period of the uncoupled oscillators to set simulation time -- usually set with argument on startup
 tsim = 125

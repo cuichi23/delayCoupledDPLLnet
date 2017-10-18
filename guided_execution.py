@@ -666,9 +666,11 @@ def singleRealization(params):
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			if len(new_K_values)==1:
 				isRadian=False
-				print('\nGenerate plot of collective frequency and linear stability against delay to support decision. Please wait, then pick a value and close the figure to proceed.')
-				# print('Deactivated temporarily.')
-				synctools.generate_delay_plot(N, Ny, Nx, F, new_K_values, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, isRadians=isRadian)
+				user_input = raw_input('\nGenerate plot of collective frequency and linear stability against delay to support decision. [y]es/[n]o? ')
+				if user_input == 'y':
+					print('\nPlease wait, then pick a value and close the figure to proceed.')
+					# print('Deactivated temporarily.')
+					synctools.generate_delay_plot(N, Ny, Nx, F, new_K_values, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, isRadians=isRadian)
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
 			cLF		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
@@ -760,8 +762,10 @@ def singleRealization(params):
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			if len(new_Fc_values)==1:
 				isRadian=False
-				print('\nGenerate plot of collective frequency and linear stability against delay to support decision. Please wait, then pick a value and close the figure to proceed.')
-				synctools.generate_delay_plot(N, Ny, Nx, F, K, str(params['DEFAULT']['couplingfct']), new_Fc_values, k, kx, ky,topology, isRadians=isRadian)
+				user_input = raw_input('\nGenerate plot of collective frequency and linear stability against delay to support decision. [y]es/[n]o? ')
+				if user_input == 'y':
+					print('\nPlease wait, then pick a value and close the figure to proceed.')
+					synctools.generate_delay_plot(N, Ny, Nx, F, K, str(params['DEFAULT']['couplingfct']), new_Fc_values, k, kx, ky,topology, isRadians=isRadian)
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
 			cLF		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
@@ -941,8 +945,13 @@ def singleRealization(params):
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			isRadian=False
-			print('\nGenerate plot of collective frequency and linear stability against delay to support decision. Please wait, then pick a value and close the figure to proceed.')
-			synctools.generate_delay_plot(N, Ny, Nx, F, K, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, isRadians=isRadian)
+
+			if len(new_cLF_values)==1:
+				isRadian=False
+				user_input = raw_input('\nGenerate plot of collective frequency and linear stability against delay to support decision. [y]es/[n]o? ')
+				if user_input == 'y':
+					print('\nPlease wait, then pick a value and close the figure to proceed.')
+					synctools.generate_delay_plot(N, Ny, Nx, F, K, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, isRadians=isRadian)
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
 			Nsim    = 1															# calls function that asks user for input for number of realizations
@@ -1048,8 +1057,10 @@ def noisyStatistics(params):
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			if len(new_K_values)==1:
 				isRadian=False
-				print('\nGenerate plot of collective frequency and linear stability against delay to support decision. Please wait, then pick a value and close the figure to proceed.')
-				synctools.generate_delay_plot(N, Ny, Nx, F, new_K_values, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, isRadians=isRadian)
+				user_input = raw_input('\nGenerate plot of collective frequency and linear stability against delay to support decision. [y]es/[n]o? ')
+				if user_input == 'y':
+					print('\nPlease wait, then pick a value and close the figure to proceed.')
+					synctools.generate_delay_plot(N, Ny, Nx, F, new_K_values, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, isRadians=isRadian)
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
 			cLF		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
@@ -1132,9 +1143,12 @@ def noisyStatistics(params):
 				k = chooseTwistNumber(N, topology)								# choose twist under investigation
 				kx = k; ky = -999; Nx = N; Ny = 1;
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
-			isRadian=False
-			print('\nGenerate plot of collective frequency and linear stability against delay to support decision. Please wait, then pick a value and close the figure to proceed.')
-			synctools.generate_delay_plot(N, Ny, Nx, F, K, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, isRadians=isRadian)
+			if len(new_c_values) == 1:
+				isRadian=False
+				user_input = raw_input('\nGenerate plot of collective frequency and linear stability against delay to support decision. [y]es/[n]o? ')
+				if user_input == 'y':
+					print('\nPlease wait, then pick a value and close the figure to proceed.')
+					synctools.generate_delay_plot(N, Ny, Nx, F, K, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, isRadians=isRadian)
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			Nsim    = chooseNsim()												# calls function that asks user for input for number of realizations
@@ -1224,8 +1238,10 @@ def noisyStatistics(params):
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
 			if len(new_Fc_values)==1:
 				isRadian=False
-				print('\nGenerate plot of collective frequency and linear stability against delay to support decision. Please wait, then pick a value and close the figure to proceed.')
-				synctools.generate_delay_plot(N, Ny, Nx, F, K, str(params['DEFAULT']['couplingfct']), new_Fc_values, k, kx, ky,topology, isRadians=isRadian)
+				user_input = raw_input('\nGenerate plot of collective frequency and linear stability against delay to support decision. [y]es/[n]o? ')
+				if user_input == 'y':
+					print('\nPlease wait, then pick a value and close the figure to proceed.')
+					synctools.generate_delay_plot(N, Ny, Nx, F, K, str(params['DEFAULT']['couplingfct']), new_Fc_values, k, kx, ky,topology, isRadians=isRadian)
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
 			cLF		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
@@ -1307,9 +1323,12 @@ def noisyStatistics(params):
 				kx = k; ky = -999; Nx = N; Ny = 1;
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
-			isRadian=False
-			print('\nGenerate plot of collective frequency and linear stability against delay to support decision. Please wait, then pick a value and close the figure to proceed.')
-			synctools.generate_delay_plot(N, Ny, Nx, F, K, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, isRadians=isRadian)
+			if len(new_cLF_values)==1:
+				isRadian=False
+				user_input = raw_input('\nGenerate plot of collective frequency and linear stability against delay to support decision. [y]es/[n]o? ')
+				if user_input == 'y':
+					print('\nPlease wait, then pick a value and close the figure to proceed.')
+					synctools.generate_delay_plot(N, Ny, Nx, F, K, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, isRadians=isRadian)
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
 			Nsim    = chooseNsim()												# calls function that asks user for input for number of realizations
@@ -1484,8 +1503,10 @@ def bruteForce(params, param_cases_csv):
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			if len(new_K_values)==1:
 				isRadian=False
-				print('\nGenerate plot of collective frequency and linear stability against delay to support decision. Please wait, then pick a value and close the figure to proceed.')
-				synctools.generate_delay_plot(N, Ny, Nx, F, new_K_values, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, isRadians=isRadian)
+				user_input = raw_input('\nGenerate plot of collective frequency and linear stability against delay to support decision. [y]es/[n]o? ')
+				if user_input == 'y':
+					print('\nPlease wait, then pick a value and close the figure to proceed.')
+					synctools.generate_delay_plot(N, Ny, Nx, F, new_K_values, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, isRadians=isRadian)
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
 			cLF		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
@@ -1556,8 +1577,10 @@ def bruteForce(params, param_cases_csv):
 			K  		= chooseK(float(params['DEFAULT']['F']))							# calls function that asks user for input of the coupling strength
 			if len(new_Fc_values)==1:
 				isRadian=False
-				print('\nGenerate plot of collective frequency and linear stability against delay to support decision. Please wait, then pick a value and close the figure to proceed.')
-				synctools.generate_delay_plot(N, Ny, Nx, F, K, str(params['DEFAULT']['couplingfct']), new_Fc_values, k, kx, ky,topology, isRadians=isRadian)
+				user_input = raw_input('\nGenerate plot of collective frequency and linear stability against delay to support decision. [y]es/[n]o? ')
+				if user_input == 'y':
+					print('\nPlease wait, then pick a value and close the figure to proceed.')
+					synctools.generate_delay_plot(N, Ny, Nx, F, K, str(params['DEFAULT']['couplingfct']), new_Fc_values, k, kx, ky,topology, isRadians=isRadian)
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
 			cLF		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
