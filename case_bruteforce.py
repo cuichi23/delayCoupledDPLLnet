@@ -277,16 +277,15 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0
 		for i in range(Nsim):
 			''' evaluate dictionaries '''
 			results.append( [ pool_data[0][i]['mean_order'],  pool_data[0][i]['last_orderP'], pool_data[0][i]['stdev_orderP'] ] )
-			''' SAVE RESULTS '''
-			np.savez('results/orderparam_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), results=results)
-			np.savez('results/allInitPerturbPoints_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), allPoints=allPoints)
-
 			# phi.append( pool_data[0][i]['phases'] )
 			omega_0.append( pool_data[0][i]['intrinfreq'] )
 			K_0.append( pool_data[0][i]['coupling_strength'] )
 			delays_0.append( pool_data[0][i]['transdelays'] )
 			# cLF_t.append( pool_data[0][i]['cLF'] )
 
+		''' SAVE RESULTS '''
+		np.savez('results/orderparam_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), results=results)
+		np.savez('results/allInitPerturbPoints_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), allPoints=allPoints)
 		del pool_data; del _allPoints;											# emtpy pool data, allPoints variables to free memory
 
 		print( 'size {omega_0, K_0, delays_0, results}:', sys.getsizeof(omega_0), '\t', sys.getsizeof(K_0), '\t', sys.getsizeof(delays_0), '\t', sys.getsizeof(results), '\n' )
@@ -326,6 +325,9 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0
 			delays_0.append( data['transdelays'] )
 			results = np.array(results)
 
+		''' SAVE RESULTS '''
+		np.savez('results/orderparam_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), results=results)
+		np.savez('results/allInitPerturbPoints_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), allPoints=allPoints)
 		del pool_data; del _allPoints;											# emtpy pool data, allPoints variables to free memory
 
 		print( 'size omega_0, K_0, results:', sys.getsizeof(omega_0), '\t', sys.getsizeof(K_0), '\t', sys.getsizeof(results), '\n' )

@@ -333,8 +333,8 @@ class PhaseDetectorCombinerShifted(PhaseDetectorCombiner):						# this class cre
 	"""A phase detector and combiner class"""									# of different inputs (coupling partners)
 	def __init__(self,idx_self,idx_neighbours):
 		# print('Phasedetector and Combiner: sawtooth')
-		self.part 	  = 0.8														# this needs to come from the constructor! add/change... 1params.txt content?!
-		self.highHarm = 6.0
+		self.part 	  = 0.95													# this needs to come from the constructor! add/change... 1params.txt content?!
+		self.highHarm = 2.0
 		self.h = lambda x: sawtooth(x,width=0.5) + self.part * sawtooth(self.highHarm*x + 0.5*np.pi,width=0.5)	# set the type of coupling function, here a sawtooth since we consider digital PLLs (rectangular signals)
 		self.idx_self = idx_self												# assigns the index
 		self.idx_neighbours = idx_neighbours									# assigns the neighbors according to the coupling topology
@@ -351,8 +351,8 @@ class SinPhaseDetectComb(PhaseDetectorCombiner):								# child class for differ
 class SinCosPhaseDetectComb(PhaseDetectorCombiner):								# child class for different coupling function - here sinusoidal and cosinusoidal
 	def __init__(self,idx_self,idx_neighbours):
 		# print('Phasedetector and Combiner: sin(x)')
-		self.part 	  = 0.8														# this needs to come from the constructor! add/change... 1params.txt content?!
-		self.highHarm = 6.0
+		self.part 	  = 0.95													# this needs to come from the constructor! add/change... 1params.txt content?!
+		self.highHarm = 2.0
 		self.h = lambda x: np.sin(x) + self.part * np.cos(self.highHarm*x)		# set the type of coupling function, here a sine-function
 		self.idx_self = idx_self												# assigns the index
 		self.idx_neighbours = idx_neighbours									# assigns the neighbors according to the coupling topology
