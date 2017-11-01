@@ -427,7 +427,7 @@ class DistDelayDelayerWithDynNoise(Delayer):
 ''' SIMULATE NETWORK '''
 def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,dt,c,Nsteps,topology,couplingfct,phiS,phiM,domega,diffconstK,diffconstSendDelay,cLF,Nx=0,Ny=0,Trelax=0):
 
-	print('WORK HERE, change from Nsteps+delay_steps to delay_steps container with sequential output to file')
+	# NOTE print('WORK HERE, change from Nsteps+delay_steps to delay_steps container with sequential output to file')
 
 	y0 = 0																		# inital filter status:
 	''' for the last step of the initial history, the filter status has to be set if one uses the second order (inertia) type description of the model;

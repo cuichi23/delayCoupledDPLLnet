@@ -74,7 +74,7 @@ def simulatePllNetwork(mode,topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg,
 	return {'mean_order': np.mean(r), 'last_orderP': r[len(r)-1], 'stdev_orderP': np.var(r), 'phases': phi,
 	 		'intrinfreq': omega_0, 'coupling_strength': K_0, 'transdelays': delays_0}
 
-def multihelper(phiSr, initPhiPrime0, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiM, domega, diffconstK, cLF, Nx, Ny, kx, ky, plot_Phases_Freq, mode):
+def multihelper(phiSr, initPhiPrime0, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiM, domega, diffconstK, diffconstSendDelay, cLF, Nx, Ny, kx, ky, plot_Phases_Freq, mode):
 	if N > 2:
 		phiSr = np.insert(phiSr, 0, initPhiPrime0)								# insert the first variable in the rotated space, constant initPhiPrime0
 	phiS = eva.rotate_phases(phiSr, isInverse=False)							# rotate back into physical phase space
@@ -93,10 +93,6 @@ def multihelper(phiSr, initPhiPrime0, topology, couplingfct, F, Nsteps, dt, c, F
 
 def multihelper_star(dynparam_fixparam):
 	return multihelper(*dynparam_fixparam)
-
-# cbrut.bruteforceout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
-# 				int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cLF), int(1), str(int(Nx)), str(int(Ny)), str(int(kx)), str(int(ky)),
-# 				pert, plot_out)
 
 def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny=0, kx=0, ky=0, phiSr=[], show_plot=True):
 	# print('\n\nkx:', kx, '\n', type(kx))
@@ -271,7 +267,7 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0
 		pool_data.append( pool.map(multihelper_star, itertools.izip( 			# this makes a map of all parameter combinations that have to be simulated, itertools.repeat() names the constants
 							itertools.product(*scanValues), itertools.repeat(initPhiPrime0), itertools.repeat(topology), itertools.repeat(couplingfct), itertools.repeat(F), itertools.repeat(Nsteps),
 							itertools.repeat(dt), itertools.repeat(c),itertools.repeat(Fc), itertools.repeat(F_Omeg), itertools.repeat(K), itertools.repeat(N), itertools.repeat(k), itertools.repeat(delay),
-							itertools.repeat(phiM), itertools.repeat(domega), itertools.repeat(diffconstK), itertools.repeat(cLF), itertools.repeat(Nx), itertools.repeat(Ny), itertools.repeat(kx), itertools.repeat(ky),
+							itertools.repeat(phiM), itertools.repeat(domega), itertools.repeat(diffconstK), itertools.repeat(diffconstSendDelay), itertools.repeat(cLF), itertools.repeat(Nx), itertools.repeat(Ny), itertools.repeat(kx), itertools.repeat(ky),
 							itertools.repeat(plot_Phases_Freq), itertools.repeat(mode) ) ) )
 		results=[]; phi=[]; omega_0=[]; K_0=[]; delays_0=[]; #cLF_t=[]
 		for i in range(Nsim):
@@ -315,7 +311,7 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0
 			#print( 'type of phiS', type(phiS))
 			#print( 'type of initPhiPrime0', type(initPhiPrime0))
 			#print( 'phiS = ', phiS, '\n')
-			data = simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, cLF, Nx, Ny, kx, ky, plot_Phases_Freq, mode)
+			data = simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, diffconstSendDelay, cLF, Nx, Ny, kx, ky, plot_Phases_Freq, mode)
 
 			''' evaluate dictionaries '''
 			results.append( [ data['mean_order'],  data['last_orderP'], data['stdev_orderP'] ] )
