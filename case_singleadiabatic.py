@@ -311,7 +311,7 @@ if __name__ == '__main__':
 	mx			= int(sys.argv[13])												# twist number in x-direction
 	my			= int(sys.argv[14])												# twist number in y-direction
 	cLF			= float(sys.argv[15])											# diff constant of GWN in LF
-	Trelax		= float(sys.argv[16])												# number of steps for the system to relax to "equilibrium"
+	Trelax		= float(sys.argv[16])											# number of steps for the system to relax to "equilibrium"
 	phiSr 		= np.asarray([float(phi) for phi in sys.argv[17:(17+N)]])		# this input allows to simulate specific points in !rotated phase space plane
 
 	singleadiabatic(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Trelax, Nsim, Nx, Ny, mx, my, phiSr, True)
