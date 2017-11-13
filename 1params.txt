@@ -18,6 +18,8 @@ diffconstk = 0
 #9: diffusion constant [variance=2*diffconst] of the gaussian distribution for the transmission delays
 #current: every osci has a receiving delay from all neighbors
 diffconstSendDelay = 0
-#10: multiples of the period of the uncoupled oscillators to set simulation time -- usually set with argument on startup
+#10: feedback delay time
+feedbackDelay = 0
+#11: multiples of the period of the uncoupled oscillators to set simulation time -- usually set with argument on startup
 tsim = 125
 
