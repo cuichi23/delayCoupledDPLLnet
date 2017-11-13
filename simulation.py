@@ -1071,6 +1071,6 @@ def generatePllObjects(mode,topology,couplingfct,Nplls,dt,c,delay,feedback_delay
 								)  for idx_pll in range(Nplls) ]				# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
 
 	else:
-		print('If Trelax>0, also cLF(initial) needs to be > zero. Noise diff const c should be zero!');
+		print('\n\nNOTE:   If Trelax>0, also cLF(initial) needs to be > zero. Noise diffusion const c should be zero! Fix that!\n\n');
 
 	return pll_list
