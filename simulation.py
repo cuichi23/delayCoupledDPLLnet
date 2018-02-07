@@ -379,11 +379,12 @@ class Delayer:
 		else:
 			self.delay = delay
 																				# NOTE: static distribution of transmission delays - ensure that max delay determines the length of the history vector
-		self.delay_steps		  = int(round(self.delay/dt))					# when initialized, the delay in time-steps is set to delay_steps
+		self.delay_steps = int(round(self.delay/dt))							# when initialized, the delay in time-steps is set to delay_steps
 		if feedback_delay == 0:
 			self.feedback_delay_steps = 0
 		else:
 			self.feedback_delay_steps = int(round(self.feedback_delay/dt))
+			print('NOTE: there is a nonzero feedback-delay specified! tau_f=',self.feedback_delay)
 		#print('\ndelay steps:', self.delay_steps, '\n')
 		# print('\ndelay steps:', self.delay_steps, '\n')
 
@@ -393,7 +394,7 @@ class Delayer:
 		#if(idx_time >= (self.delay_steps) and idx_time < (self.delay_steps+2) ):
 		#	print('\nidx_delayed', idx_delayed, 'with phi[t]=', x[idx_time,:],'with phi[t-tau]=', x[idx_delayed,:],'at idx_time', idx_time, '\n')
 		# print('phases at time t:', np.asarray(x[idx_time,:]), 'phases at time t-tau:', np.asarray(x[idx_delayed,:]))
-		# print('idx_time:', idx_time, 'idx_delayed', idx_delayed)
+		# print('idx_time:', idx_time, 'idx_delayed', idx_delayed, 'idx_feedback_delayed', idx_feedback_delayed)
 		return np.asarray(x[idx_feedback_delayed,:]), np.asarray(x[idx_delayed,:])			# x is is the time-series from which the values at t-dt and t-tau are returned
 
 # class DistDelayDelayer(Delayer):
@@ -475,6 +476,7 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,to
 		''' This is for delay_steps == 0, cLF-rate == 0 ''' 					#- this could also be achieved by setting delay_steps = 2 to fit into this evolution scheme! however think and check '''
 		print('No delay case, iteration scheme carried out differently.')
 
+		# print('phi[0,:]:',phi[0,:], 'F_Omeg:',F_Omeg,'phi:',phi,'phiS:',phiS)
 		phi[0,:] = [pll.set_delta_pertubation(0, phi, phiS[i], F_Omeg) for i,pll in enumerate(pll_list)]  # NOTE: phi[idx_time,:] is already set, save intial condition to container phi
 
 		''' YOU SHOULD CHANGE HERE AND SO ON TO SAVE DATA DURING SIMULATION TO KEEP THE RAM AVAILABLE '''

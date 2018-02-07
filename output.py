@@ -110,9 +110,9 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, cLF_
 	plt.figure('histogram of frequencies')										# plot a histogram of the frequencies of the oscillators over time
 	plt.clf()
 	lastfreqs = (np.diff(phi[-int(2*1.0/(F1*dt)):, :], axis=0).flatten()/(dt))
-	plt.hist(lastfreqs, bins=np.linspace(2*np.pi*(F1-2.*K), 2*np.pi*(F1+2.*K), num=21), rwidth=0.75 )
+	plt.hist(lastfreqs, bins=np.linspace(2*np.pi*(F1-2.*abs(K)), 2*np.pi*(F1+2.*abs(K)), num=21), rwidth=0.75 )
 	plt.axvspan(t[-int(2*1.0/(F1*dt))]*dt, t[-1]*dt, color='b', alpha=0.3)
-	plt.xlim((2*np.pi*(F1-K), 2*np.pi*(F1+K)))
+	plt.xlim((2*np.pi*(F1-abs(K)), 2*np.pi*(F1+abs(K))))
 	plt.title(r'mean frequency [Hz] $\bar{f}=$%.3f and std $\bar{\sigma}_f=$%.4f' %( np.mean(lastfreqs)/(2.0*np.pi), np.std(lastfreqs)/(2.0*np.pi) ), fontdict = titlefont)
 	plt.xlabel(r'$\dot{\phi}(-2T -> T_{end})$ $[rad/s]$', fontdict = labelfont)
 	plt.ylabel(r'histogram', fontdict = labelfont)
