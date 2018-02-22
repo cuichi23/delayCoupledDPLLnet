@@ -201,14 +201,15 @@ class CouplingFunction(object):
 
 class Sin(CouplingFunction):
     ''' Periodic sine signal vertically centered around 0'''
-    def __init__(self, freq=1.0 / (2 * np.pi)):
+    def __init__(self, freq=1.0 / (2 * np.pi), amp=1.0):
         self.freq = freq
+        self.amp = amp
 
     def __call__(self, t):
-        return np.sin(2 * np.pi * self.freq * t)
+        return self.amp * np.sin(2 * np.pi * self.freq * t)
 
     def get_derivative(self):
-        return 2.0*np.pi*Cos(self.freq)
+        return Cos(freq=self.freq, amp=2.0*np.pi*)
 
     def max(self):
         return 1.0
@@ -222,10 +223,10 @@ class Cos(CouplingFunction):
         self.freq = freq
 
     def __call__(self, t):
-        return np.cos(2 * np.pi * self.freq * t)
+        return self.amp * np.cos(2 * np.pi * self.freq * t)
 
     def get_derivative(self):
-        return -2.0*np.pi*Sin(self.freq)
+        return Sin(freq=self.freq, amp=-2.0*np.pi*)
 
     def max(self):
         return 1.0
