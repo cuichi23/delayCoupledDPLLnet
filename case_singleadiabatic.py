@@ -64,7 +64,7 @@ def simulatePllNetwork(mode,topology,couplingfct,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,d
 			"""
 		r = eva.oracle_CheckerboardOrderParameter1d(phi[-int(2*1.0/(F*dt)):, :], k)
 		orderparam = eva.oracle_CheckerboardOrderParameter1d(phi[:, :])			# calculate the order parameter for all times
-	elif topology == "ring":
+	elif ( topology == "ring" or topology == 'global'):
 		r = eva.oracle_mTwistOrderParameter(phi[-int(2*1.0/(F*dt)):, :], k)		# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
 		orderparam = eva.oracle_mTwistOrderParameter(phi[:, :], k)				# calculate the m-twist order parameter for all times
 
@@ -192,25 +192,44 @@ def singleadiabatic(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Trelax, 
 					phiM.append(phiMtemp)
 				phiM = np.array(phiM)%(2.0*np.pi)
 				phiM = phiM.flatten(); # print('phiM: ', phiM)
+
 		elif (topology == 'hexagon-periodic' or topology == 'octagon-periodic' or topology == 'square-periodic'):
 			twistdelta_x = ( 2.0 * np.pi * kx / ( float( Nx ) ) )				# phase difference between neighboring oscillators in a stable m-twist state
 			twistdelta_y = ( 2.0 * np.pi * ky / ( float( Ny ) ) )				# phase difference between neighboring oscillators in a stable m-twist state
 			# print('phase differences of',k,'-twist:', twistdelta, '\n')
+			# print('N =', N, '    Nx =', Nx, '    Ny =', Ny, '    k =', k, '    kx =', kx, '    ky =', ky)
 			if (k == 0 and kx == 0 and ky == 0):
 				phiM = np.zeros(N)												# phiM denotes the unperturbed initial phases according to the m-twist state under investigation
+				print('Length, type and shape of phiM:', len(phiM), type(phiM), phiM.shape)
 			else:
 				phiM=[]
+				# print('type phiM at initialization', type(phiM))
+				# print('Entering loop over Ny to set initial phiM.')
 				for rows in range(Ny):											# set the mx-my-twist state's initial condition (history of "perfect" configuration)
-					phiMtemp = np.arange(twistdelta_y*rows, Nx*twistdelta_x+twistdelta_y*rows, twistdelta_x)
+					# print('loop #', rows)
+					#phiMtemp = np.arange(twistdelta_y*rows, Nx*twistdelta_x+twistdelta_y*rows, twistdelta_x)
+					phiMtemp = twistdelta_x * np.arange(Nx) + twistdelta_y * rows
+					# print('phiMtemp=', phiMtemp, '    of type ', type(phiMtemp), '    and length ', len(phiMtemp))
 					phiM.append(phiMtemp)
+					# print('phiM(list)=', phiMt, '    of type ', type(phiMt))
+
 				phiM = np.array(phiM)
+				# print('phiM[1,]', phiM[1,])
+				# print('phiM(array)=', phiM, '    of type ', type(phiM), '    and shape ', phiM.shape)
+
 				phiMreorder=np.zeros(Nx*Ny); counter=0;
 				for i in range(Nx):
 					for j in range(Ny):
 						# print('counter:', counter)
 						phiMreorder[counter]=phiM[i][j]; counter=counter+1;
-				phiM = phiMreorder
-				# phiM = phiM.flatten(); # print('phiM: ', phiM)
+				phiM = phiMreorder%(2.0*np.pi)
+				# print('phiMreorderd: ', phiM, '    of type ', type(phiM), '    and shape ', phiM.shape)
+
+				# NOPE phiM = np.reshape(phiM, (np.product(phiM.shape),))
+				# phiM = phiM.flatten();
+				# phiM = phiM[:][:].flatten();
+				# print('phiMflattened: ', phiM, '    of type ', type(phiM), '    and shape ', phiM.shape)
+				# print('Length, type and shape of phiMflattened that was generated:', len(phiM), type(phiM), phiM.shape)
 	if ( topology == 'ring' or topology == 'chain' ):
 		if topology == 'chain':
 			cheqdelta = np.pi													# phase difference between neighboring oscillators in a stable chequerboard state
@@ -227,7 +246,10 @@ def singleadiabatic(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Trelax, 
 				phiM = np.zeros(N)												# phiM denotes the unperturbed initial phases according to the m-twist state under investigation
 			else:
 				phiM = np.arange(0.0, N*twistdelta, twistdelta)					# vector mit N entries from 0 increasing by twistdelta for every element, i.e., the phase-configuration
+				phiM = np.array(phiM)%(2.0*np.pi)								# bring back into interval [0 2pi]
 				# print('phiM: ', phiM)											# in the original phase space of an m-twist solution
+	if topology == 'global':
+		phiM = np.zeros(N)
 
 
 	# print('time-step dt=', dt)

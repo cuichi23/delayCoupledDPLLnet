@@ -1,0 +1,13 @@
+In [63]: cases=[3,9,25,144]; v_ana=[]
+
+In [64]: for i in cases:
+    ...:     uc = polytope2.PhaseDifferenceUnitCell(i)
+    ...:     v_ana.append(uc.get_volume())
+    ...:     
+
+In [65]: v_ana
+Out[65]: 
+[17.09465627329217,
+ 28465.593048211744,
+ 4271367599569.3594,
+ 1.4846122553930528e+72]
