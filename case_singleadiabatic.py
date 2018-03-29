@@ -277,7 +277,7 @@ def singleadiabatic(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Trelax, 
 
 	''' PLOT PHASE & FREQUENCY TIME SERIES '''
 	if plot_Phases_Freq:
-		out.plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, cLF_t, couplingfct, Trelax, Fsim, show_plot)
+		out.plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, cLF_t, couplingfct, Trelax, Fsim, show_plot, adiabatic=True)
 
 	return None
 

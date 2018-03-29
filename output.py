@@ -51,7 +51,7 @@ annotationfont = {
         }
 
 ''' EVALUATION SINGLE REALIZATION '''
-def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, cLF_t=[], coupFct='triang', Tsim=53, Fsim=None, show_plot=True):
+def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, cLF_t=[], coupFct='triang', Tsim=53, Fsim=None, show_plot=True, adiabatic=False):
 
 	Trelax = Tsim
 	Nrelax = int(Trelax/dt)
@@ -93,16 +93,17 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, cLF_
 
 	now = datetime.datetime.now()
 
-	plt.figure('spectrum of synchronized state')								# plot spectrum
-	plt.clf()
-	for i in range (len(f)):
-		plt.plot(f[i], Pxx_db[i], '-')
-	plt.title('power spectrum', fontdict = titlefont)
-	plt.xlim(0,F1+20*K);	#plt.ylim(-100,0);
-	plt.xlabel('frequencies [Hz]', fontdict = labelfont); plt.ylabel('P [dB]', fontdict = labelfont)
-	plt.grid()
-	plt.savefig('results/powerdensity_dB_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
-	plt.savefig('results/powerdensity_dB_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=300)
+	if adiabatic == False:
+		plt.figure('spectrum of synchronized state')							# plot spectrum
+		plt.clf()
+		for i in range (len(f)):
+			plt.plot(f[i], Pxx_db[i], '-')
+		plt.title('power spectrum', fontdict = titlefont)
+		plt.xlim(0,F1+20*K);	#plt.ylim(-100,0);
+		plt.xlabel('frequencies [Hz]', fontdict = labelfont); plt.ylabel('P [dB]', fontdict = labelfont)
+		plt.grid()
+		plt.savefig('results/powerdensity_dB_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
+		plt.savefig('results/powerdensity_dB_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=300)
 
 	phi = phi[0,:,:];															# from here on the phi array is reduced in dimension - realization 0 picked
 	t = np.arange(phi.shape[0])													# plot the phases of the oscillators over time
