@@ -51,7 +51,7 @@ annotationfont = {
         }
 
 ''' EVALUATION SINGLE REALIZATION '''
-def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, cLF_t=[], coupFct='triang', Tsim=53, Fsim=None, show_plot=True, adiabatic=False):
+def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, cLF_t=[], coupFct='triang', Tsim=53, Fsim=None, show_plot=True):
 
 	Trelax = Tsim
 	Nrelax = int(Trelax/dt)
@@ -70,30 +70,29 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, cLF_
 	phi = phi[:,:,:]; orderparam = orderparam[0,:]								# there is only one realization of interest -reduces dimensionof phi array
 	# afterTransients = int( round( 0.5*Tsim / dt ) )
 	# phiSpect = phi[:,-afterTransients:,:]
-	if coupFct == 'triang':
-		print('Calculate spectrum for square wave signals. Fsim=%d' %Fsim)
-		# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'square')				# calculate spectrum of signals, i.e., of this state
-		f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'square')					# calculate spectrum of signals, i.e., of this state
-	elif coupFct == 'triangshift':
-		print('Calculate spectrum for ??? wave signals, here triang[x]+a*triang[b*x]. Fsim=%d' %Fsim)
-		# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'square')				# calculate spectrum of signals, i.e., of this state
-		f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'square')					# calculate spectrum of signals, i.e., of this state
-	elif coupFct == 'sin':
-		print('check that... sine coupFct only if cos and sin signal input')
-		# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'sin')				# calculate spectrum of signals, i.e., of this state
-		f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'sin')						# calculate spectrum of signals, i.e., of this state
-	elif coupFct == 'cos':
-		print('Calculate spectrum for cosinusoidal signals. Fsim=%d' %Fsim)
-		# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'cos')				# calculate spectrum of signals, i.e., of this state
-		f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'cos')						# calculate spectrum of signals, i.e., of this state
-	elif coupFct == 'sincos':
-		print('Calculate spectrum for mix sine and cosine signals. Fsim=%d' %Fsim)
-		# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'cos')				# calculate spectrum of signals, i.e., of this state
-		f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'sin')						# calculate spectrum of signals, i.e., of this state
-
 	now = datetime.datetime.now()
+	if np.size(cLF_t) == 0:
+		if coupFct == 'triang':
+			print('Calculate spectrum for square wave signals. Fsim=%d' %Fsim)
+			# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'square')				# calculate spectrum of signals, i.e., of this state
+			f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'square')					# calculate spectrum of signals, i.e., of this state
+		elif coupFct == 'triangshift':
+			print('Calculate spectrum for ??? wave signals, here triang[x]+a*triang[b*x]. Fsim=%d' %Fsim)
+			# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'square')				# calculate spectrum of signals, i.e., of this state
+			f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'square')					# calculate spectrum of signals, i.e., of this state
+		elif coupFct == 'sin':
+			print('check that... sine coupFct only if cos and sin signal input')
+			# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'sin')				# calculate spectrum of signals, i.e., of this state
+			f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'sin')						# calculate spectrum of signals, i.e., of this state
+		elif coupFct == 'cos':
+			print('Calculate spectrum for cosinusoidal signals. Fsim=%d' %Fsim)
+			# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'cos')				# calculate spectrum of signals, i.e., of this state
+			f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'cos')						# calculate spectrum of signals, i.e., of this state
+		elif coupFct == 'sincos':
+			print('Calculate spectrum for mix sine and cosine signals. Fsim=%d' %Fsim)
+			# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'cos')				# calculate spectrum of signals, i.e., of this state
+			f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'sin')						# calculate spectrum of signals, i.e., of this state
 
-	if adiabatic == False:
 		plt.figure('spectrum of synchronized state')							# plot spectrum
 		plt.clf()
 		for i in range (len(f)):
@@ -192,6 +191,7 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, cLF_
 		plt.plot((t[0:(len(t)-1):10*int(1/dt)]*dt), orderparam[0:(len(t)-1):10*int(1/dt)])
 		plt.plot(t*dt, cLF_t)
 		plt.plot(delay, orderparam[int(round(delay/dt))], 'yo', ms=5)			# mark where the simulation starts
+		plt.grid()
 		plt.axvspan(t[-int(2*1.0/(F1*dt))]*dt, t[-1]*dt, color='b', alpha=0.3)
 		plt.title(r'mean order parameter $\bar{R}=$%.2f, and $\bar{\sigma}=$%.4f' %(np.mean(orderparam[-int(round(2*1.0/(F1*dt))):]), np.std(orderparam[-int(round(2*1.0/(F1*dt))):])), fontdict = titlefont)
 		plt.xlabel(r'$t$ $[s]$', fontdict = labelfont)
@@ -211,7 +211,7 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, cLF_
 			plt.savefig('results/orderP-cLF_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
 			plt.savefig('results/orderP-cLF_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=300)
 		elif c>0 and cLF==0:
-			plt.figure('order parameter over time, adiabatic change c')		# plot the order parameter in dependence of time
+			plt.figure('order parameter over time, adiabatic change c')			# plot the order parameter in dependence of time
 			plt.clf()
 			plt.plot(cLF_t[0:(len(t)-1):10*int(1/dt)], orderparam[0:(len(t)-1):10*int(1/dt)])
 			plt.title(r'order parameter as a function of c(t) after Trelax', fontdict = titlefont)
