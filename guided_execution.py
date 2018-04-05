@@ -1576,6 +1576,9 @@ def bruteForce(params, param_cases_csv):
 
 				for i in range (len(para_mat[:,0])):
 					print('Tsim: ',     para_mat[i,9])
+					if Tsim < 2:
+						print('Tsim so small that it might cause a CRASH! CHECK!')
+
 					print('\nSTART: python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '
 													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(cLF)+' '
@@ -1648,7 +1651,10 @@ def bruteForce(params, param_cases_csv):
 					plot_out = False
 
 				for i in range (len(para_mat[:,0])):
-					print('Tsim: ', para_mat[i,9])
+					print('Tsim: ', para_mat[i,9])#
+					if Tsim < 2:
+						print('Tsim so small that it might cause a CRASH! CHECK!')
+
 					print('\nSTART: python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '
 													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(cLF)+' '
@@ -1713,6 +1719,9 @@ def bruteForce(params, param_cases_csv):
 
 				for i in range (len(para_mat[:,0])):
 					print('Tsim: ', para_mat[i,9])
+					if Tsim < 2:
+						print('Tsim so small that it might cause a CRASH! CHECK!')
+						
 					print('\nSTART: python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '
 													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(cLF)+' '

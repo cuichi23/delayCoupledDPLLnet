@@ -141,6 +141,7 @@ class NoisyLowPass(LowPass):
 		if self.K!=0:															# this if-call is fine, since it will only be evaluated once
 			self.y = (self.inst_Freq - self.F) / (self.K_Hz)					# calculate the state of the LF at the last time step of the history, it is needed for the simulation of the network
 			self.y = self.y + np.random.normal(loc=0.0, scale=self.Fc*np.sqrt(2*self.cLF*self.dt))
+			print('\n\n CHECK HERE AGAIN THE DIMENSION FOR THE Fc FACTOR TO THE NOISE TERM - RAD/s or 1/s?! \n\n')
 			# print('initial control signal x_ctrl=', self.y)
 			# self.y = (2.0 * np.pi * (self.inst_Freq - self.F)) / (self.K)
 		else:

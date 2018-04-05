@@ -193,7 +193,7 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, cLF_
 		plt.plot(delay, orderparam[int(round(delay/dt))], 'yo', ms=5)			# mark where the simulation starts
 		plt.grid()
 		plt.axvspan(t[-int(2*1.0/(F1*dt))]*dt, t[-1]*dt, color='b', alpha=0.3)
-		plt.title(r'mean order parameter $\bar{R}=$%.2f, and $\bar{\sigma}=$%.4f' %(np.mean(orderparam[-int(round(2*1.0/(F1*dt))):]), np.std(orderparam[-int(round(2*1.0/(F1*dt))):])), fontdict = titlefont)
+		plt.title(r'$\bar{R}(t_{end}-2T_{\omega}:t_{end})=$%.2f, and $\bar{\sigma}=$%.4f' %(np.mean(orderparam[-int(round(2*1.0/(F1*dt))):]), np.std(orderparam[-int(round(2*1.0/(F1*dt))):])), fontdict = titlefont)
 		plt.xlabel(r'$t$ $[s]$', fontdict = labelfont)
 		plt.ylabel(r'$R( t,m = %d )$' % k, fontdict = labelfont)
 		plt.savefig('results/orderP-t_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
@@ -202,19 +202,19 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, cLF_
 		#print('\nlast entries order parameter: R = ', orderparam[-25:])
 
 		if c==0 and cLF>0:
-			plt.figure('order parameter over time, adiabatic change cLF')		# plot the order parameter in dependence of time
+			plt.figure('order parameter vs adiabatic change cLF')				# plot the order parameter in dependence of cLF
 			plt.clf()
 			plt.plot(cLF_t[0:(len(t)-1):10*int(1/dt)], orderparam[0:(len(t)-1):10*int(1/dt)])
-			plt.title(r'order parameter as a function of cLF(t) after Trelax', fontdict = titlefont)
+			plt.title(r'R(t) vs cLF(t) after Trelax, adiabatic-rate=%.4f' %(rate), fontdict = titlefont)
 			plt.xlabel(r'$cLF(t)$', fontdict = labelfont)
 			plt.ylabel(r'$R( t,m = %d )$' % k, fontdict = labelfont)
 			plt.savefig('results/orderP-cLF_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
 			plt.savefig('results/orderP-cLF_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=300)
 		elif c>0 and cLF==0:
-			plt.figure('order parameter over time, adiabatic change c')			# plot the order parameter in dependence of time
+			plt.figure('order parameter vs adiabatic change c')					# plot the order parameter in dependence of c
 			plt.clf()
 			plt.plot(cLF_t[0:(len(t)-1):10*int(1/dt)], orderparam[0:(len(t)-1):10*int(1/dt)])
-			plt.title(r'order parameter as a function of c(t) after Trelax', fontdict = titlefont)
+			plt.title(r'R(t) vs c(t) after Trelax, adiabatic-rate=%.4f' %(rate), fontdict = titlefont)
 			plt.xlabel(r'$c(t)$', fontdict = labelfont)
 			plt.ylabel(r'$R( t,m = %d )$' % k, fontdict = labelfont)
 			plt.savefig('results/orderP-c_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
