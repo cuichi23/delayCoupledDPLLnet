@@ -128,7 +128,7 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0
 
 	Tsim 	= Tsim*(1.0/F)				  										# simulation time in multiples of the period of the uncoupled oscillators
 	Nsteps 	= int(round(Tsim*Fsim))												# calculate number of iterations -- add output?
-	print('total simulation time in multiples of the eigentfrequency:', int(Tsim*F),'\n')
+	print('total simulation time in multiples of the eigenfrequency:', int(Tsim*F),'\n')
 
 	plot_Phases_Freq = False													# whether or not the phases and frequencies are being plotted
 	# choose the value of phi'_0, i.e., where the plane, rectangular to the axis phi'_0 in the rotated phase space, is placed
@@ -266,6 +266,8 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0
 		pool_data=[];
 		freeze_support()
 		pool = Pool(processes=numberCores)										# create a Pool object
+
+		#def multihelper(phiSr,initPhiPrime0,topology,couplingfct,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiM,domega,diffconstK,diffconstSendDelay,cLF,Nx,Ny,kx,ky,plot_Phases_Freq,mode):
 		pool_data.append( pool.map(multihelper_star, itertools.izip( 			# this makes a map of all parameter combinations that have to be simulated, itertools.repeat() names the constants
 							itertools.product(*scanValues), itertools.repeat(initPhiPrime0), itertools.repeat(topology), itertools.repeat(couplingfct), itertools.repeat(F), itertools.repeat(Nsteps),
 							itertools.repeat(dt), itertools.repeat(c),itertools.repeat(Fc), itertools.repeat(F_Omeg), itertools.repeat(K), itertools.repeat(N), itertools.repeat(k), itertools.repeat(delay), itertools.repeat(feedback_delay),

@@ -381,6 +381,9 @@ class Delayer:
 			self.delay = delay
 																				# NOTE: static distribution of transmission delays - ensure that max delay determines the length of the history vector
 		self.delay_steps = int(round(self.delay/dt))							# when initialized, the delay in time-steps is set to delay_steps
+		if self.delay_steps <1:
+			print('NOTE: the transmission delay is smaller than the time-step "dt", hence "delay_steps" < 1 and the simulations assumes NO DELAY, adjust FSim!')
+					
 		if feedback_delay == 0:
 			self.feedback_delay_steps = 0
 		else:
