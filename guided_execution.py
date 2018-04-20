@@ -210,7 +210,7 @@ def chooseLF_DiffConst():														# ask user-input for diffusion constant G
 	b_true = True
 	while b_true:
 		# get user input on dynamic frequency noise -- provide diffusion constant for GWN process -> results in Wiener process for the phases (integrated instantaneous freqs)
-		cLF = raw_input('\nPlease specify the diffusion constant [float, in Hz**2] for the GWN process on CONTROL SIGNAL of the DPLLs from the range [0, 10*K]: ')
+		cLF = raw_input('\nPlease specify the diffusion constant [float, in s*s] for the GWN process on PD signal of the DPLLs from the range [0, 10*K]: ')
 		if ( float(cLF) >= 0.0 ):
 			break
 		else:
@@ -535,9 +535,9 @@ def singleAdiabatChange(params):
 	x_true = True
 	while x_true:
 		# get user input to know which parameter should be analyzed
-		user_input = raw_input('\nPlease specify which parameters should be changed adiabatically {VCO noise inst. freq [c] or LF induced noise on control signal [cLF]} : ')
+		user_input = raw_input('\nPlease specify which parameters should be changed adiabatically {VCO noise inst. freq [c] or LF induced noise on PD signal [cLF]} : ')
 		if user_input == 'cLF':
-			cLF_value = float(raw_input('\nPlease specify initial value of cLF_s in [Hz*Hz], from there it will adiabatically change to zero = '))
+			cLF_value = float(raw_input('\nPlease specify initial value of cLF_s in [s*s], from there it will adiabatically change to zero = '))
 			Trelax = float(raw_input('\nPlease specify the transient decay time Trelax, adiabatic change start after that time in [s] = '))
 
 			print('\nWill start with this cLF-value: ', cLF_value, ', and relaxation time Trelax: ', Trelax, '\n\n')
@@ -959,9 +959,9 @@ def singleRealization(params):
 			break
 
 		elif user_input == 'cLF':
-			user_sweep_start = float(raw_input('\nPlease specify the range in which cLF should be simulated, start cLF_s in [Hz*Hz] = '))
-			user_sweep_end	 = float(raw_input('\nPlease specify the range in which cLF should be simulated, end cLF_e in [Hz*Hz] = '))
-			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz*Hz] dc = '))
+			user_sweep_start = float(raw_input('\nPlease specify the range in which cLF should be simulated, start cLF_s in [s*s] = '))
+			user_sweep_end	 = float(raw_input('\nPlease specify the range in which cLF should be simulated, end cLF_e in [s*s] = '))
+			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [s*s] dc = '))
 			new_cLF_values = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
 			print('\nWill scan these cLF-values: ', new_cLF_values, '\n\n')
 
@@ -1070,7 +1070,7 @@ def noisyStatistics(params):
 	x_true = True
 	while x_true:
 		# get user input to know which parameter should be analyzed
-		user_input = raw_input('\nPlease specify which parameters dependencies to be analyzed {coupling strength [K] in [Hz], LF cut-off freq [Fc] in [Hz], transmission [delay] in [s], loop filter GWN noise diff. const. cLF in [Hz^2], or [c] the diffusion constant (sigma^2=2*c).} : ')
+		user_input = raw_input('\nPlease specify which parameters dependencies to be analyzed {coupling strength [K] in [Hz], LF cut-off freq [Fc] in [Hz], transmission [delay] in [s], loop filter GWN noise diff. const. cLF in [s^2], or [c] the diffusion constant (sigma^2=2*c).} : ')
 		if user_input == 'K':
 			user_sweep_start = float(raw_input('\nPlease specify the range in which K (K=0.5*Kvco) should be simulated, start K_s in [Hz] = '))
 			user_sweep_end	 = float(raw_input('\nPlease specify the range in which K (K=0.5*Kvco) should be simulated, end K_e in [Hz] = '))
@@ -1338,9 +1338,9 @@ def noisyStatistics(params):
 			break
 
 		elif user_input == 'cLF':
-			user_sweep_start = float(raw_input('\nPlease specify the range in which cLF should be simulated, start cLF_s in [Hz*Hz] = '))
-			user_sweep_end	 = float(raw_input('\nPlease specify the range in which cLF should be simulated, end cLF_e in [Hz*Hz] = '))
-			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [Hz*Hz] dc = '))
+			user_sweep_start = float(raw_input('\nPlease specify the range in which cLF should be simulated, start cLF_s in [s*s] = '))
+			user_sweep_end	 = float(raw_input('\nPlease specify the range in which cLF should be simulated, end cLF_e in [s*s] = '))
+			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [s*s] dc = '))
 			new_cLF_values = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
 			print('\nWill scan these cLF-values: ', new_cLF_values, '\n\n')
 
@@ -1721,7 +1721,7 @@ def bruteForce(params, param_cases_csv):
 					print('Tsim: ', para_mat[i,9])
 					if Tsim < 2:
 						print('Tsim so small that it might cause a CRASH! CHECK!')
-						
+
 					print('\nSTART: python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '
 													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(cLF)+' '

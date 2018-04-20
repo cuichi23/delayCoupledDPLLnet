@@ -33,7 +33,7 @@ titlefont = {
         'family' : 'serif',
         'color'  : 'black',
         'weight' : 'normal',
-        'size'   : 20,
+        'size'   : 9,
         }
 
 labelfont = {
@@ -136,12 +136,12 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, cLF_
 	plt.plot((t*dt),phi)
 	plt.plot(delay, phi[int(round(delay/dt)),0], 'yo', ms=5)
 	plt.axvspan(t[-int(2*1.0/(F1*dt))]*dt, t[-1]*dt, color='b', alpha=0.3)
-	plt.title(r'time series phases, inst. freq: $\dot{\phi}_0(t_{start})=%.4f$, $\dot{\phi}_0(t_{end})=%.4f$  [rad/Hz]' %( (phi[int(2*1.0/(F1*dt))][0]-phi[1][0])/(2*1.0/F1-dt), (phi[-4][0]-phi[-3-int(2*1.0/(F1*dt))][0])/(2*1.0/F1-dt) ), fontdict = titlefont)
+	plt.title(r'time series phases, inst. freq: $\dot{\phi}_0(t_{start})=%.4f$, $\dot{\phi}_0(t_{end})=%.4f$  [rad Hz]' %( (phi[int(2*1.0/(F1*dt))][0]-phi[1][0])/(2*1.0/F1-dt), (phi[-4][0]-phi[-3-int(2*1.0/(F1*dt))][0])/(2*1.0/F1-dt) ), fontdict = titlefont)
 	plt.xlabel(r'$t$ $[s]$', fontdict = labelfont)
 	plt.ylabel(r'$\phi(t)$', fontdict = labelfont)
 	plt.savefig('results/phases-t_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
 	plt.savefig('results/phases-t_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=300)
-	print(r'frequency of zeroth osci at the beginning and end of the simulation:, freqStart=%.4f, freqEnd=%.4f  [rad/Hz]' %( (phi[int(2*1.0/(F1*dt))][0]-phi[1][0])/(2*1.0/F1-dt), (phi[-4][0]-phi[-4-int(2*1.0/(F1*dt))][0])/(2*1.0/F1-dt) ) )
+	print(r'frequency of zeroth osci at the beginning and end of the simulation:, freqStart=%.4f, freqEnd=%.4f  [rad Hz]' %( (phi[int(2*1.0/(F1*dt))][0]-phi[1][0])/(2*1.0/F1-dt), (phi[-4][0]-phi[-4-int(2*1.0/(F1*dt))][0])/(2*1.0/F1-dt) ) )
 	print('last values of the phases:\n', phi[-3:,:])
 
 	plt.figure('phases over time wrapped 2pi')
@@ -149,7 +149,7 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, cLF_
 	plt.plot((t*dt),phi%(2.*np.pi))												#math.fmod(phi[:,:], 2.*np.pi))
 	plt.plot(delay, phi[int(round(delay/dt)),0], 'yo', ms=5)
 	plt.axvspan(t[-int(2*1.0/(F1*dt))]*dt, t[-1]*dt, color='b', alpha=0.3)
-	plt.title(r'time series phases, inst. freq: $\dot{\phi}_0(t_{start})=%.4f$, $\dot{\phi}_0(t_{end})=%.4f$  [rad/Hz]' %( (phi[int(2*1.0/(F1*dt))][0]-phi[1][0])/(2*1.0/F1-dt), (phi[-4][0]-phi[-3-int(2*1.0/(F1*dt))][0])/(2*1.0/F1-dt) ), fontdict = titlefont)
+	plt.title(r'time series phases, inst. freq: $\dot{\phi}_0(t_{start})=%.4f$, $\dot{\phi}_0(t_{end})=%.4f$  [rad Hz]' %( (phi[int(2*1.0/(F1*dt))][0]-phi[1][0])/(2*1.0/F1-dt), (phi[-4][0]-phi[-3-int(2*1.0/(F1*dt))][0])/(2*1.0/F1-dt) ), fontdict = titlefont)
 	plt.xlabel(r'$t$ $[s]$', fontdict = labelfont)
 	plt.ylabel(r'$\phi(t)$', fontdict = labelfont)
 	plt.savefig('results/phases2pi-t_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
@@ -161,7 +161,7 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, cLF_
 		plt.plot((t*dt),(phi[:,i]-phi[:,0])%(2.*np.pi))							#math.fmod(phi[:,:], 2.*np.pi))
 	plt.plot(delay, phi[int(round(delay/dt)),0], 'yo', ms=5)
 	plt.axvspan(t[-int(2*1.0/(F1*dt))]*dt, t[-1]*dt, color='b', alpha=0.3)
-	plt.title(r'time series phase differences, inst. freq: $\dot{\phi}_0(t_{start})=%.4f$, $\dot{\phi}_0(t_{end})=%.4f$  [rad/Hz]' %( (phi[int(2*1.0/(F1*dt))][0]-phi[1][0])/(2*1.0/F1-dt), (phi[-4][0]-phi[-3-int(2*1.0/(F1*dt))][0])/(2*1.0/F1-dt) ), fontdict = titlefont)
+	plt.title(r'time series phase differences, inst. freq: $\dot{\phi}_0(t_{start})=%.4f$, $\dot{\phi}_0(t_{end})=%.4f$  [rad Hz]' %( (phi[int(2*1.0/(F1*dt))][0]-phi[1][0])/(2*1.0/F1-dt), (phi[-4][0]-phi[-3-int(2*1.0/(F1*dt))][0])/(2*1.0/F1-dt) ), fontdict = titlefont)
 	plt.xlabel(r'$t$ $[s]$', fontdict = labelfont)
 	plt.ylabel(r'$\phi_k(t)-\phi_0(t)$', fontdict = labelfont)
 	plt.savefig('results/phaseConf-t_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
@@ -176,9 +176,9 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, cLF_
 	plt.plot((t[0:-1]*dt), phidot)
 	plt.plot(delay-dt, phidot[int(round(delay/dt)-1),0], 'yo', ms=5)
 	plt.axvspan(t[-int(2*1.0/(F1*dt))]*dt, t[-1]*dt, color='b', alpha=0.3)
-	plt.title(r'mean frequency [rad Hz] of last $2T$-eigenperiods $\dot{\bar{\phi}}=$%.4f' % np.mean(phidot[-int(round(2*1.0/(F1*dt))):, 0] ), fontdict = titlefont)
+	plt.title(r'mean frequency over last $2T$-eigenperiods $\dot{\bar{\phi}}=%.4f$ [rad Hz]' % np.mean(phidot[-int(round(2*1.0/(F1*dt))):, 0] ), fontdict = titlefont)
 	plt.xlabel(r'$t$ $[s]$', fontdict = labelfont)
-	plt.ylabel(r'$\dot{\phi}(t)$ $[rad Hz]$', fontdict = labelfont)
+	plt.ylabel(r'$\dot{\phi}(t)$ [rad Hz]', fontdict = labelfont)
 	plt.savefig('results/freq-t_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
 	plt.savefig('results/freq-t_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=300)
 
@@ -382,6 +382,26 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	plt.savefig('results/imsh_PhSpac_lastR_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), dpi=dpi_value)
 	plt.savefig('results/imsh_PhSpac_lastR_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), dpi=dpi_value)
 
+	plt.figure(5)
+	plt.clf()
+	ax = plt.subplot(1, 1, 1)
+	ax.set_aspect('equal')
+	plt.scatter(allPoints[:,0]+phiMr[d1], allPoints[:,1]+phiMr[d2], c=results[:,0], alpha=0.5, edgecolor='', cmap=jet)#, vmin=0, vmax=1)
+	plt.title(r'mean $R(t,m=%d )$, constant dim: $\phi_0^{\prime}=%.2f$' %(int(k) ,initPhiPrime0) )
+	if N==3:
+		plt.xlabel(r'$\phi_1^{\prime}$')
+		plt.ylabel(r'$\phi_2^{\prime}$')
+	elif N==2:
+		plt.xlabel(r'$\phi_0^{\prime}$')
+		plt.ylabel(r'$\phi_1^{\prime}$')
+	if N==3 and topology != "square-open" and topology != "chain":
+		plt.plot(alltwistPR[:,1],alltwistPR[:,2], 'yo', ms=4)
+	plt.xlim([1.05*allPoints[:,0].min()+phiMr[d1], 1.05*allPoints[:,0].max()+phiMr[d1]])
+	plt.ylim([1.05*allPoints[:,1].min()+phiMr[d2], 1.05*allPoints[:,1].max()+phiMr[d2]])
+	plt.colorbar()
+	plt.savefig('results/rot_redColor_PhSpac_meanR_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), dpi=dpi_value)
+	plt.savefig('results/rot_redColor_PhSpac_meanR_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), dpi=dpi_value)
+
 	plt.draw()
 	if show_plot:
 		plt.show()
@@ -443,7 +463,7 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, c, cLF, domega, twistdelta, r
 		plt.hist(delays_0.flatten(),
 						bins=np.linspace(np.mean(delays_0.flatten())-4.0*np.std(delays_0.flatten()), np.mean(delays_0.flatten())+4.0*np.std(delays_0.flatten()), num=histo_bins),
 						rwidth=0.75, histtype='bar', normed=True, log=True)
-		plt.title(r'histo: transmission delays $\tau$ of each osci over all realizations')
+		plt.title(r'histo: transmission delays $\tau$ of each osci over all realizations', fontdict=titlefont)
 		plt.xlabel(r'$\tau$')
 		plt.ylabel(r'log[$P(\tau)$]')
 		plt.savefig('results/hist_transdelays_static_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
@@ -455,7 +475,7 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, c, cLF, domega, twistdelta, r
 		plt.hist(K_0.flatten(),
 						bins=np.linspace(np.mean(K_0.flatten())-4.0*np.std(K_0.flatten()), np.mean(K_0.flatten())+4.0*np.std(K_0.flatten()), num=histo_bins),
 						rwidth=0.75, histtype='bar', normed=True, log=True)
-		plt.title(r'histo: coupling strengths $K$ of each osci over all realizations')
+		plt.title(r'histo: coupling strengths $K$ of each osci over all realizations', fontdict=titlefont)
 		plt.xlabel(r'$K$')
 		plt.ylabel(r'log[$P(K)$]')
 		plt.savefig('results/hist_distCoupStr_static_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
@@ -467,7 +487,7 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, c, cLF, domega, twistdelta, r
 		plt.hist(omega_0.flatten(),
 						bins=np.linspace(np.mean(omega_0.flatten())-4.0*np.std(omega_0.flatten()), np.mean(omega_0.flatten())+4.0*np.std(omega_0.flatten()), num=histo_bins),
 						rwidth=0.75, histtype='bar', normed=True, log=True)
-		plt.title(r'mean intrinsic frequency $\bar{f}=%.3f$ and std $\sigma_f=%.5f$  [Hz]' %( np.mean(omega_0.flatten())/(2.0*np.pi), np.std(omega_0.flatten())/(2.0*np.pi) ) )
+		plt.title(r'mean intrinsic frequency $\bar{f}=%.3f$ and std $\sigma_f=%.5f$  [Hz]' %( np.mean(omega_0.flatten())/(2.0*np.pi), np.std(omega_0.flatten())/(2.0*np.pi) ) , fontdict=titlefont)
 		plt.xlabel(r'frequency bins [rad/s]')
 		plt.ylabel(r'$log[g(\omega)]$')
 		plt.savefig('results/omega0_intfreq_histo_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
@@ -484,7 +504,7 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, c, cLF, domega, twistdelta, r
 		plt.hist(orderparam[:,-1],
 						bins=np.linspace(np.mean(orderparam[:,-1])-binrange, np.mean(orderparam[:,-1])+binrange, num=histo_bins),
 						rwidth=0.75, histtype='bar', normed=True, log=True)
-		plt.title(r'histo: orderparam $R(t_{end})$ of each osci over all realizations')
+		plt.title(r'histo: orderparam $R(t_{end})$ of each osci over all realizations', fontdict=titlefont)
 		plt.xlabel(r'R($t_{end}$)')
 		plt.ylabel(r'loghist[$R(t_{end})$]')
 		plt.savefig('results/hist_orderparam_TSim_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
@@ -508,21 +528,21 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, c, cLF, domega, twistdelta, r
 				color='r', rwidth=0.75, histtype='bar', label='t=TSim', normed=True, log=True)
 		#plt.xlim((1.1*min(firstfreq), 1.1*max(firstfreq)))
 		plt.legend(loc='best')
-		plt.title(r't=0: mean phase $\bar{\phi}=%.3f$ and std $\sigma_{\phi}=%.5f$  [Hz]' %( np.mean(phi[:,int(round(delay/dt))+1,:].flatten()), np.mean(np.std(phi[:,int(round(delay/dt))+1,:], axis=1),axis=0) ) )
+		plt.title(r't=0: mean phase $\bar{\phi}=%.3f$ and std $\sigma_{\phi}=%.5f$  [Hz]' %( np.mean(phi[:,int(round(delay/dt))+1,:].flatten()), np.mean(np.std(phi[:,int(round(delay/dt))+1,:], axis=1),axis=0) ) , fontdict=titlefont)
 		plt.xlabel(r'$\phi(t=0,TSim)$')
 		plt.ylabel(r'loghist$[\phi(t=0,TSim)]$')
 		plt.savefig('results/histo_phases_t0_TSim_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
 		plt.savefig('results/histo_phases_t0_TSim_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=dpi_value)
 
 	if (delay == 0):
-		plt.figure('histo: phases over all oscis at t={2,4,6,8}*Tomega shifted to same mean')	# plot a histogram of the last frequency of each oscillators over all realizations
+		plt.figure('histo: phases over all oscis at t={2,4,6,8}*Tf shifted to same mean')	# plot a histogram of the last frequency of each oscillators over all realizations
 		plt.clf()
 		# print('mean phase at t = 8*T_w', np.mean( phi[:,int(round(8*delay/dt)),:].flatten() ) )
-		t1 = int(round((2./F1)/dt)); label1 = 't=2*Tomega'
-		t2 = int(round((4./F1)/dt)); label2 = 't=4*Tomega'
-		t3 = int(round((6./F1)/dt)); label3 = 't=6*Tomega'
-		t4 = int(round((8./F1)/dt)); label4 = 't=8*Tomega'
-		plt.title(r't=$8 T_{\omega}$: mean phase $\bar{f}=%.3f$ and std $\sigma_f=%.3f$  [Hz]' %( np.mean(phi[:,(t4-10),:].flatten())/(2.0*np.pi), np.mean(np.std(phi[:,(t4-10),:], axis=1), axis=0)/(2.0*np.pi) ) )
+		t1 = int(round((2./F1)/dt)); label1 = 't=2*Tf'
+		t2 = int(round((4./F1)/dt)); label2 = 't=4*Tf'
+		t3 = int(round((6./F1)/dt)); label3 = 't=6*Tf'
+		t4 = int(round((8./F1)/dt)); label4 = 't=8*Tf'
+		plt.title(r't=$8$Tf: mean phase $\bar{f}=%.3f$ and std $\sigma_f=%.3f$  [Hz]' %( np.mean(phi[:,(t4-10),:].flatten())/(2.0*np.pi), np.mean(np.std(phi[:,(t4-10),:], axis=1), axis=0)/(2.0*np.pi) ), fontdict=titlefont)
 	else:
 		plt.figure('histo: phases over all oscis at t={2,4,6,8}*delay shifted to same mean')# plot a histogram of the last frequency of each oscillators over all realizations
 		plt.clf()
@@ -531,7 +551,7 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, c, cLF, domega, twistdelta, r
 		t2 = int(round((4.*delay)/dt)); label2 = 't=4*tau'
 		t3 = int(round((6.*delay)/dt)); label3 = 't=6*tau'
 		t4 = int(round((8.*delay)/dt)); label4 = 't=8*tau'
-		plt.title(r't=$8\tau$: mean phase $\bar{f}=%.3f$ and std $\sigma_f=%.3f$  [Hz]' %( np.mean(phi[:,(t4-10),:].flatten())/(2.0*np.pi), np.mean(np.std(phi[:,(t4-10),:], axis=1), axis=0)/(2.0*np.pi) ) )
+		plt.title(r't=$8\tau$: mean phase $\bar{f}=%.3f$ and std $\sigma_f=%.3f$  [Hz]' %( np.mean(phi[:,(t4-10),:].flatten())/(2.0*np.pi), np.mean(np.std(phi[:,(t4-10),:], axis=1), axis=0)/(2.0*np.pi) ), fontdict=titlefont)
 	common_bins=np.linspace( ( np.mean( phi[:,t4,:].flatten() ) - 4.0*np.std( phi[:,t4,:].flatten() ) ),
 							 ( np.mean( phi[:,t4,:].flatten() ) + 4.0*np.std( phi[:,t4,:].flatten() ) ),
 							 num=histo_bins)
@@ -553,36 +573,37 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, c, cLF, domega, twistdelta, r
 	plt.savefig('results/histo_phases_all_osci_diff_times_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=dpi_value)
 
 	if c > 0 or cLF > 0:
-		plt.figure('histo: last instant. freq. over all oscis at t=TSim')			# plot a histogram of the last frequency of each oscillators over all realizations
+		plt.figure('histo: last instant. freq. over all oscis and realizations at t=TSim')			   # plot a histogram of the last frequency of each oscillators over all realizations
 		plt.clf()
 		plt.hist(lastfreq[:,:,:].flatten(),
 							bins=np.linspace( ( np.mean(lastfreq[:,:,:].flatten())-4.0*np.std(lastfreq[:,:,:].flatten()) ), ( np.mean(lastfreq[:,:,:].flatten())+4.0*np.std(lastfreq[:,:,:].flatten()) ),
 							num=histo_bins), rwidth=0.75, normed=True, log=True, histtype='bar')  #, color=(1, np.random.rand(1), np.random.rand(1)) )
-		plt.title(r't=TSim: mean frequency $\bar{f}=%.3f$ and std $\sigma_f=%.5f$  [Hz]' %( np.mean(lastfreq[:,0,:].flatten())/(2.0*np.pi), np.mean(np.std(lastfreq[:,0,:], axis=1),axis=0)/(2.0*np.pi) ) )
+		plt.title(r't=TSim: mean frequency $\bar{f}=%.3f$ and std $\sigma_f=%.5f$  [Hz]' %( np.mean(lastfreq[:,0,:].flatten())/(2.0*np.pi), np.mean(np.std(lastfreq[:,0,:], axis=1),axis=0)/(2.0*np.pi) ), fontdict=titlefont)
 		plt.xlabel(r'frequency bins [rad/s]')
-		plt.ylabel(r'$loghist[\dot{\phi}(t=TSim)]$')
+		plt.ylabel(r'loghist$[\dot{\phi}(t=TSim)]$')
 		plt.savefig('results/histo_lastfreq_all_TSim_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
 		plt.savefig('results/histo_lastfreq_all_TSim_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=dpi_value)
 
-		plt.figure('histo: instant. freq. over all oscis at t={50.0*dt, TSim}')		# plot a histogram of the last frequency of each oscillators over all realizations
+		plt.figure('histo: instant. freq. over all oscis and realizations at t={delay+0.1Tf, TSim}')   # plot a histogram of the last frequency of each oscillators over all realizations
 		plt.clf()
 		if (delay==0):
 			common_bins = np.linspace(	min( np.array([firstfreqsext[:,int(round((.1/F1)/dt)),:].flatten(), lastfreq[:,:,:].flatten()]).flatten() ),
 								  	max( np.array([firstfreqsext[:,int(round((.1/F1)/dt)),:].flatten(), lastfreq[:,:,:].flatten()]).flatten() ),
 									num=histo_bins )
 			plt.hist(firstfreqsext[:,int(round((.1/F1)/dt)),:].flatten(), bins=common_bins,
-								rwidth=0.75, normed=True, log=True, histtype='bar', label='t=0.1*Tomega')
+								rwidth=0.75, normed=True, log=True, histtype='bar', label='t=0.1*Tf')
 		else:
 			common_bins = np.linspace(	min( np.array([firstfreqsext[:,int(round((.1/F1)/dt)),:].flatten(), lastfreq[:,:,:].flatten()]).flatten() ),
 								  	max( np.array([firstfreqsext[:,int(round((.1/F1)/dt)),:].flatten(), lastfreq[:,:,:].flatten()]).flatten() ),
 									num=histo_bins )
 			plt.hist(firstfreqsext[:,int(round((.1/F1)/dt)),:].flatten(), bins=common_bins,
-								rwidth=0.75, normed=True, log=True, histtype='bar', label='t=0.1*Tomega')
+							rwidth=0.75, normed=True, log=True, histtype='bar', label='t=0.1*Tf')
 		plt.hist(lastfreq[:,:,:].flatten(), bins=common_bins,
 							rwidth=0.75, normed=True, log=True, histtype='bar', alpha=0.75, label='t=TSim')
 		plt.legend()
-		plt.title(r't=$0.1$: mean frequency $\bar{f}=%.3f$ and std $\sigma_f=%.5f$  [Hz]' %( np.mean(firstfreqsext[:,int(round((delay+.1*(1/F1))/dt)),:].flatten()/(2.0*np.pi)),
-																							 np.mean(np.std(firstfreqsext[:,int(round((delay+.1*(1/F1))/dt)),:], axis=1), axis=0)/(2.0*np.pi) ) )
+		plt.title(r'at t=$%.3f$: mean frequency $\bar{f}=%.3f$ and std $\sigma_f=%.5f$  [Hz]' %( (delay+.1*(1/F1)),
+																							  np.mean(firstfreqsext[:,int(round((delay+.1*(1/F1))/dt)),:].flatten()/(2.0*np.pi)),
+																							  np.mean(np.std(firstfreqsext[:,int(round((delay+.1*(1/F1))/dt)),:], axis=1), axis=0)/(2.0*np.pi) ), fontdict=titlefont)
 		plt.xlabel(r'frequency bins [rad/s]')
 		plt.ylabel(r'loghist[$\dot{\phi}$]')
 		plt.savefig('results/histoFreqAllOsci_2timePoints_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.month, now.day))
@@ -590,24 +611,24 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, c, cLF, domega, twistdelta, r
 
 
 	if (delay == 0):
-		plt.figure('histo: instant. freq. over all oscis at t={2,4,6,8}*Tomega')		# plot a histogram of the last frequency of each oscillators over all realizations
+		plt.figure('histo: instant. freq. over all oscis at t={2,4,6,8}*Tf')		# plot a histogram of the last frequency of each oscillators over all realizations
 		plt.clf()
-		t1 = int(round((2./F1)/dt)); label1 = 't=2*Tomega'
-		t2 = int(round((4./F1)/dt)); label2 = 't=4*Tomega'
-		t3 = int(round((6./F1)/dt)); label3 = 't=6*Tomega'
-		t4 = int(round((8./F1)/dt)); label4 = 't=8*Tomega'
+		t1 = int(round((2./F1)/dt)); label1 = 't=2*Tf'
+		t2 = int(round((4./F1)/dt)); label2 = 't=4*Tf'
+		t3 = int(round((6./F1)/dt)); label3 = 't=6*Tf'
+		t4 = int(round((8./F1)/dt)); label4 = 't=8*Tf'
 		common_bins = np.linspace( 	min( np.array([firstfreqsext[:,t1,:].flatten(), firstfreqsext[:,t4,:].flatten()]).flatten() ),
 									max( np.array([firstfreqsext[:,t1,:].flatten(), firstfreqsext[:,t4,:].flatten()]).flatten() ),
 									num=histo_bins )
 		plt.hist(firstfreqsext[:,t1,:].flatten(), bins=common_bins,
-		 					rwidth=0.75, normed=True, log=True, histtype='bar', alpha=0.9, label='t=2*Tomega')
+		 					rwidth=0.75, normed=True, log=True, histtype='bar', alpha=0.9, label='t=2*Tf')
 		plt.hist(firstfreqsext[:,t2,:].flatten(), bins=common_bins,
-							rwidth=0.75, normed=True, log=True, histtype='bar', alpha=0.75, label='t=4*Tomega')
+							rwidth=0.75, normed=True, log=True, histtype='bar', alpha=0.75, label='t=4*Tf')
 		plt.hist(firstfreqsext[:,t3,:].flatten(), bins=common_bins,
-							rwidth=0.75, normed=True, log=True, histtype='bar', alpha=0.6, label='t=6*Tomega')
+							rwidth=0.75, normed=True, log=True, histtype='bar', alpha=0.6, label='t=6*Tf')
 		plt.hist(firstfreqsext[:,t4,:].flatten(), bins=common_bins,
-							rwidth=0.75, normed=True, log=True, histtype='bar', alpha=0.45, label='t=8*Tomega')
-		plt.title(r't=$8Tomega$: mean frequency $\bar{f}=%.3f$ and std $\sigma_f=%.5f$  [Hz]' %( np.mean(firstfreqsext[:,(t4-10),:].flatten())/(2.0*np.pi), np.mean(np.std(firstfreqsext[:,(t4-10),:], axis=1), axis=0)/(2.0*np.pi) ) )
+							rwidth=0.75, normed=True, log=True, histtype='bar', alpha=0.45, label='t=8*Tf')
+		plt.title(r't=$8$Tf: mean frequency $\bar{f}=%.3f$ and std $\sigma_f=%.5f$  [Hz]' %( np.mean(firstfreqsext[:,(t4-10),:].flatten())/(2.0*np.pi), np.mean(np.std(firstfreqsext[:,(t4-10),:], axis=1), axis=0)/(2.0*np.pi) ), fontdict=titlefont)
 	else:
 		plt.figure('histo: instant. freq. over all oscis at t={2,4,6,8}*delay')		# plot a histogram of the last frequency of each oscillators over all realizations
 		plt.clf()
@@ -626,11 +647,11 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, c, cLF, domega, twistdelta, r
 							rwidth=0.75, normed=True, log=True, histtype='bar', alpha=0.6, label='t=6*tau')
 		plt.hist(firstfreqsext[:,t4,:].flatten(), bins=common_bins,
 							rwidth=0.75, normed=True, log=True, histtype='bar', alpha=0.45, label='t=8*tau')
-		plt.title(r't=$8\tau$: mean frequency $\bar{f}=%.3f$ and std $\sigma_f=%.5f$  [Hz]' %( np.mean(firstfreqsext[:,(t4-10),:].flatten())/(2.0*np.pi), np.mean(np.std(firstfreqsext[:,(t4-10),:], axis=1), axis=0)/(2.0*np.pi) ) )
+		plt.title(r't=$8\tau$: mean frequency $\bar{f}=%.3f$ and std $\sigma_f=%.5f$  [Hz]' %( np.mean(firstfreqsext[:,(t4-10),:].flatten())/(2.0*np.pi), np.mean(np.std(firstfreqsext[:,(t4-10),:], axis=1), axis=0)/(2.0*np.pi) ), fontdict=titlefont)
 
 	plt.legend()
 	plt.xlabel(r'frequency bins [rad/s]')
-	plt.ylabel(r'$loghist[\dot{\phi}]$')
+	plt.ylabel(r'loghist$[\dot{\phi}]$')
 	plt.savefig('results/histo_freq_all_osci_diff_times_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
 	plt.savefig('results/histo_freq_all_osci_diff_times_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=dpi_value)
 
@@ -644,7 +665,7 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, c, cLF, domega, twistdelta, r
 		plt.plot(t*dt,orderparam[i,:], alpha=0.2)
 	plt.plot(t*dt,np.mean(orderparam[:,:], axis=0), label='mean order param', color='r')
 	plt.plot(delay, orderparam[0,int(round(delay/dt))], 'yo', ms=5)# mark where the simulation starts
-	plt.title(r'order parameter, with 1-$\bar{R}$=%.3e, and std=%.3e' %(1-np.mean(orderparam[-int(2*1.0/(F1*dt)):]), np.std(orderparam[-int(2*1.0/(F1*dt)):])), fontdict=titlefont)
+	plt.title(r'mean order parameter, with $1-\bar{R}_{2Tf}(TSim)=%.3e$, and $\sigma_{\bar{R}}=%.3e$' %(1-np.mean(orderparam[-int(2*1.0/(F1*dt)):]), np.std(orderparam[-int(2*1.0/(F1*dt)):])), fontdict=titlefont)
 	plt.xlabel(r'$t$ $[s]$', fontdict=labelfont)
 	plt.ylabel(r'$R( t,m = %d )$' % k, fontdict=labelfont)
 	plt.legend(loc='center right')
@@ -654,34 +675,34 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, c, cLF, domega, twistdelta, r
 	plt.figure('time evolution of mean and standard deviation of phases for first and all realization')
 	plt.clf()
 	plt.subplot(2,1,1)
-	plt.title('time evolution of mean and std of phases for first and all realizations')
+	plt.title('time evolution of mean and std of phases for first and all realizations', fontdict=titlefont)
 	plt.plot(t*dt, np.mean(phi[0,:,:], axis=1), label=r'$\langle \phi_{first} \rangle$')
 	plt.plot(t*dt, np.mean(phi[:,:,:], axis=tuple(range(0, 3, 2))), label=r'$\langle \phi_{all} \rangle$')
-	plt.ylabel(r'$\bar{\phi}$', fontdict = labelfont)
+	plt.ylabel(r'$\bar{\phi}$ [rad]', fontdict = labelfont)
 	plt.legend(loc='upper left')
 	plt.subplot(2,1,2)
 	plt.plot(t*dt, np.std(phi[0,:,:], axis=1), label=r'$\sigma_{\phi,first}$')
 	plt.plot(t*dt, np.mean(np.std(phi[:,:,:], axis=2), axis=0), label=r'$\sigma_{\phi,all}$')
 	plt.legend(loc='upper left')
 	plt.xlabel(r'$t$ $[s]$', fontdict=labelfont)
-	plt.ylabel(r'$\sigma_{\phi}$', fontdict=labelfont)
+	plt.ylabel(r'$\sigma_{\phi}$ [rad]', fontdict=labelfont)
 	plt.savefig('results/mean_of_phase_vs_t_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
 	plt.savefig('results/mean_of_phase_vs_t_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=dpi_value)
 
 	plt.figure('time evolution of mean and standard deviation of frequencies for first and all realizations')
 	plt.clf()
 	plt.subplot(2,1,1)
-	plt.title('time evolution of mean and std of frequencies for first and all realizations')
+	plt.title('time evolution of mean and std of frequencies for first and all realizations', fontdict=titlefont)
 	plt.plot(t[0:-1]*dt, np.mean(np.diff(phi[0,:,:], axis=0)/dt, axis=1), label=r'$\langle \dot{\phi}_{first} \rangle$')
 	plt.plot(t[0:-1]*dt, np.mean(np.diff(phi[:,:,:], axis=1)/dt, axis=tuple(range(0, 3, 2))), label=r'$\langle \dot{\phi}_{all} \rangle$')
 	plt.legend(loc='best')
-	plt.ylabel(r'$\dot{\bar{\phi}}$')
+	plt.ylabel(r'$\dot{\bar{\phi}}$ [rad Hz]')
 	plt.subplot(2,1,2)
 	plt.plot(t[0:-1]*dt, np.std(np.diff(phi[0,:,:], axis=0)/dt, axis=1), label=r'$\sigma_{\dot{\phi},first}$')
 	plt.plot(t[0:-1]*dt, np.std(np.diff(phi[:,:,:], axis=1)/dt, axis=tuple(range(0, 3, 2))), label=r'$\sigma_{\dot{\phi},all}$')
 	plt.legend(loc='best')
 	plt.xlabel(r'$t$ $[s]$', fontdict=labelfont)
-	plt.ylabel(r'$\sigma_{\dot{\phi}}$', fontdict=labelfont)
+	plt.ylabel(r'$\sigma_{\dot{\phi}}$ [rad Hz]', fontdict=labelfont)
 	plt.savefig('results/mean_of_freq_vs_t_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
 	plt.savefig('results/mean_of_freq_vs_t_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=dpi_value)
 
@@ -694,23 +715,23 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, c, cLF, domega, twistdelta, r
 	# plt.plot(phi[:,1]-2*np.pi*dt*F_Omeg*np.arange(len(phi)))					# plots the difference between the expected phase (according to Omega) vs the actual phase evolution
 	plt.plot(delay, phi[0,int(round(delay/dt)),0], 'yo', ms=5)
 	plt.axvspan(t[-int(2*1.0/(F1*dt))]*dt, t[-1]*dt, color='b', alpha=0.3)
-	plt.title(r'time series phases, $\dot{\phi}_0(t_{start})=$%.4f, $\dot{\phi}_0(t_{end})=$%.4f  [rad/Hz]' %( ((phi[0][11][0]-phi[0][1][0])/(10*dt)), ((phi[0][-4][0]-phi[0][-14][0])/(10*dt)) ), fontdict=titlefont)
+	plt.title(r'time series phases, inst. freq: $\dot{\phi}_0(t_{start})=$%.4f, $\dot{\phi}_0(t_{end})=$%.4f [rad Hz]' %( ((phi[0][11][0]-phi[0][1][0])/(10*dt)), ((phi[0][-4][0]-phi[0][-14][0])/(10*dt)) ), fontdict=titlefont)
 	plt.xlabel(r'$t$ $[s]$', fontdict=labelfont)
 	plt.ylabel(r'$\phi(t)$', fontdict=labelfont)
 	plt.savefig('results/phases-vs-time_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
 	plt.savefig('results/phases-vs-time_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=dpi_value)
 
-	plt.figure('plot instantaneous-frequencies for first realization')		# plot the frequencies of the oscillators over time
+	plt.figure('plot instantaneous-frequencies for first realization')			# plot the frequencies of the oscillators over time
 	plt.clf()
-	for i in range (phi.shape[2]):											# for each oscillator: plot of frequency vs time
+	for i in range (phi.shape[2]):												# for each oscillator: plot of frequency vs time
 		plt.plot((t[0:-1]*dt), np.transpose( np.diff(phi[0,:,i])/dt ))
 	phidot = np.diff(phi[:,:,0], axis=1)/dt
 	plt.plot(delay-dt, phidot[0,int(round(delay/dt)-1)], 'yo', ms=5)
 	plt.axvspan(t[-int(2*1.0/(F1*dt))]*dt, t[-1]*dt, color='b', alpha=0.3)
 	# print(t[-int(2*1.0/(F1*dt))], t[-1])
-	plt.title(r'mean frequency [rad Hz] of last $2T$-eigenperiods $\bar{f}=$%.4f' % np.mean(phidot[-int(round(2*1.0/(F1*dt))):, 0] ))
+	plt.title(r'mean frequency over last $2T$-eigenperiods $\bar{\omega}=$%.4f [rad Hz]' % np.mean(phidot[-int(round(2*1.0/(F1*dt))):, 0] ), fontdict=titlefont)
 	plt.xlabel(r't [s]', fontdict = labelfont)
-	plt.ylabel(r'$\dot{\phi}(t)$ $[rad Hz]$', fontdict=labelfont)
+	plt.ylabel(r'$\dot{\phi}(t)$ [rad Hz]', fontdict=labelfont)
 	plt.savefig('results/freq-vs-time_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day))
 	plt.savefig('results/freq-vs-time_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cLF%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), dpi=dpi_value)
 

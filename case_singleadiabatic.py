@@ -19,9 +19,9 @@ import time
 import datetime
 
 ''' SIMULATION CALL '''
-def simulatePllNetwork(mode,topology,couplingfct,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cLF,Trelax,Nx=0,Ny=0,kx=0,ky=0,isPlottingTimeSeries=False):
+def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cLF,Trelax,Nx=0,Ny=0,kx=0,ky=0,isPlottingTimeSeries=False):
 	''' SIMULATION OF NETWORK '''
-	simresult = sim.simulateNetwork(mode,N,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,topology,couplingfct,phiS,phiM,domega,diffconstK,diffconstSendDelay,cLF,Nx,Ny,Trelax)
+	simresult = sim.simulateNetwork(mode,N,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,topology,couplingfct,histtype,phiS,phiM,domega,diffconstK,diffconstSendDelay,cLF,Nx,Ny,Trelax)
 	phi     = simresult['phases']
 	omega_0 = simresult['intrinfreq']
 	K_0     = simresult['coupling_strength']
@@ -104,6 +104,7 @@ def singleadiabatic(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Trelax, 
 	diffconstK 			= float(params['DEFAULT']['diffconstK'])				# the diffusion constant [variance=2*diffconst] of the gaussian distribution for the coupling strength
 	diffconstSendDelay	= float(params['DEFAULT']['diffconstSendDelay'])		# the diffusion constant [variance=2*diffconst] of the gaussian distribution for the transmission delays
 	feedback_delay		= float(params['DEFAULT']['feedbackDelay'])				# feedback delay of the nodes
+	histtype			= str(params['DEFAULT']['histtype'])	  				# what history is being set? uncoupled PLLs (uncoupled), or PLLs in the synchronized state under investigation (syncstate)
 	# Tsim 				= int(params['DEFAULT']['Tsim'])						# simulation time in multiples of the period of the uncoupled oscillators
 
 	dt					= 1.0/Fsim												# [ dt = T / #samples ] -> #samples per period... with [ T = 1 / F -> dt = 1 / ( #samples * F ) ]
@@ -254,7 +255,7 @@ def singleadiabatic(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Trelax, 
 
 	# print('time-step dt=', dt)
 	t0 = time.time()
-	data = simulatePllNetwork(mode,topology,couplingfct,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cLF,Trelax,Nx,Ny,kx,ky,plot_Phases_Freq) # initiates simulation and saves result in results container
+	data = simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cLF,Trelax,Nx,Ny,kx,ky,plot_Phases_Freq) # initiates simulation and saves result in results container
 	print('time needed for execution of simulation: ', (time.time()-t0), ' seconds')
 
 	''' evaluate dictionaries '''

@@ -19,9 +19,9 @@ import time
 import datetime
 
 ''' SIMULATION CALL '''
-def simulatePllNetwork(mode,topology,couplingfct,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,cLF,diffconstK,diffconstSendDelay,Nx=0,Ny=0,kx=0,ky=0,isPlottingTimeSeries=False):
+def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,cLF,diffconstK,diffconstSendDelay,Nx=0,Ny=0,kx=0,ky=0,isPlottingTimeSeries=False):
 	''' SIMULATION OF NETWORK '''
-	simresult = sim.simulateNetwork(mode,N,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,topology,couplingfct,phiS,phiM,domega,diffconstK,diffconstSendDelay,cLF,Nx,Ny) # kx and ky do not need to be handed over - already in phiM contained
+	simresult = sim.simulateNetwork(mode,N,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,topology,couplingfct,histtype,phiS,phiM,domega,diffconstK,diffconstSendDelay,cLF,Nx,Ny) # kx and ky do not need to be handed over - already in phiM contained
 	phi		  = simresult['phases']
 	omega_0   = simresult['intrinfreq']
 	K_0       = simresult['coupling_strength']
@@ -125,6 +125,7 @@ if __name__ == '__main__':
 	diffconstK 			= float(params['DEFAULT']['diffconstK'])				# the diffusion constant [variance=2*diffconst] of the gaussian distribution for the coupling strength
 	diffconstSendDelay	= float(params['DEFAULT']['diffconstSendDelay'])		# the diffusion constant [variance=2*diffconst] of the gaussian distribution for the transmission delays
 	feedback_delay		= float(params['DEFAULT']['feedbackDelay'])				# feedback delay of the nodes
+	histtype			= str(params['DEFAULT']['histtype'])	  				# what history is being set? uncoupled PLLs (uncoupled), or PLLs in the synchronized state under investigation (syncstate)
 	# Tsim 				= int(params['DEFAULT']['Tsim'])						# simulation time in multiples of the period of the uncoupled oscillators
 	dt					= 1.0/Fsim												# [ dt = T / #samples ] -> #samples per period... with [ T = 1 / F -> dt = 1 / ( #samples * F ) ]
 
@@ -244,7 +245,7 @@ if __name__ == '__main__':
 		print(-1)																# NOTE: here different compared to brute-force, since pool of points always centered around zero (no perturbation) and NOT about the twist-coordinate
 	else:
 		# print(simulatePllNetwork(mode, topology, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, False))
-		data = simulatePllNetwork(mode,topology,couplingfct,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,cLF,diffconstK,diffconstSendDelay,Nx,Ny,kx,ky,False)
+		data = simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,cLF,diffconstK,diffconstSendDelay,Nx,Ny,kx,ky,False)
 		results = np.array( [ data['mean_order'],  data['last_orderP'], data['stdev_orderP'] ] )
 		phi     = data['phases']
 		omega_0 = data['intrinfreq']
