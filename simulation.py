@@ -115,7 +115,7 @@ class LowPass:
 
 	def set_initial_control_signal(self,phi,inst_Freq):							# set the control signal for the last time step of the history, in the case the history is a synched state
 		self.inst_Freq = inst_Freq												# calculate the instantaneous frequency for the last time step of the history
-		print('\ninstantaneous Frequency to calculate intial filter state: ', self.inst_Freq)
+		#print('\ninstantaneous Frequency to calculate intial filter state: ', self.inst_Freq)
 		#self.y = (self.F_Omeg - self.F) / (self.K)								# calculate the state of the LF at the last time step of the history, it is needed for the simulation of the network
 		if self.K!=0:															# this if-call is fine, since it will only be evaluated once
 			self.y = (self.inst_Freq - self.F) / (self.K_Hz)					# calculate the state of the LF at the last time step of the history, it is needed for the simulation of the network
@@ -138,13 +138,13 @@ class LowPass:
 class NoisyLowPass(LowPass):
 	def set_initial_control_signal(self,phi,inst_Freq):							# set the control signal for the last time step of the history, in the case the history is a synched state
 		self.inst_Freq = inst_Freq												# calculate the instantaneous frequency for the last time step of the history
-		print('\ninstantaneous Frequency to calculate intial filter state: ', self.inst_Freq)
+		#print('\ninstantaneous Frequency to calculate intial filter state: ', self.inst_Freq)
 		#self.y = (self.F_Omeg - self.F) / (self.K)								# calculate the state of the LF at the last time step of the history, it is needed for the simulation of the network
 		if self.K!=0:															# this if-call is fine, since it will only be evaluated once
 			self.y = (self.inst_Freq - self.F) / (self.K_Hz)					# calculate the state of the LF at the last time step of the history, it is needed for the simulation of the network
 																				# NOTE: here we use K_Hz, since we have speficied the frequencies in Hz as well!
 			self.y = self.y + np.random.normal(loc=0.0, scale=self.Fc*np.sqrt(2*self.cLF*self.dt))
-			print('\n\n CHECK HERE AGAIN THE DIMENSION FOR THE Fc FACTOR TO THE NOISE TERM - RAD/s or 1/s?, also K_Hz! \n')
+			#print('\n\n CHECK HERE AGAIN THE DIMENSION FOR THE Fc FACTOR TO THE NOISE TERM - RAD/s or 1/s?, also K_Hz! \n')
 			# print('initial control signal x_ctrl=', self.y)
 			# self.y = (2.0 * np.pi * (self.inst_Freq - self.F)) / (self.K)
 		else:
@@ -392,7 +392,7 @@ class Delayer:
 			self.delay = delay
 																				# NOTE: static distribution of transmission delays - ensure that max delay determines the length of the history vector
 		self.delay_steps = int(round(self.delay/dt))							# when initialized, the delay in time-steps is set to delay_steps
-		if self.delay_steps <1:
+		if ( self.delay_steps < 1 and self.delay_steps != 0 ):
 			print('NOTE: the transmission delay is smaller than the time-step "dt", hence "delay_steps" < 1 and the simulations assumes NO DELAY, adjust FSim!')
 
 		if feedback_delay == 0:

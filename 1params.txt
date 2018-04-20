@@ -1,14 +1,14 @@
 [DEFAULT]
-#1: for multiprocessing set to true
-multiproc = True
+#1: for multiprocessing set to TRUE, otherwise FALSE
+multiproc = TRUE
 #2: discretization for brute force scan in rotated phase space with phi_k_prime (for each dimension)
-paramdiscretization = 3
+paramdiscretization = 300
 #3: number of processors that can be used --> with intel ht: 2*number of cores of proc.
 numbercores = 7
 #4: type of coupling function -- choose from {triang(ular), cos(ine), sin(e), sincos, triangshift}
-couplingfct = triang
+couplingfct = sin
 #5: free-running frequency of the plls [hz] test-997, 1, 0.15915494309189533577
-f = 1
+f = 0.0
 #6: sample phases with fsim [hz] multiples of the intrinsic frequency -> goal: about 100 samples per period test-100000, 125
 fsim = 125
 #7: diffusion constant [variance=2*diffconst] of the gaussian distribution for the intrinsic frequencies

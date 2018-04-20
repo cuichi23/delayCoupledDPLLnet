@@ -36,7 +36,7 @@ def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Ome
 	else:
 		F1=F+1E-3
 	if topology == "square-periodic" or topology == "hexagon-periodic" or topology == "octagon-periodic":
-		r = eva.oracle_mTwistOrderParameter2d(phi[-int(2*1.0/(F*dt)):, :], Nx, Ny, kx, ky)
+		r = eva.oracle_mTwistOrderParameter2d(phi[-int(2*1.0/(F1*dt)):, :], Nx, Ny, kx, ky)
 		orderparam = eva.oracle_mTwistOrderParameter2d(phi[:, :], Nx, Ny, kx, ky)
 	elif topology == "square-open" or topology == "hexagon" or topology == "octagon":
 		if kx==1 and ky==1:
@@ -53,7 +53,7 @@ def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Ome
 				k == 2 : xy checkerboard state
 				k == 3 : in-phase synchronized
 			"""
-		r = eva.oracle_CheckerboardOrderParameter2d(phi[-int(2*1.0/(F*dt)):, :], Nx, Ny, ktemp)
+		r = eva.oracle_CheckerboardOrderParameter2d(phi[-int(2*1.0/(F1*dt)):, :], Nx, Ny, ktemp)
 		# ry = np.nonzero(rmat > 0.995)[0]
 		# rx = np.nonzero(rmat > 0.995)[1]
 		orderparam = eva.oracle_CheckerboardOrderParameter2d(phi[:, :], Nx, Ny, ktemp)
@@ -62,13 +62,13 @@ def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Ome
 				k  > 0 : x  checkerboard state
 				k == 0 : in-phase synchronized
 			"""
-		r = eva.oracle_CheckerboardOrderParameter1d(phi[-int(2*1.0/(F*dt)):, :], k)
+		r = eva.oracle_CheckerboardOrderParameter1d(phi[-int(2*1.0/(F1*dt)):, :], k)
 		orderparam = eva.oracle_CheckerboardOrderParameter1d(phi[:, :])			# calculate the order parameter for all times
 	elif ( topology == "ring" or topology == 'global'):
-		r = eva.oracle_mTwistOrderParameter(phi[-int(2*1.0/(F*dt)):, :], k)		# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
+		r = eva.oracle_mTwistOrderParameter(phi[-int(2*1.0/(F1*dt)):, :], k)		# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
 		orderparam = eva.oracle_mTwistOrderParameter(phi[:, :], k)				# calculate the m-twist order parameter for all times
 
-	# r = eva.oracle_mTwistOrderParameter(phi[-int(2*1.0/(F*dt)):, :], k)			# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
+	# r = eva.oracle_mTwistOrderParameter(phi[-int(2*1.0/(F1*dt)):, :], k)			# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
 	# orderparam = eva.oracle_mTwistOrderParameter(phi[:, :], k)					# calculate the m-twist order parameter for all times
 	# print('mean of modulus of the order parameter, R, over 2T:', np.mean(r), ' last value of R', r[-1])
 	print('mean of modulus of the order parameter, R, over 2T:', np.mean(r), ' last value of R', r[-1])

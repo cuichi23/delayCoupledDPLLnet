@@ -1328,7 +1328,7 @@ def noisyStatistics(params):
 				for i in range (len(para_mat[:,0])):
 					print('\nSTART: python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 												+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-												+str(c)+' '+str(cLF)+' '+str(Nsim)+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+str(cLF)+' '.join(map(str, pert)))
+												+str(c)+' '+str(cLF)+' '+str(Nsim)+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(cLF)+' '.join(map(str, pert)))
 					# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					cnois.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
@@ -1418,7 +1418,7 @@ def noisyStatistics(params):
 					for j in range (len(new_cLF_values)):
 						print('\nSTART: python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float(Fc))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-													+str(c)+' '+str(Nsim)+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+str(new_cLF_values[j])+' '.join(map(str, pert)))
+													+str(c)+' '+str(Nsim)+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(new_cLF_values[j])+' '.join(map(str, pert)))
 						# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 						# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 						cnois.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float(Fc), float((para_mat[i,4])), float(para_mat[i,6]),
@@ -1743,6 +1743,7 @@ if __name__ == '__main__':
 	''' MAIN: organizes the execution of the DPLL simulation modes '''
 
 	# load parameter param_cases_csv from file, specify delimiter and which line contains the colum description
+	print('Loading parameter collection file GlobFreq_LinStab/DPLLParameters.csv!')
 	param_cases_csv = pd.read_csv('GlobFreq_LinStab/DPLLParameters.csv', delimiter=",", header=2, dtype={'K': np.float, 'Fc': np.float, 'delay': np.float, 'F_Omeg': np.float,
 	 								'm': np.int, 'Tsim': np.int, 'id': np.int, 'ReLambda': np.float, 'SimSeconds': np.float, 'topology': np.str, 'c': np.float, 'N': np.int, 'coupFct': np.str,
 									'Nx': np.int, 'Ny': np.int, 'mx': np.int, 'my': np.int})#, skipinitialspace=True)
@@ -1760,6 +1761,8 @@ if __name__ == '__main__':
 	domega     			= float(params['DEFAULT']['domega'])					# 7 the diffusion constant [variance=2*diffconst] of the gaussian distribution for the intrinsic frequencies
 	diffconstK 			= float(params['DEFAULT']['diffconstK'])				# 8 the diffusion constant [variance=2*diffconst] of the gaussian distribution for the coupling strength
 	diffconstSendDelay	= float(params['DEFAULT']['diffconstSendDelay'])		# the diffusion constant [variance=2*diffconst] of the gaussian distribution for the transmission delays
+	feedback_delay		= float(params['DEFAULT']['feedbackDelay'])				# feedback delay of the nodes
+	histtype			= str(params['DEFAULT']['histtype'])	  				# what history is being set? uncoupled PLLs (uncoupled), or PLLs in the synchronized state under investigation (syncstate)
 	# Tsim				= float(params['DEFAULT']['Tsim'])						# 9 the simulation time for each realization -- load above from csv
 
 	a_true = True
@@ -1767,7 +1770,7 @@ if __name__ == '__main__':
 		# option to reset the configuration
 		# inputstr = ('\nWould you like to reset one of the following system parameters: \n{\nenable multiprocessing [%s], \nnumber of available cores to use [%d], \nparameter discretization for brute force method [%d], \ntype of coupling fct [%0.2f], \nmean intrinsic frequencies in Hz [%0.2f], \nsample frequency time series in Hz  [%0.2f], \nstandard deviation intrinsic frequency [%0.2f], \nstandard deviation coupling strength [%0.5f]\n} \n\n[y]es/[n]o: '%(str(multiproc), int(numberCores), int(paramDiscretization), str(couplingfct), float(F), float(Fsim), float(domega), float(diffconstK))
 		# print(inputstr)
-		decision1 = raw_input('\nWould you like to reset one of the following system parameters: \n{\nenable multiprocessing, \nnumber of available cores to use, \nparameter discretization for brute force method, \ntype of coupling fct, \nintrinsic frequencies, \nsample frequency time series, \nstandard deviation intrinsic frequency, \nstandard deviation coupling strength\n} \n\n[y]es/[n]o: ')
+		decision1 = raw_input('\nWould you like to reset one of the following system parameters: \n{\nenable multiprocessing, \nnumber of available cores to use, \nparameter discretization for brute force method, \ntype of coupling fct, \nintrinsic frequencies, \nsample frequency time series, \nstandard deviation intrinsic frequency, \nstandard deviation coupling strength, \nstandard deviation trans.delay, \nfeedback-delay value, \nfrequency of intitial phase history\n} \n\n[y]es/[n]o: ')
 		if decision1 == 'y':
 			multiproc 			= raw_input('Multiprocessing choose [True] / [False] (string): ')
 			if multiproc == 'True':
@@ -1780,6 +1783,9 @@ if __name__ == '__main__':
 			Fsim 				= raw_input('Choose sample frequency for the signal in multiples of the intrinsic frequency [float]: ')
 			domega     			= raw_input('Choose diffusion-constant for (static) distribution of intrinsic frequencies, zero implies identical frequencies [float]: ')
 			diffconstK 			= raw_input('Choose diffusion-constant for (static) distribution of coupling strengths, zero implies identical coupling strength [float]: ')
+			diffconstSendDelay  = raw_input('Choose diffusion-constant for (static) distribution of the transmission delays [float] (experimental):')
+			feedbackDelay       = raw_input('Choose a value for the feeback delay in seconds [float]: ')
+			histtype			= raw_input('Specify the frequency for the history (initial phase function), chose from {uncoupled,syncstate} [string]: ')
 			Tsim				= raw_input('Choose simulation time Tsim [float]: ')
 			# write the new values to the file 1params.txt
 			config = configparser.ConfigParser(allow_no_value = True)
@@ -1808,7 +1814,16 @@ if __name__ == '__main__':
 			config.set('DEFAULT', '#8: diffusion constant [variance=2*diffconst] of the gaussian distribution for the coupling strength')
 			config.set('DEFAULT', 'diffconstK', diffconstK)
 			config.set('DEFAULT', '#')
-			config.set('DEFAULT', '#9: multiples of the period of the uncoupled oscillators to set simulation time -- usually set with argument on startup')
+			config.set('DEFAULT', '#9: diffusion constant [variance=2*diffconst] of the gaussian distribution for the transmission delays')
+			config.set('DEFAULT', 'diffconstSendDelay', diffconstSendDelay)
+			config.set('DEFAULT', '#')
+			config.set('DEFAULT', '#10: feedback delay time')
+			config.set('DEFAULT', 'feedbackDelay', feedbackDelay)
+			config.set('DEFAULT', '#')
+			config.set('DEFAULT', '#11: type of history change, either set history to the synchronized state under investigation, or set the history as if the oscillators were uncoupled {syncstate,uncoupled}')
+			config.set('DEFAULT', 'histtype', histtype)
+			config.set('DEFAULT', '#')
+			config.set('DEFAULT', '#12: multiples of the period of the uncoupled oscillators to set simulation time -- usually set with argument on startup')
 			config.set('DEFAULT', 'Tsim', Tsim)
 			config.set('DEFAULT', '#')
 
@@ -1823,8 +1838,10 @@ if __name__ == '__main__':
 			F 					= float(params['DEFAULT']['F'])					# 5 free-running frequency of the PLLs
 			Fsim 				= float(params['DEFAULT']['Fsim'])				# 6 simulate phase model with given sample frequency -- goal: about 100 samples per period
 			domega     			= float(params['DEFAULT']['domega'])			# 7 the diffusion constant [variance=2*diffconst] of the gaussian distribution for the intrinsic frequencies
-			diffconstK 			= float(params['DEFAULT']['diffconstK'])		# 8 the diffusion constant [variance=2*diffconst] of the gaussian distribution for the coupling strength
-			diffconstSendDelay	= float(params['DEFAULT']['diffconstSendDelay'])# the diffusion constant [variance=2*diffconst] of the gaussian distribution for the transmission delays
+			diffconstK 			= float(params['DEFAULT']['diffconstK'])				# 8 the diffusion constant [variance=2*diffconst] of the gaussian distribution for the coupling strength
+			diffconstSendDelay	= float(params['DEFAULT']['diffconstSendDelay'])		# the diffusion constant [variance=2*diffconst] of the gaussian distribution for the transmission delays
+			feedback_delay		= float(params['DEFAULT']['feedbackDelay'])				# feedback delay of the nodes
+			histtype			= str(params['DEFAULT']['histtype'])	  				# what history is being set? uncoupled PLLs (uncoupled), or PLLs in the synchronized state under investigation (syncstate)
 			# Tsim				= float(params['DEFAULT']['Tsim'])				# 9 the simulation time for each realization -- load above from csv
 			break
 		elif decision1 == 'n':
@@ -1836,8 +1853,10 @@ if __name__ == '__main__':
 			F 					= float(params['DEFAULT']['F'])					# 5 free-running frequency of the PLLs
 			Fsim 				= float(params['DEFAULT']['Fsim'])				# 6 simulate phase model with given sample frequency -- goal: about 100 samples per period
 			domega     			= float(params['DEFAULT']['domega'])			# 7 the diffusion constant [variance=2*diffconst] of the gaussian distribution for the intrinsic frequencies
-			diffconstK 			= float(params['DEFAULT']['diffconstK'])		# 8 the diffusion constant [variance=2*diffconst] of the gaussian distribution for the coupling strength
-			diffconstSendDelay	= float(params['DEFAULT']['diffconstSendDelay'])# the diffusion constant [variance=2*diffconst] of the gaussian distribution for the transmission delays
+			diffconstK 			= float(params['DEFAULT']['diffconstK'])				# 8 the diffusion constant [variance=2*diffconst] of the gaussian distribution for the coupling strength
+			diffconstSendDelay	= float(params['DEFAULT']['diffconstSendDelay'])		# the diffusion constant [variance=2*diffconst] of the gaussian distribution for the transmission delays
+			feedback_delay		= float(params['DEFAULT']['feedbackDelay'])				# feedback delay of the nodes
+			histtype			= str(params['DEFAULT']['histtype'])	  				# what history is being set? uncoupled PLLs (uncoupled), or PLLs in the synchronized state under investigation (syncstate)
 			# Tsim				= float(params['DEFAULT']['Tsim'])				# 9 the simulation time for each realization -- load above from csv
 			break
 		else:
@@ -1861,4 +1880,4 @@ if __name__ == '__main__':
 			singleAdiabatChange(params)
 			break
 		else:
-			print('Please provide numbers 1 to 3 as an input!')
+			print('Please provide numbers 1 to 4 as an input!')
