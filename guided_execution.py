@@ -774,6 +774,7 @@ def singleRealization(params):
 					csing.singleout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
 									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cLF), int(1), int(Nx), int(Ny), int(kx), int(ky),
 									pert, plot_out)
+					gc.collect()
 			break
 
 		elif user_input == 'Fc':
@@ -868,6 +869,7 @@ def singleRealization(params):
 					csing.singleout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
 									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cLF), int(1), int(Nx), int(Ny), int(kx), int(ky),
 									pert, plot_out)
+					gc.collect()
 			break
 
 		elif user_input == 'delay':
@@ -956,6 +958,7 @@ def singleRealization(params):
 					csing.singleout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
 									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cLF), int(1), int(Nx), int(Ny), int(kx), int(ky),
 									pert, plot_out)
+					gc.collect()
 			break
 
 		elif user_input == 'cLF':
@@ -1046,18 +1049,20 @@ def singleRealization(params):
 				else:
 					plot_out = False
 
-				for i in range (len(para_mat[:,0])):
-					for j in range (len(new_cLF_values)):
-						print('\nSTART: python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
-														+str(float(delay))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-														+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(float(new_cLF_values[j]))+' '.join(map(str, pert)))
-						print('Tsim: ', para_mat[i,9])
-						# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
-						# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
-						csing.singleout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float(delay), float(para_mat[i,6]),
-										int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(new_cLF_values[j]), int(1), int(Nx), int(Ny), int(kx), int(ky),
-										pert, plot_out)
-				gc.collect()
+				print('Multiple stable cases found, pick one from:\n', para_mat)
+				i = int(raw_input('\nPlease specify by number, which case should be taken as the basis to calculate the results for different cLF [0,...,N-1]: '))
+				#for i in range (len(para_mat[:,0])):
+				for j in range (len(new_cLF_values)):
+					print('\nSTART: python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
+													+str(float(delay))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
+													+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(float(new_cLF_values[j]))+' '.join(map(str, pert)))
+					print('Tsim: ', para_mat[i,9])
+					# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
+					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
+					csing.singleout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float(delay), float(para_mat[i,6]),
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(new_cLF_values[j]), int(1), int(Nx), int(Ny), int(kx), int(ky),
+									pert, plot_out)
+					gc.collect()
 			break
 
 		else:
@@ -1155,6 +1160,7 @@ def noisyStatistics(params):
 					cnois.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
 									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cLF), int(Nsim), int(Nx), int(Ny), int(kx), int(ky),
 									pert[i], plot_out)
+					gc.collect()
 			break
 
 		elif user_input == 'c':
@@ -1237,18 +1243,20 @@ def noisyStatistics(params):
 					plot_out = False
 
 				# print('length para_mat[:,6], para_mat[:,6] (Omegas for the value of tau):', len(para_mat[:,6]), para_mat[:,6])
-				for i in range (len(para_mat[:,0])):
-					for j in range (len(new_c_values)):
-						print('\nSTART: python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
-												+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-												+str(new_c_values[j])+' '+str(Nsim)+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(cLF))
-						# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)ky.join(map(str, pert)))
-						# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
-						# def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, Nx=0, Ny=0, kx=0, ky=0, phiSr=[], show_plot=True):
-						cnois.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
-										int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(new_c_values[j]), int(Nsim), int(Nx), int(Ny), int(kx), int(ky),
-										pert[i], plot_out)
-				gc.collect()
+				print('Multiple stable cases found, pick one from:\n', para_mat)
+				i = int(raw_input('\nPlease specify by number, which case should be taken as the basis to calculate the results for different c [0,...,N-1]: '))
+				#for i in range (len(para_mat[:,0])):
+				for j in range (len(new_c_values)):
+					print('\nSTART: python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
+											+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
+											+str(new_c_values[j])+' '+str(Nsim)+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(cLF))
+					# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)ky.join(map(str, pert)))
+					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
+					# def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, Nx=0, Ny=0, kx=0, ky=0, phiSr=[], show_plot=True):
+					cnois.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(new_c_values[j]), int(Nsim), int(Nx), int(Ny), int(kx), int(ky),
+									pert[i], plot_out)
+					gc.collect()
 			break
 
 		elif user_input == 'Fc':
@@ -1414,17 +1422,20 @@ def noisyStatistics(params):
 				else:
 					plot_out = False
 
-				for i in range (len(para_mat[:,0])):
-					for j in range (len(new_cLF_values)):
-						print('\nSTART: python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float(Fc))+' '
-													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-													+str(c)+' '+str(Nsim)+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(new_cLF_values[j])+' '.join(map(str, pert)))
-						# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
-						# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
-						cnois.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float(Fc), float((para_mat[i,4])), float(para_mat[i,6]),
-										int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(new_cLF_values[j]), int(Nsim), int(Nx), int(Ny), int(kx), int(ky),
-										pert[i], plot_out)
-				gc.collect()
+				print('Multiple stable cases found, pick one from:\n', para_mat)
+				i = int(raw_input('\nPlease specify by number, which case should be taken as the basis to calculate the results for different cLF [0,...,N-1]: '))
+				#for i in range (len(para_mat[:,0])):
+					#print('calculating for param set given by:\n', para_mat[i,:])
+				for j in range (len(new_cLF_values)):
+					print('\nSTART: python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float(Fc))+' '
+												+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
+												+str(c)+' '+str(Nsim)+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(new_cLF_values[j])+' '.join(map(str, pert)))
+					# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
+					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
+					cnois.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float(Fc), float((para_mat[i,4])), float(para_mat[i,6]),
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(new_cLF_values[j]), int(Nsim), int(Nx), int(Ny), int(kx), int(ky),
+									pert[i], plot_out)
+					gc.collect()
 			break
 
 		elif user_input == 'delay':
@@ -1502,6 +1513,7 @@ def noisyStatistics(params):
 					cnois.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
 									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cLF), int(Nsim), int(Nx), int(Ny), int(kx), int(ky),
 									pert[i], plot_out)
+					gc.collect()
 			break
 
 		else:
@@ -1591,6 +1603,7 @@ def bruteForce(params, param_cases_csv):
 					cbrut.bruteforceout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
 									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cLF), int(1), int(Nx), int(Ny), int(kx), int(ky),
 									pert, plot_out)
+					gc.collect()
 			break
 
 		elif user_input == 'Fc':
@@ -1664,6 +1677,7 @@ def bruteForce(params, param_cases_csv):
 					cbrut.bruteforceout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
 									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cLF), int(1), int(Nx), int(Ny), int(kx), int(ky),
 									pert, plot_out)
+					gc.collect()
 			break
 
 		elif user_input == 'delay':
@@ -1731,6 +1745,7 @@ def bruteForce(params, param_cases_csv):
 					cbrut.bruteforceout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
 									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cLF), int(1), int(Nx), int(Ny), int(kx), int(ky),
 									pert, plot_out)
+					gc.collect()
 			break
 
 		else:
