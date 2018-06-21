@@ -19,15 +19,15 @@ import time
 import datetime
 
 ''' SIMULATION CALL '''
-def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cLF,Trelax,Nx=0,Ny=0,kx=0,ky=0,isPlottingTimeSeries=False):
+def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Trelax,Nx=0,Ny=0,kx=0,ky=0,isPlottingTimeSeries=False):
 	''' SIMULATION OF NETWORK '''
-	simresult = sim.simulateNetwork(mode,N,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,topology,couplingfct,histtype,phiS,phiM,domega,diffconstK,diffconstSendDelay,cLF,Nx,Ny,Trelax)
+	simresult = sim.simulateNetwork(mode,N,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,topology,couplingfct,histtype,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx,Ny,Trelax)
 	phi     = simresult['phases']
 	omega_0 = simresult['intrinfreq']
 	K_0     = simresult['coupling_strength']
 	delays_0= simresult['transdelays']
-	cLF_t   = simresult['cLF']
-	# print('cLF_t:',cLF_t)
+	cPD_t   = simresult['cPD']
+	# print('cPD_t:',cPD_t)
 	# print('type phi:', type(phi), 'phi:', phi)
 
 	''' MODIFIED KURAMOTO ORDER PARAMETERS '''
@@ -74,7 +74,7 @@ def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Ome
 
 	''' RETURN '''																# return value of mean order parameter, last order parameter, and the variance of r during the last 2T_{\omega}
 	return {'mean_order':np.mean(r), 'last_orderP':r[len(r)-1], 'stdev_orderP':np.var(r), 'phases': phi,
-			'intrinfreq': omega_0, 'coupling_strength': K_0, 'transdelays': delays_0, 'orderparameter': orderparam, 'cLF': cLF_t}
+			'intrinfreq': omega_0, 'coupling_strength': K_0, 'transdelays': delays_0, 'orderparameter': orderparam, 'cPD': cPD_t}
 
 # def multihelper(phiSr, initPhiPrime0, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiM, domega, diffconstK, plot_Phases_Freq, mode):
 # 	if N > 2:
@@ -86,7 +86,7 @@ def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Ome
 # def multihelper_star(dynparam_fixparam):
 # 	return multihelper(*dynparam_fixparam)
 
-def singleadiabatic(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Trelax, Nsim, Nx=0, Ny=1, kx=0, ky=0, phiSr=[], show_plot=True):
+def singleadiabatic(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Trelax, Nsim, Nx=0, Ny=1, kx=0, ky=0, phiSr=[], show_plot=True):
 
 	mode = int(1);																# mode=0 -> algorithm usage mode, mode=1 -> single realization mode,
 																				# mode=2 -> brute force scanning mode for parameter interval scans
@@ -255,30 +255,30 @@ def singleadiabatic(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Trelax, 
 
 	# print('time-step dt=', dt)
 	t0 = time.time()
-	data = simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cLF,Trelax,Nx,Ny,kx,ky,plot_Phases_Freq) # initiates simulation and saves result in results container
+	data = simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Trelax,Nx,Ny,kx,ky,plot_Phases_Freq) # initiates simulation and saves result in results container
 	print('time needed for execution of simulation: ', (time.time()-t0), ' seconds')
 
 	''' evaluate dictionaries '''
-	results=[]; phi=[]; omega_0=[]; K_0=[]; delays_0=[]; orderparam=[];	cLF_t=[]# prepare container for results of simulatePllNetwork
+	results=[]; phi=[]; omega_0=[]; K_0=[]; delays_0=[]; orderparam=[];	cPD_t=[]# prepare container for results of simulatePllNetwork
 	results.append( [ data['mean_order'],  data['last_orderP'], data['stdev_orderP'] ] )
 	phi.append( data['phases'] )
 	omega_0.append( data['intrinfreq'] )
 	K_0.append( data['coupling_strength'] )
 	delays_0.append( data['transdelays'] )
 	orderparam.append( data['orderparameter'] )
-	cLF_t.append( data['cLF'] )
+	cPD_t.append( data['cPD'] )
 
 	phi=np.array(phi); omega_0=np.array(omega_0); K_0=np.array(K_0); delays_0=np.array(delays_0);
 	results=np.array(results); orderparam=np.array(orderparam);
 
 	''' SAVE RESULTS '''
-	np.savez('results/orderparam_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cLF%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), results=results)
-	np.savez('results/initialperturb_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cLF%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), phiS=phiS)
-	np.savez('results/phases_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cLF%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), phases=phi)
+	np.savez('results/orderparam_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cPD%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), results=results)
+	np.savez('results/initialperturb_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cPD%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), phiS=phiS)
+	np.savez('results/phases_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cPD%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), phases=phi)
 
 	''' PLOT PHASE & FREQUENCY TIME SERIES '''
 	if plot_Phases_Freq:
-		out.plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF, cLF_t, couplingfct, Trelax, Fsim, show_plot)
+		out.plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cPD, cPD_t, couplingfct, Trelax, Fsim, show_plot)
 
 	return None
 
@@ -333,8 +333,8 @@ if __name__ == '__main__':
 	Ny			= int(sys.argv[12])												# number of oscillators in y-direction
 	mx			= int(sys.argv[13])												# twist number in x-direction
 	my			= int(sys.argv[14])												# twist number in y-direction
-	cLF			= float(sys.argv[15])											# diff constant of GWN in LF
+	cPD			= float(sys.argv[15])											# diff constant of GWN in LF
 	Trelax		= float(sys.argv[16])											# number of steps for the system to relax to "equilibrium"
 	phiSr 		= np.asarray([float(phi) for phi in sys.argv[17:(17+N)]])		# this input allows to simulate specific points in !rotated phase space plane
 
-	singleadiabatic(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Trelax, Nsim, Nx, Ny, mx, my, phiSr, True)
+	singleadiabatic(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Trelax, Nsim, Nx, Ny, mx, my, phiSr, True)

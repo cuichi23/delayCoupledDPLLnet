@@ -2,17 +2,16 @@
 from __future__ import division
 from __future__ import print_function
 
-import sys
 import numpy as np
-#cimport numpy as np
-#cimport cython
+cimport numpy as np
+cimport cython
 import networkx as nx
 from scipy.signal import sawtooth
 
 import evaluation as eva
 import datetime
 
-#%%cython --annotate -c=-O3 -c=-march=native
+cython --annotate -c=-O3 -c=-march=native
 
 ''' CLASSES
 
@@ -330,27 +329,20 @@ class PhaseDetectorCombiner:													# this class creates PD objects, these 
 
 	def next(self,x,x_delayed,idx_time=0):										# gets time-series results at delayed time and current time to calculate phase differences
 		try:
-			# print('x: ', x,'\nx_delayed: ', x_delayed)
 			x_self = x[self.idx_self]											# extract own state (phase) at time t and save to x_self
 			# if idx_time < 5:
-			# 	print('x_self:', x_self)
-			# print('neighbors: ', [n for n in self.idx_neighbours], ' type: ', type(self.idx_neighbours))
-			# OLD, in terms of list, which is not returned anymore by MATRIX.neighbors(element) for networkx version > 1.11
-			#x_neighbours = x_delayed[self.idx_neighbours]						# extract the states of all coupling neighbors at t-tau and save to x_neighbours
-			# IN TERMS OF ITERATOR
-			x_neighbours = x_delayed[[n for n in self.idx_neighbours]]			# extract the states of all coupling neighbors at t-tau and save to x_neighbours
-
+				# print('x_self:', x_self)
+			x_neighbours = x_delayed[self.idx_neighbours]						# extract the states of all coupling neighbors at t-tau and save to x_neighbours
 			# if idx_time < 5:
-			# 	print('x_neighbours:', x_neighbours)
+				# print('x_neighbours:', x_neighbours)
 			self.y = np.mean( self.h( x_neighbours - x_self ) )					# calculate phase detector output signals and combine them to yield the signal that is fed into the loop filter
 			# if idx_time < 5:
-			# 	print('x_neighbours.shape:', x_neighbours.shape )
-			# 	print('phase detector signal:', self.y)
+				# print('x_neighbours.shape:', x_neighbours.shape )
+				# print('phase detector signal:', self.y)
 			return self.y
 		except:
 			print('NOTE: check again how to set this for XOR, multiplication and flip flop') # if there is no input (uncoupled PLL), then the phase detector output is zero
 			print('Also, this has to be set individually for each type of PD!')
-			sys.exit(1);
 			return -1.0
 
 class PhaseDetectorCombinerShifted(PhaseDetectorCombiner):						# this class creates PD objects, these are responsible to detect the phase differences and combine the results
@@ -371,8 +363,6 @@ class SinPhaseDetectComb(PhaseDetectorCombiner):								# child class for differ
 		self.h = lambda x: np.sin(x)											# set the type of coupling function, here a sine-function
 		self.idx_self = idx_self												# assigns the index
 		self.idx_neighbours = idx_neighbours									# assigns the neighbors according to the coupling topology
-		# print('Osci ',idx_self,', my neighbors are:', idx_neighbours)
-
 
 class SinCosPhaseDetectComb(PhaseDetectorCombiner):								# child class for different coupling function - here sinusoidal and cosinusoidal
 	def __init__(self,idx_self,idx_neighbours):
@@ -382,7 +372,6 @@ class SinCosPhaseDetectComb(PhaseDetectorCombiner):								# child class for dif
 		self.h = lambda x: np.sin(x) + self.part * np.cos(self.highHarm*x)		# set the type of coupling function, here a sine-function
 		self.idx_self = idx_self												# assigns the index
 		self.idx_neighbours = idx_neighbours									# assigns the neighbors according to the coupling topology
-		# print('Osci ',idx_self,', my neighbors are:', idx_neighbours)
 
 # y = 1 / n * sum h( x_delayed_neighbours - x_self )
 class CosPhaseDetectComb(PhaseDetectorCombiner):									# child class for different coupling function - here sinusoidal
@@ -413,7 +402,7 @@ class Delayer:
 		if feedback_delay == 0:
 			self.feedback_delay_steps = 0
 		else:
-			self.feedback_delay_steps = int(round(self.feedback_delay/dt))
+			self.feedback_delay_steps = int( round( self.feedback_delay/dt ) )
 			print('NOTE: there is a nonzero feedback-delay specified! tau_f=',self.feedback_delay)
 		#print('\ndelay steps:', self.delay_steps, '\n')
 		# print('\ndelay steps:', self.delay_steps, '\n')
@@ -732,7 +721,7 @@ def generatePllObjects(mode,topology,couplingfct,histtype,Nplls,dt,c,delay,feedb
 
 	if topology == 'global':
 		G = nx.complete_graph(Nplls)
-		# print('G and G.neighbors(PLL0):', G, G.neighbors(0)); sys.exit(1)
+		# print('G and G.neighbors(PLL0):', G, G.neighbors(0))
 
 	elif topology == 'ring':
 		G = nx.cycle_graph(Nplls)
@@ -795,9 +784,6 @@ def generatePllObjects(mode,topology,couplingfct,histtype,Nplls,dt,c,delay,feedb
 
 		# G = nx.convert_node_labels_to_integers(G)
 		G = nx.convert_node_labels_to_integers(G, first_label=0, ordering='sorted') # converts 2d coordinates to 1d index of integers, e.g., k=0,...,N-1
-
-	# print('type G.neighbors', type(G.neighbors(2)))
-	# exit(0)
 
 	# print('c=',c,' coupling-function:', couplingfct,'\n')
 	# print('Complete this part for all cases, e.g. the case of K drawn from a distribution.')

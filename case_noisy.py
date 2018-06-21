@@ -20,9 +20,9 @@ import datetime
 
 
 ''' SIMULATION CALL '''
-def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cLF,Nx=0,Ny=0,kx=0,ky=0,isPlottingTimeSeries=False):
+def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx=0,Ny=0,kx=0,ky=0,isPlottingTimeSeries=False):
 	''' SIMULATION OF NETWORK '''
-	simresult = sim.simulateNetwork(mode,N,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,topology,couplingfct,histtype,phiS,phiM,domega,diffconstK,diffconstSendDelay,cLF,Nx,Ny)
+	simresult = sim.simulateNetwork(mode,N,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,topology,couplingfct,histtype,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx,Ny)
 	phi     = simresult['phases']
 	omega_0 = simresult['intrinfreq']
 	K_0     = simresult['coupling_strength']
@@ -72,23 +72,23 @@ def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Ome
 
 	''' PLOT PHASE & FREQUENCY TIME SERIES '''
 	if isPlottingTimeSeries:
-		out.plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cLF)
+		out.plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cPD)
 
 	''' RETURN '''																# return value of mean order parameter, last order parameter, and the variance of r during the last 2T_{\omega}
 	return {'mean_order':np.mean(r), 'last_orderP':r[len(r)-1], 'stdev_orderP':np.var(r), 'phases': phi,
 			'intrinfreq': omega_0, 'coupling_strength': K_0, 'transdelays': delays_0}
 
-def multihelper(phiSr,initPhiPrime0,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiM,domega,diffconstK,diffconstSendDelay,cLF,Nx,Ny,kx,ky,plot_Phases_Freq,mode):
+def multihelper(phiSr,initPhiPrime0,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx,Ny,kx,ky,plot_Phases_Freq,mode):
 	if N > 2:
 		phiSr = np.insert(phiSr, 0, initPhiPrime0)								# insert the first variable in the rotated space, constant initPhiPrime0
 	phiS = eva.rotate_phases(phiSr, isInverse=False)							# rotate back into physical phase space
 	np.random.seed()
-	return simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cLF,Nx,Ny,kx,ky,plot_Phases_Freq)
+	return simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx,Ny,kx,ky,plot_Phases_Freq)
 
 def multihelper_star(dynparam_fixparam):
 	return multihelper(*dynparam_fixparam)
 
-def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny=0, kx=0, ky=0, phiSr=[], show_plot=True):
+def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0, Ny=0, kx=0, ky=0, phiSr=[], show_plot=True):
 	mode = int(3);																# mode=0 -> algorithm usage mode, mode=1 -> single realization mode,
 																				# mode=2 -> brute force scanning mode for parameter interval scans
 																				# mode=3 -> calculate many noisy realization for the same parameter set
@@ -110,7 +110,7 @@ def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny=
 
 	dt					= 1.0/Fsim												# [ dt = T / #samples ] -> #samples per period... with [ T = 1 / F -> dt = 1 / ( #samples * F ) ]
 
-	print('\nnoise instant. freq., diffconst c:', c, '\nnoise control signal, diffconst. cLF:', cLF)
+	print('\nnoise instant. freq., diffconst c:', c, '\nnoise control signal, diffconst. cPD:', cPD)
 
 	now = datetime.datetime.now()
 	print('many noisy realizations mode with evaluation')						# -- ATTENTION TO SCALING OF NOISE WITH RESPECT TO INTRINSIC FREQUENCIES')
@@ -226,10 +226,10 @@ def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny=
 		pool_data.append( pool.map(multihelper_star, itertools.izip( 		# this makes a map of all parameter combinations that have to be simulated, itertools.repeat() names the constants
 							phiSValues, itertools.repeat(initPhiPrime0), itertools.repeat(topology), itertools.repeat(couplingfct), itertools.repeat(histtype), itertools.repeat(F), itertools.repeat(Nsteps), itertools.repeat(dt),
 							itertools.repeat(c),itertools.repeat(Fc), itertools.repeat(F_Omeg), itertools.repeat(K), itertools.repeat(N), itertools.repeat(k), itertools.repeat(delay), itertools.repeat(feedback_delay),
-							itertools.repeat(phiM), itertools.repeat(domega), itertools.repeat(diffconstK), itertools.repeat(diffconstSendDelay), itertools.repeat(cLF), itertools.repeat(Nx), itertools.repeat(Ny), itertools.repeat(kx), itertools.repeat(ky),
+							itertools.repeat(phiM), itertools.repeat(domega), itertools.repeat(diffconstK), itertools.repeat(diffconstSendDelay), itertools.repeat(cPD), itertools.repeat(Nx), itertools.repeat(Ny), itertools.repeat(kx), itertools.repeat(ky),
 							itertools.repeat(plot_Phases_Freq), itertools.repeat(mode) ) ) )
 		# print('pool_data:', pool_data, 'type(pool_data):', type(pool_data) )
-		results=[]; phi=[]; omega_0=[]; K_0=[]; delays_0=[]; #cLF_t=[]
+		results=[]; phi=[]; omega_0=[]; K_0=[]; delays_0=[]; #cPD_t=[]
 		for i in range(Nsim):
 			''' evaluate dictionaries '''
 			results.append( [ pool_data[0][i]['mean_order'],  pool_data[0][i]['last_orderP'], pool_data[0][i]['stdev_orderP'] ] )
@@ -237,7 +237,7 @@ def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny=
 			omega_0.append( pool_data[0][i]['intrinfreq'] )
 			K_0.append( pool_data[0][i]['coupling_strength'] )
 			delays_0.append( pool_data[0][i]['transdelays'] )
-			# cLF_t.append( pool_data[0][i]['cLF'] )
+			# cPD_t.append( pool_data[0][i]['cPD'] )
 
 		del pool_data; del _allPoints;											# emtpy pool data, allPoints variables to free memory
 
@@ -254,7 +254,7 @@ def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny=
 		print('time needed for execution of simulations in multiproc mode: ', (time.time()-t0), ' seconds')
 		# print('data:', data, 'type(data[0]):', type(data[0]))
 	else:
-		results=[]; phi=[]; omega_0=[]; K_0=[]; data=[]; delays_0=[]; cLF_t=[]	# prepare container for results of simulatePllNetwork
+		results=[]; phi=[]; omega_0=[]; K_0=[]; data=[]; delays_0=[]; cPD_t=[]	# prepare container for results of simulatePllNetwork
 		for i in range (allPoints.shape[0]):									# iterate through all points in the N-1 dimensional rotated phase space
 			print('calculation #:', i+1, 'of', allPoints.shape[0])
 			#print( allPoints[i], '\n')
@@ -262,7 +262,7 @@ def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny=
 			#print( 'allPoints[i] =', allPoints[i], '\n')
 			#print( 'type of phiS', type(phiS))
 			#print( 'phiS = ', phiS, '\n')
-			data = simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cLF,Nx,Ny,kx,ky,plot_Phases_Freq)
+			data = simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx,Ny,kx,ky,plot_Phases_Freq)
 
 			''' evaluate dictionaries '''
 			results.append( [ data['mean_order'],  data['last_orderP'], data['stdev_orderP'] ] )
@@ -270,7 +270,7 @@ def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny=
 			omega_0.append( data['intrinfreq'] )
 			K_0.append( data['coupling_strength'] )
 			delays_0.append( data['transdelays'] )
-			# cLF_t.append( data['cLF_t'] )
+			# cPD_t.append( data['cPD_t'] )
 
 		phi=np.array(phi); omega_0=np.array(omega_0); K_0=np.array(K_0); delays_0=np.array(delays_0);
 		results=np.array(results);
@@ -290,13 +290,13 @@ def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny=
 		orderparam.append(eva.oracle_mTwistOrderParameter(phi[i,:, :], k))			# calculate the m-twist order parameter for all times
 
 	''' EXTRA EVALUATION '''
-	out.doEvalManyNoisy(F, Fc, F_Omeg, K, N, k, delay, c, cLF, domega, twistdelta, results, allPoints, dt, orderparam, r, phi, omega_0, K_0,delays_0, show_plot)
+	out.doEvalManyNoisy(F, Fc, F_Omeg, K, N, Nx, Ny, k, kx, ky, delay, c, cPD, Tsim, topology, domega, twistdelta, results, allPoints, dt, orderparam, r, phi, omega_0, K_0,delays_0, show_plot)
 	# print(r'frequency of zeroth osci at the beginning and end of the simulation:, $\dot{\phi}_0(t_{start})=%.4f$, $\dot{\phi}_0(t_{end})=%.4f$  [rad/Hz]', ((phi[0][int(round(delay/dt))+2][0]-phi[0][int(round(delay/dt))+1][0])/(dt)), ((phi[0][-4][0]-phi[0][-5][0])/(dt)) )
 	# print('last values of the phases:\n', phi[0,-3:,0])
 
 	''' SAVE RESULTS '''
 	now = datetime.datetime.now()
-	np.savez('results/orderparam_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cLF%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, cLF, now.year, now.month, now.day), results=results)
+	np.savez('results/orderparam_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cPD%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), results=results)
 	# np.savez('results/InitPerturb_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, now.year, now.month, now.day), allPoints=allPoints)
 	# np.savez('results/phases_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, now.year, now.month, now.day), phases=phi)
 
@@ -354,7 +354,7 @@ if __name__ == '__main__':
 	Ny			= int(sys.argv[12])												# number of oscillators in y-direction
 	mx			= int(sys.argv[13])												# twist number in x-direction
 	my			= int(sys.argv[14])												# twist number in y-direction
-	cLF			= float(sys.argv[15])											# diff constant of GWN in LF
+	cPD			= float(sys.argv[15])											# diff constant of GWN in LF
 	phiSr 		= np.asarray([float(phi) for phi in sys.argv[16:(16+N)]])		# this input allows to simulate specific points in !rotated phase space plane
 
-	noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx, Ny, mx, my, phiSr, True)
+	noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx, Ny, mx, my, phiSr, True)

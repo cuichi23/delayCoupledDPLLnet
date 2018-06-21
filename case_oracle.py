@@ -19,9 +19,9 @@ import time
 import datetime
 
 ''' SIMULATION CALL '''
-def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,cLF,diffconstK,diffconstSendDelay,Nx=0,Ny=0,kx=0,ky=0,isPlottingTimeSeries=False):
+def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,cPD,diffconstK,diffconstSendDelay,Nx=0,Ny=0,kx=0,ky=0,isPlottingTimeSeries=False):
 	''' SIMULATION OF NETWORK '''
-	simresult = sim.simulateNetwork(mode,N,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,topology,couplingfct,histtype,phiS,phiM,domega,diffconstK,diffconstSendDelay,cLF,Nx,Ny) # kx and ky do not need to be handed over - already in phiM contained
+	simresult = sim.simulateNetwork(mode,N,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,topology,couplingfct,histtype,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx,Ny) # kx and ky do not need to be handed over - already in phiM contained
 	phi		  = simresult['phases']
 	omega_0   = simresult['intrinfreq']
 	K_0       = simresult['coupling_strength']
@@ -159,7 +159,7 @@ if __name__ == '__main__':
 	Tsim 		= Tsim*(1.0/F)  												# simulation time in multiples of the period of the uncoupled oscillators
 	Nsteps 		= int(round(Tsim*Fsim))											# calculate number of iterations -- add output?
 	Nsim=1;
-	cLF =0;																		# NOTE: LF noise is off!!!
+	cPD =0;																		# NOTE: LF noise is off!!!
 
 	# choose the value of phi'_0, i.e., where the plane, rectangular to the axis phi'_0 in the rotated phase space, is placed; this direction corresponds to the case where all phi_k
 	# in the original phase space are equal phi_0==phi_1==...==phi_N-1 or (all) have constant phase differences; if unequal from zero, that causes a global phase shift in the history
@@ -249,7 +249,7 @@ if __name__ == '__main__':
 		print(-1)																# NOTE: here different compared to brute-force, since pool of points always centered around zero (no perturbation) and NOT about the twist-coordinate
 	else:
 		# print(simulatePllNetwork(mode, topology, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, False))
-		data = simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,cLF,diffconstK,diffconstSendDelay,Nx,Ny,kx,ky,False)
+		data = simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,cPD,diffconstK,diffconstSendDelay,Nx,Ny,kx,ky,False)
 		results = np.array( [ data['mean_order'],  data['last_orderP'], data['stdev_orderP'] ] )
 		phi     = data['phases']
 		omega_0 = data['intrinfreq']

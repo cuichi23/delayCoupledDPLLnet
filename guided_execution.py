@@ -210,13 +210,13 @@ def chooseLF_DiffConst():														# ask user-input for diffusion constant G
 	b_true = True
 	while b_true:
 		# get user input on dynamic frequency noise -- provide diffusion constant for GWN process -> results in Wiener process for the phases (integrated instantaneous freqs)
-		cLF = raw_input('\nPlease specify the diffusion constant [float, in s*s] for the GWN process on PD signal of the DPLLs from the range [0, 10*K]: ')
-		if ( float(cLF) >= 0.0 ):
+		cPD = raw_input('\nPlease specify the diffusion constant [float, in s*s] for the GWN process on PD signal of the DPLLs from the range [0, 10*K]: ')
+		if ( float(cPD) >= 0.0 ):
 			break
 		else:
 			print('Please provide [float] input from [0, 10*K]!')
 
-	return float(cLF)
+	return float(cPD)
 
 def chooseNsim():																# ask user-input for number of realizations for the noisy statistics
 	b_true = True
@@ -492,10 +492,10 @@ def setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanv
 					break
 				else:
 					print('Please provide id as an [integer] in [0, %d] and the perturbation as a [float] in (0,2pi]!' %(N-1) )
-			perturbation_vec = phiS												# no transformation necessary, since the modules expect to get the values in rotated phase space
+			perturbation_vec = phiS										   # no transformation necessary, since the modules expect to get the values in rotated phase space
 
-		elif case == '4':														# case in which all the oscillators are perturbed randomly from either iid dist. in
-																				# [min_pert, max_pert] or a gamma-distribution with shape and scale parameter
+		elif case == '4':												   # case in which all the oscillators are perturbed randomly from either iid dist. in
+																		   # [min_pert, max_pert] or a gamma-distribution with shape and scale parameter
 			perturbation_vec = chooseDeltaPertDistAndBounds(N, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, True)
 
 	elif rot_vs_orig == 'o':													# perturbation provided in original phase space
@@ -535,12 +535,12 @@ def singleAdiabatChange(params):
 	x_true = True
 	while x_true:
 		# get user input to know which parameter should be analyzed
-		user_input = raw_input('\nPlease specify which parameters should be changed adiabatically {VCO noise inst. freq [c] or LF induced noise on PD signal [cLF]} : ')
-		if user_input == 'cLF':
-			cLF_value = float(raw_input('\nPlease specify initial value of cLF_s in [s*s], from there it will adiabatically change to zero = '))
+		user_input = raw_input('\nPlease specify which parameters should be changed adiabatically {VCO noise inst. freq [c] or LF induced noise on PD signal [cPD]} : ')
+		if user_input == 'cPD':
+			cPD_value = float(raw_input('\nPlease specify initial value of cPD_s in [s*s], from there it will adiabatically change to zero = '))
 			Trelax = float(raw_input('\nPlease specify the transient decay time Trelax, adiabatic change start after that time in [s] = '))
 
-			print('\nWill start with this cLF-value: ', cLF_value, ', and relaxation time Trelax: ', Trelax, '\n\n')
+			print('\nWill start with this cPD-value: ', cPD_value, ', and relaxation time Trelax: ', Trelax, '\n\n')
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
 			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' or topology == 'hexagon-periodic' or topology == 'octagon-periodic'):
@@ -577,8 +577,8 @@ def singleAdiabatChange(params):
 
 			# perform a delay sweep
 			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
-			sf = synctools.SweepFactory(N, Ny, Nx, F, K, delay, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, np.array([cLF_value, cLF_value]), isRadians=isRadian)
-			print('\n\nAdjust code Daniel to fit cLF!!!!')
+			sf = synctools.SweepFactory(N, Ny, Nx, F, K, delay, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, np.array([cPD_value, cPD_value]), isRadians=isRadian)
+			print('\n\nAdjust code Daniel to fit cPD!!!!')
 
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
@@ -586,18 +586,18 @@ def singleAdiabatChange(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
-			if not ( para_mat == [] and len(para_mat) == 0 and cLF_value == [] and len(cLF_value) == 0):
+			if not ( para_mat == [] and len(para_mat) == 0 and cPD_value == [] and len(cPD_value) == 0):
 				plot_out = True
 
 				# for i in range (len(para_mat[:,0])):
 				print('\nSTART: python case_singleadiabatic.py '+str(topology)+' '+str(int(para_mat[0,0]))+' '+str(float(para_mat[0,2]))+' '+str(float((para_mat[0,3])))+' '
 												+str(float(delay))+' '+str(float(para_mat[0,6]))+' '+str(int(para_mat[0,5]))+' '+str(int(round(float(para_mat[0,9]))))+' '
-												+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(float(cLF_value))+' '+str(Trelax)+'  '.join(map(str, pert)))
+												+str(c)+' '+str(float(cPD_value))+' '+str(Trelax)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+'  '.join(map(str, pert)))
 				print('Tsim: ', para_mat[0,9])
 				# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 				# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 				cadiab.singleadiabatic(str(topology), int(para_mat[0,0]), float(para_mat[0,2]), float((para_mat[0,3])), float(delay), float(para_mat[0,6]),
-								int(para_mat[0,5]), int(round(float(para_mat[0,9]))), float(c), float(cLF_value), float(Trelax), int(1), int(Nx), int(Ny), int(kx), int(ky),
+								int(para_mat[0,5]), int(round(float(para_mat[0,9]))), float(c), float(cPD_value), float(Trelax), int(1), int(Nx), int(Ny), int(kx), int(ky),
 								pert, plot_out)
 				gc.collect()
 			break
@@ -622,7 +622,7 @@ def singleAdiabatChange(params):
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			# c 		= chooseDiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
-			cLF     = 0
+			cPD     = 0
 			Nsim    = 1															# calls function that asks user for input for number of realizations
 			case, rot_vs_orig = chooseDeltaPert(N)								# calls function that asks user for input for delta-like perturbation
 			if case == '4':
@@ -658,18 +658,18 @@ def singleAdiabatChange(params):
 				# for i in range (len(para_mat[:,0])):
 				print('\nSTART: python case_singleadiabatic.py '+str(topology)+' '+str(int(para_mat[0,0]))+' '+str(float(para_mat[0,2]))+' '+str(float((para_mat[0,3])))+' '
 												+str(float(delay))+' '+str(float(para_mat[0,6]))+' '+str(int(para_mat[0,5]))+' '+str(int(round(float(para_mat[0,9]))))+' '
-												+str(c_value)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(float(cLF))+' '+str(Trelax)+'  '.join(map(str, pert)))
+												+str(c_value)+' '+str(float(cPD))+' '+str(Trelax)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+'  '.join(map(str, pert)))
 				print('Tsim: ', para_mat[0,9])
 				# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 				# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 				cadiab.singleadiabatic(str(topology), int(para_mat[0,0]), float(para_mat[0,2]), float((para_mat[0,3])), float(delay), float(para_mat[0,6]),
-								int(para_mat[0,5]), int(round(float(para_mat[0,9]))), float(c_value), float(cLF), float(Trelax), int(1), int(Nx), int(Ny), int(kx), int(ky),
+								int(para_mat[0,5]), int(round(float(para_mat[0,9]))), float(c_value), float(cPD), float(Trelax), int(1), int(Nx), int(Ny), int(kx), int(ky),
 								pert, plot_out)
 				gc.collect()
 			break
 
 		else:
-			print('Please provide input from the following options: [c , cLF]: ')
+			print('Please provide input from the following options: [c , cPD]: ')
 
 	return None
 
@@ -678,7 +678,7 @@ def singleRealization(params):
 	x_true = True
 	while x_true:
 		# get user input to know which parameter should be analyzed
-		user_input = raw_input('\nPlease specify which parameters dependencies to be analyzed {coupling strength [K] in [Hz], LF cut-off freq [Fc] in [Hz], transmission [delay] in [s], loop filter GWN noise diff. const. [cLF] in [Hz^2]} : ')
+		user_input = raw_input('\nPlease specify which parameters dependencies to be analyzed {coupling strength [K] in [Hz], LF cut-off freq [Fc] in [Hz], transmission [delay] in [s], loop filter GWN noise diff. const. [cPD] in [Hz^2]} : ')
 		if user_input == 'K':
 			user_sweep_start = float(raw_input('\nPlease specify the range in which K (K=0.5*Kvco) should be simulated, start K_s in [Hz] = '))
 			user_sweep_end	 = float(raw_input('\nPlease specify the range in which K (K=0.5*Kvco) should be simulated, end K_e in [Hz] = '))
@@ -706,7 +706,7 @@ def singleRealization(params):
 					synctools.generate_delay_plot(N, Ny, Nx, F, new_K_values, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, isRadians=isRadian)
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
-			cLF		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
+			cPD		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
 			Nsim    = 1															# calls function that asks user for input for number of realizations
 			case, rot_vs_orig = chooseDeltaPert(N)								# calls function that asks user for input for delta-like perturbation
 			if case == '4':
@@ -740,7 +740,7 @@ def singleRealization(params):
 				upper_TSim = 2000
 				lower_TSim = 50
 				for i in range (len(para_mat[:,0])):
-					if para_mat[i,9]<10:
+					if para_mat[i,9]<lower_TSim:
 						para_mat[i,9]=lower_TSim
 					if para_mat[i,9]>upper_TSim:
 						print('\n\nNOTE: here the simulation time has been altered to a SMALLER value... correct for that if necessary! \n\n')
@@ -766,13 +766,13 @@ def singleRealization(params):
 				for i in range (len(para_mat[:,0])):
 					print('\nSTART: python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 							+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-							+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(cLF)+' '.join(map(str, pert)))
+							+str(c)+' '+str(cPD)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '.join(map(str, pert)))
 					print('Tsim: ', para_mat[i,9])
 					# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
-					#HILFE: def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cLF, Nsim, Nx=0, Ny=1, kx=0, ky=0, phiSr=[], show_plot=True)
+					#HILFE: def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0, Ny=1, kx=0, ky=0, phiSr=[], show_plot=True)
 					csing.singleout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
-									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cLF), int(1), int(Nx), int(Ny), int(kx), int(ky),
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cPD), int(1), int(Nx), int(Ny), int(kx), int(ky),
 									pert, plot_out)
 					gc.collect()
 			break
@@ -802,7 +802,7 @@ def singleRealization(params):
 					synctools.generate_delay_plot(N, Ny, Nx, F, K, str(params['DEFAULT']['couplingfct']), new_Fc_values, k, kx, ky,topology, isRadians=isRadian)
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
-			cLF		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
+			cPD		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
 			Nsim    = 1															# calls function that asks user for input for number of realizations
 			case, rot_vs_orig = chooseDeltaPert(N)								# calls function that asks user for input for delta-like perturbation
 			if case == '4':
@@ -836,7 +836,7 @@ def singleRealization(params):
 				upper_TSim = 2000
 				lower_TSim = 50
 				for i in range (len(para_mat[:,0])):
-					if para_mat[i,9]<10:
+					if para_mat[i,9]<lower_TSim:
 						para_mat[i,9]=lower_TSim
 					if para_mat[i,9]>upper_TSim:
 						print('\n\nNOTE: here the simulation time has been altered to a SMALLER value... correct for that if necessary! \n\n')
@@ -862,12 +862,12 @@ def singleRealization(params):
 				for i in range (len(para_mat[:,0])):
 					print('\nSTART: python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-													+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(cLF)+' '.join(map(str, pert)))
+													+str(c)+' '+str(cPD)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '.join(map(str, pert)))
 					print('Tsim: ', para_mat[i,9])
 					# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					csing.singleout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
-									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cLF), int(1), int(Nx), int(Ny), int(kx), int(ky),
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cPD), int(1), int(Nx), int(Ny), int(kx), int(ky),
 									pert, plot_out)
 					gc.collect()
 			break
@@ -891,7 +891,7 @@ def singleRealization(params):
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
-			cLF		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
+			cPD		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
 			Nsim    = 1														# calls function that asks user for input for number of realizations
 			case, rot_vs_orig = chooseDeltaPert(N)								# calls function that asks user for input for delta-like perturbation
 			if case == '4':
@@ -925,7 +925,7 @@ def singleRealization(params):
 				upper_TSim = 2000
 				lower_TSim = 50
 				for i in range (len(para_mat[:,0])):
-					if para_mat[i,9]<10:
+					if para_mat[i,9]<lower_TSim:
 						para_mat[i,9]=lower_TSim
 					if para_mat[i,9]>upper_TSim:
 						print('\n\nNOTE: here the simulation time has been altered to a SMALLER value... correct for that if necessary! \n\n')
@@ -951,22 +951,22 @@ def singleRealization(params):
 				for i in range (len(para_mat[:,0])):
 					print('\nSTART: python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-													+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(cLF)+' '.join(map(str, pert)))
+													+str(c)+' '+str(cPD)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '.join(map(str, pert)))
 					print('Tsim: ', para_mat[i,9])
 					# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					csing.singleout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
-									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cLF), int(1), int(Nx), int(Ny), int(kx), int(ky),
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cPD), int(1), int(Nx), int(Ny), int(kx), int(ky),
 									pert, plot_out)
 					gc.collect()
 			break
 
-		elif user_input == 'cLF':
-			user_sweep_start = float(raw_input('\nPlease specify the range in which cLF should be simulated, start cLF_s in [s*s] = '))
-			user_sweep_end	 = float(raw_input('\nPlease specify the range in which cLF should be simulated, end cLF_e in [s*s] = '))
+		elif user_input == 'cPD':
+			user_sweep_start = float(raw_input('\nPlease specify the range in which cPD should be simulated, start cPD_s in [s*s] = '))
+			user_sweep_end	 = float(raw_input('\nPlease specify the range in which cPD should be simulated, end cPD_e in [s*s] = '))
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [s*s] dc = '))
-			new_cLF_values = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
-			print('\nWill scan these cLF-values: ', new_cLF_values, '\n\n')
+			new_cPD_values = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
+			print('\nWill scan these cPD-values: ', new_cPD_values, '\n\n')
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
 			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' or topology == 'hexagon-periodic' or topology == 'octagon-periodic'):
@@ -982,7 +982,7 @@ def singleRealization(params):
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			isRadian=False
 
-			if len(new_cLF_values)==1:
+			if len(new_cPD_values)==1:
 				isRadian=False
 				user_input = raw_input('\nGenerate plot of collective frequency and linear stability against delay to support decision. [y]es/[n]o? ')
 				if user_input == 'y':
@@ -1010,8 +1010,8 @@ def singleRealization(params):
 
 			# perform a delay sweep
 			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
-			sf = synctools.SweepFactory(N, Ny, Nx, F, K, delay, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, new_cLF_values, isRadians=isRadian)
-			print('\n\nAdjust code Daniel to fit cLF!!!!')
+			sf = synctools.SweepFactory(N, Ny, Nx, F, K, delay, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, new_cPD_values, isRadians=isRadian)
+			print('\n\nAdjust code Daniel to fit cPD!!!!')
 
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
@@ -1019,12 +1019,12 @@ def singleRealization(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)...
 
-			if not ( para_mat == [] and len(para_mat) == 0 and new_cLF_values == [] ):
+			if not ( para_mat == [] and len(para_mat) == 0 and new_cPD_values == [] ):
 
 				upper_TSim = 2000
 				lower_TSim = 50
 				for i in range (len(para_mat[:,0])):
-					if para_mat[i,9]<10:
+					if para_mat[i,9]<lower_TSim:
 						para_mat[i,9]=lower_TSim
 					if para_mat[i,9]>upper_TSim:
 						print('\n\nNOTE: here the simulation time has been altered to a SMALLER value... correct for that if necessary! \n\n')
@@ -1042,31 +1042,31 @@ def singleRealization(params):
 
 				# print( 'length of para_mat[:,0]:', len(para_mat[:,0]) )
 				# print( 'length of new_c_values :', len(new_c_values)  )
-				if ( len(para_mat[:,0]) > 1 or len(new_cLF_values) > 1 ):
+				if ( len(para_mat[:,0]) > 1 or len(new_cPD_values) > 1 ):
 					plot_out = False
-				elif ( len(para_mat[:,0]) == 1 and new_cLF_values == 1 ):
+				elif ( len(para_mat[:,0]) == 1 and new_cPD_values == 1 ):
 					plot_out = True
 				else:
 					plot_out = False
 
 				print('Multiple stable cases found, pick one from:\n', para_mat)
-				i = int(raw_input('\nPlease specify by number, which case should be taken as the basis to calculate the results for different cLF [0,...,N-1]: '))
+				i = int(raw_input('\nPlease specify by number, which case should be taken as the basis to calculate the results for different cPD [0,...,N-1]: '))
 				#for i in range (len(para_mat[:,0])):
-				for j in range (len(new_cLF_values)):
+				for j in range (len(new_cPD_values)):
 					print('\nSTART: python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(delay))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-													+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(float(new_cLF_values[j]))+' '.join(map(str, pert)))
+													+str(c)+' '+str(float(new_cPD_values[j]))+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '.join(map(str, pert)))
 					print('Tsim: ', para_mat[i,9])
 					# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					csing.singleout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float(delay), float(para_mat[i,6]),
-									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(new_cLF_values[j]), int(1), int(Nx), int(Ny), int(kx), int(ky),
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(new_cPD_values[j]), int(1), int(Nx), int(Ny), int(kx), int(ky),
 									pert, plot_out)
 					gc.collect()
 			break
 
 		else:
-			print('Please provide input from the following options: [K, Fc , delay, cLF]: ')
+			print('Please provide input from the following options: [K, Fc , delay, cPD]: ')
 
 	return None
 
@@ -1075,7 +1075,7 @@ def noisyStatistics(params):
 	x_true = True
 	while x_true:
 		# get user input to know which parameter should be analyzed
-		user_input = raw_input('\nPlease specify which parameters dependencies to be analyzed {coupling strength [K] in [Hz], LF cut-off freq [Fc] in [Hz], transmission [delay] in [s], loop filter GWN noise diff. const. cLF in [s^2], or [c] the diffusion constant (sigma^2=2*c).} : ')
+		user_input = raw_input('\nPlease specify which parameters dependencies to be analyzed {coupling strength [K] in [Hz], LF cut-off freq [Fc] in [Hz], transmission [delay] in [s], loop filter GWN noise diff. const. cPD in [s^2], or [c] the diffusion constant (sigma^2=2*c).} : ')
 		if user_input == 'K':
 			user_sweep_start = float(raw_input('\nPlease specify the range in which K (K=0.5*Kvco) should be simulated, start K_s in [Hz] = '))
 			user_sweep_end	 = float(raw_input('\nPlease specify the range in which K (K=0.5*Kvco) should be simulated, end K_e in [Hz] = '))
@@ -1101,7 +1101,7 @@ def noisyStatistics(params):
 					synctools.generate_delay_plot(N, Ny, Nx, F, new_K_values, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, isRadians=isRadian)
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
-			cLF		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
+			cPD		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
 			Nsim    = chooseNsim()												# calls function that asks user for input for number of realizations
 			case, rot_vs_orig = chooseDeltaPert(N)								# calls function that asks user for input for delta-like perturbation
 			if case == '4':
@@ -1139,8 +1139,12 @@ def noisyStatistics(params):
 				upper_TSim = 2000
 				lower_TSim = 50
 				for i in range (len(para_mat[:,0])):
-					if para_mat[i,9]<10:
-						para_mat[i,9]=80
+					para_mat[i,9]=2.*para_mat[i,9]								# when computing noisy cases, the decay time approximation is not valid
+					if para_mat[i,9]<lower_TSim:
+						para_mat[i,9]=lower_TSim
+					elif para_mat[i,9]>upper_TSim:
+						print('\n\nNOTE: here the simulation time has been altered to a SMALLER value... correct for that if necessary! \n\n')
+						para_mat[i,9]=upper_TSim
 
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
@@ -1152,13 +1156,13 @@ def noisyStatistics(params):
 				for i in range (len(para_mat[:,0])):
 					print('\nSTART: python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 												+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-												+str(c)+' '+str(Nsim)+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(cLF))
+												+str(c)+' '+str(cPD)+' '+str(Nsim)+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky))
 					print('Tsim: ', para_mat[i,9])
 					# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)ky.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					# def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, Nx=0, Ny=0, kx=0, ky=0, phiSr=[], show_plot=True):
 					cnois.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
-									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cLF), int(Nsim), int(Nx), int(Ny), int(kx), int(ky),
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cPD), int(Nsim), int(Nx), int(Ny), int(kx), int(ky),
 									pert[i], plot_out)
 					gc.collect()
 			break
@@ -1230,8 +1234,12 @@ def noisyStatistics(params):
 				upper_TSim = 2000
 				lower_TSim = 50
 				for i in range (len(para_mat[:,0])):
-					if para_mat[i,9]<10:
-						para_mat[i,9]=80
+					para_mat[i,9]=2.*para_mat[i,9]								# when computing noisy cases, the decay time approximation is not valid
+					if para_mat[i,9]<lower_TSim:
+						para_mat[i,9]=lower_TSim
+					elif para_mat[i,9]>upper_TSim:
+						print('\n\nNOTE: here the simulation time has been altered to a SMALLER value... correct for that if necessary! \n\n')
+						para_mat[i,9]=upper_TSim
 
 				# print( 'length of para_mat[:,0]:', len(para_mat[:,0]) )
 				# print( 'length of new_c_values :', len(new_c_values)  )
@@ -1249,12 +1257,12 @@ def noisyStatistics(params):
 				for j in range (len(new_c_values)):
 					print('\nSTART: python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 											+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-											+str(new_c_values[j])+' '+str(Nsim)+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(cLF))
+											+str(new_c_values[j])+' '+str(cPD)+' '+str(Nsim)+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky))
 					# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)ky.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					# def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, Nx=0, Ny=0, kx=0, ky=0, phiSr=[], show_plot=True):
 					cnois.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
-									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(new_c_values[j]), int(Nsim), int(Nx), int(Ny), int(kx), int(ky),
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(new_c_values[j]), float(cPD), int(Nsim), int(Nx), int(Ny), int(kx), int(ky),
 									pert[i], plot_out)
 					gc.collect()
 			break
@@ -1285,7 +1293,7 @@ def noisyStatistics(params):
 					synctools.generate_delay_plot(N, Ny, Nx, F, K, str(params['DEFAULT']['couplingfct']), new_Fc_values, k, kx, ky,topology, isRadians=isRadian)
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
-			cLF		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
+			cPD		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
 			Nsim    = chooseNsim()												# calls function that asks user for input for number of realizations
 			case, rot_vs_orig = chooseDeltaPert(N)								# calls function that asks user for input for delta-like perturbation
 			if case == '4':
@@ -1320,9 +1328,10 @@ def noisyStatistics(params):
 				upper_TSim = 2000
 				lower_TSim = 50
 				for i in range (len(para_mat[:,0])):
-					if para_mat[i,9]<10:
+					para_mat[i,9]=2.*para_mat[i,9]								# when computing noisy cases, the decay time approximation is not valid
+					if para_mat[i,9]<lower_TSim:
 						para_mat[i,9]=lower_TSim
-					if para_mat[i,9]>upper_TSim:
+					elif para_mat[i,9]>upper_TSim:
 						print('\n\nNOTE: here the simulation time has been altered to a SMALLER value... correct for that if necessary! \n\n')
 						para_mat[i,9]=upper_TSim
 
@@ -1336,21 +1345,21 @@ def noisyStatistics(params):
 				for i in range (len(para_mat[:,0])):
 					print('\nSTART: python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 												+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-												+str(c)+' '+str(cLF)+' '+str(Nsim)+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(cLF)+' '.join(map(str, pert)))
+												+str(c)+' '+str(cPD)+' '+str(Nsim)+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '.join(map(str, pert)))
 					# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					cnois.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
-									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cLF), int(Nsim), int(Nx), int(Ny), int(kx), int(ky),
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cPD), int(Nsim), int(Nx), int(Ny), int(kx), int(ky),
 									pert[i], plot_out)
 					gc.collect()
 			break
 
-		elif user_input == 'cLF':
-			user_sweep_start = float(raw_input('\nPlease specify the range in which cLF should be simulated, start cLF_s in [s*s] = '))
-			user_sweep_end	 = float(raw_input('\nPlease specify the range in which cLF should be simulated, end cLF_e in [s*s] = '))
+		elif user_input == 'cPD':
+			user_sweep_start = float(raw_input('\nPlease specify the range in which cPD should be simulated, start cPD_s in [s*s] = '))
+			user_sweep_end	 = float(raw_input('\nPlease specify the range in which cPD should be simulated, end cPD_e in [s*s] = '))
 			user_sweep_discr = float(raw_input('\nPlease specify the discretization steps in [s*s] dc = '))
-			new_cLF_values = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
-			print('\nWill scan these cLF-values: ', new_cLF_values, '\n\n')
+			new_cPD_values = np.arange(user_sweep_start, user_sweep_end * 1.0001, user_sweep_discr)
+			print('\nWill scan these cPD-values: ', new_cPD_values, '\n\n')
 
 			topology= chooseTopology()											# calls function that asks user for input of type of network topology
 			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' or topology == 'hexagon-periodic' or topology == 'octagon-periodic'):
@@ -1364,7 +1373,7 @@ def noisyStatistics(params):
 				kx = k; ky = -999; Nx = N; Ny = 1;
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
-			if len(new_cLF_values)==1:
+			if len(new_cPD_values)==1:
 				isRadian=False
 				user_input = raw_input('\nGenerate plot of collective frequency and linear stability against delay to support decision. [y]es/[n]o? ')
 				if user_input == 'y':
@@ -1393,8 +1402,8 @@ def noisyStatistics(params):
 
 			# perform a Fc sweep
 			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
-			sf = synctools.SweepFactory(N, Ny, Nx, F, K, delay, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, new_cLF_values, isRadians=isRadian)
-			print('\n\nAdjust code Daniel to fit cLF!!!!')
+			sf = synctools.SweepFactory(N, Ny, Nx, F, K, delay, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, new_cPD_values, isRadians=isRadian)
+			print('\n\nAdjust code Daniel to fit cPD!!!!')
 
 			fsl = sf.sweep()
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
@@ -1402,12 +1411,13 @@ def noisyStatistics(params):
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
-			if not ( para_mat == [] and new_cLF_values == [] ):
+			if not ( para_mat == [] and new_cPD_values == [] ):
 
-				upper_TSim = 2000
-				lower_TSim = 50
+				upper_TSim = 2500
+				lower_TSim = 500
 				for i in range (len(para_mat[:,0])):
-					if para_mat[i,9]<10:
+					para_mat[i,9]=2.*para_mat[i,9]								# when computing noisy cases, the decay time approximation is not valid
+					if para_mat[i,9]<lower_TSim:
 						para_mat[i,9]=lower_TSim
 					if para_mat[i,9]>upper_TSim:
 						print('\n\nNOTE: here the simulation time has been altered to a SMALLER value... correct for that if necessary! \n\n')
@@ -1415,25 +1425,25 @@ def noisyStatistics(params):
 
 				# print( 'length of para_mat[:,0]:', len(para_mat[:,0]) )
 				# print( 'length of new_c_values :', len(new_c_values)  )
-				if ( len(para_mat[:,0]) > 1 or len(new_cLF_values) > 1 ):
+				if ( len(para_mat[:,0]) > 1 or len(new_cPD_values) > 1 ):
 					plot_out = False
-				elif ( len(para_mat[:,0]) == 1 and new_cLF_values == 1 ):
+				elif ( len(para_mat[:,0]) == 1 and new_cPD_values == 1 ):
 					plot_out = True
 				else:
 					plot_out = False
 
 				print('Multiple stable cases found, pick one from:\n', para_mat)
-				i = int(raw_input('\nPlease specify by number, which case should be taken as the basis to calculate the results for different cLF [0,...,N-1]: '))
+				i = int(raw_input('\nPlease specify by number, which case should be taken as the basis to calculate the results for different cPD [0,...,N-1]: '))
 				#for i in range (len(para_mat[:,0])):
 					#print('calculating for param set given by:\n', para_mat[i,:])
-				for j in range (len(new_cLF_values)):
+				for j in range (len(new_cPD_values)):
 					print('\nSTART: python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float(Fc))+' '
 												+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-												+str(c)+' '+str(Nsim)+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(new_cLF_values[j])+' '.join(map(str, pert)))
+												+str(c)+' '+str(new_cPD_values[j])+' '+str(Nsim)+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '.join(map(str, pert[i])))
 					# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					cnois.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float(Fc), float((para_mat[i,4])), float(para_mat[i,6]),
-									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(new_cLF_values[j]), int(Nsim), int(Nx), int(Ny), int(kx), int(ky),
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(new_cPD_values[j]), int(Nsim), int(Nx), int(Ny), int(kx), int(ky),
 									pert[i], plot_out)
 					gc.collect()
 			break
@@ -1457,7 +1467,7 @@ def noisyStatistics(params):
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
-			cLF		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
+			cPD		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
 			Nsim    = chooseNsim()												# calls function that asks user for input for number of realizations
 			case, rot_vs_orig = chooseDeltaPert(N)								# calls function that asks user for input for delta-like perturbation
 			if case == '4':
@@ -1489,7 +1499,8 @@ def noisyStatistics(params):
 			upper_TSim = 2000
 			lower_TSim = 50
 			for i in range (len(para_mat[:,0])):
-				if para_mat[i,9]<10:
+				para_mat[i,9]=2.*para_mat[i,9]									# when computing noisy cases, the decay time approximation is not valid
+				if para_mat[i,9]<lower_TSim:
 					para_mat[i,9]=lower_TSim
 				if para_mat[i,9]>upper_TSim:
 					print('\n\nNOTE: here the simulation time has been altered to a SMALLER value... correct for that if necessary! \n\n')
@@ -1506,12 +1517,12 @@ def noisyStatistics(params):
 				for i in range (len(para_mat[:,0])):
 					print('\nSTART: python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 												+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-												+str(c)+' '+str(Nsim)+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(cLF)+' '
+												+str(c)+' '+str(cPD)+' '+str(Nsim)+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '
 												.join(map(str, pert)))
 					# os.system('python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(Nsim)+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					cnois.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
-									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cLF), int(Nsim), int(Nx), int(Ny), int(kx), int(ky),
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cPD), int(Nsim), int(Nx), int(Ny), int(kx), int(ky),
 									pert[i], plot_out)
 					gc.collect()
 			break
@@ -1554,7 +1565,7 @@ def bruteForce(params, param_cases_csv):
 					synctools.generate_delay_plot(N, Ny, Nx, F, new_K_values, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, isRadians=isRadian)
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
-			cLF		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
+			cPD		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
 			# pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
 			pert = [];
 			# Nsim    = chooseNsim()											# calls function that asks user for input for number of realizations
@@ -1593,15 +1604,15 @@ def bruteForce(params, param_cases_csv):
 
 					print('\nSTART: python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '
-													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(cLF)+' '
+													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(cPD)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '
 													.join(map(str, pert)))
 					# os.system('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					# cbrut.bruteforceout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
-					# 				int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cLF), int(1), str(int(Nx)), str(int(Ny)), str(int(kx)), str(int(ky)),
+					# 				int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cPD), int(1), str(int(Nx)), str(int(Ny)), str(int(kx)), str(int(ky)),
 					# 				pert, plot_out)
 					cbrut.bruteforceout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
-									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cLF), int(1), int(Nx), int(Ny), int(kx), int(ky),
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cPD), int(1), int(Nx), int(Ny), int(kx), int(ky),
 									pert, plot_out)
 					gc.collect()
 			break
@@ -1632,7 +1643,7 @@ def bruteForce(params, param_cases_csv):
 					synctools.generate_delay_plot(N, Ny, Nx, F, K, str(params['DEFAULT']['couplingfct']), new_Fc_values, k, kx, ky,topology, isRadians=isRadian)
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
-			cLF		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
+			cPD		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
 			# pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
 			pert = []
 			# Nsim    = chooseNsim()												# calls function that asks user for input for number of realizations
@@ -1670,12 +1681,12 @@ def bruteForce(params, param_cases_csv):
 
 					print('\nSTART: python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '
-													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(cLF)+' '
+													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(cPD)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '
 													.join(map(str, pert)))
 					# os.system('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					cbrut.bruteforceout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
-									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cLF), int(1), int(Nx), int(Ny), int(kx), int(ky),
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cPD), int(1), int(Nx), int(Ny), int(kx), int(ky),
 									pert, plot_out)
 					gc.collect()
 			break
@@ -1700,7 +1711,7 @@ def bruteForce(params, param_cases_csv):
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
-			cLF		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
+			cPD		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
 			# pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
 			pert = []
 			# Nsim    = chooseNsim()												# calls function that asks user for input for number of realizations
@@ -1738,12 +1749,12 @@ def bruteForce(params, param_cases_csv):
 
 					print('\nSTART: python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '
-													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(cLF)+' '
+													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(cPD)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '
 													+' '.join(map(str, pert)))
 					# os.system('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					cbrut.bruteforceout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
-									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cLF), int(1), int(Nx), int(Ny), int(kx), int(ky),
+									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cPD), int(1), int(Nx), int(Ny), int(kx), int(ky),
 									pert, plot_out)
 					gc.collect()
 			break
@@ -1787,7 +1798,7 @@ if __name__ == '__main__':
 		# print(inputstr)
 		decision1 = raw_input('\nWould you like to reset one of the following system parameters: \n{\nenable multiprocessing, \nnumber of available cores to use, \nparameter discretization for brute force method, \ntype of coupling fct, \nintrinsic frequencies, \nsample frequency time series, \nstandard deviation intrinsic frequency, \nstandard deviation coupling strength, \nstandard deviation trans.delay, \nfeedback-delay value, \nfrequency of intitial phase history\n} \n\n[y]es/[n]o: ')
 		if decision1 == 'y':
-			multiproc 			= raw_input('Multiprocessing choose [True] / [False] (string): ')
+			multiproc 		= raw_input('Multiprocessing choose [True] / [False] (string): ')
 			if multiproc == 'True':
 				numberCores = raw_input('How many cores are maximally available? [integer]: ')
 			else:
@@ -1853,10 +1864,10 @@ if __name__ == '__main__':
 			F 					= float(params['DEFAULT']['F'])					# 5 free-running frequency of the PLLs
 			Fsim 				= float(params['DEFAULT']['Fsim'])				# 6 simulate phase model with given sample frequency -- goal: about 100 samples per period
 			domega     			= float(params['DEFAULT']['domega'])			# 7 the diffusion constant [variance=2*diffconst] of the gaussian distribution for the intrinsic frequencies
-			diffconstK 			= float(params['DEFAULT']['diffconstK'])				# 8 the diffusion constant [variance=2*diffconst] of the gaussian distribution for the coupling strength
-			diffconstSendDelay	= float(params['DEFAULT']['diffconstSendDelay'])		# the diffusion constant [variance=2*diffconst] of the gaussian distribution for the transmission delays
-			feedback_delay		= float(params['DEFAULT']['feedbackDelay'])				# feedback delay of the nodes
-			histtype			= str(params['DEFAULT']['histtype'])	  				# what history is being set? uncoupled PLLs (uncoupled), or PLLs in the synchronized state under investigation (syncstate)
+			diffconstK 			= float(params['DEFAULT']['diffconstK'])		# 8 the diffusion constant [variance=2*diffconst] of the gaussian distribution for the coupling strength
+			diffconstSendDelay	= float(params['DEFAULT']['diffconstSendDelay'])# the diffusion constant [variance=2*diffconst] of the gaussian distribution for the transmission delays
+			feedback_delay		= float(params['DEFAULT']['feedbackDelay'])		# feedback delay of the nodes
+			histtype			= str(params['DEFAULT']['histtype'])	  		# what history is being set? uncoupled PLLs (uncoupled), or PLLs in the synchronized state under investigation (syncstate)
 			# Tsim				= float(params['DEFAULT']['Tsim'])				# 9 the simulation time for each realization -- load above from csv
 			break
 		elif decision1 == 'n':
@@ -1868,10 +1879,10 @@ if __name__ == '__main__':
 			F 					= float(params['DEFAULT']['F'])					# 5 free-running frequency of the PLLs
 			Fsim 				= float(params['DEFAULT']['Fsim'])				# 6 simulate phase model with given sample frequency -- goal: about 100 samples per period
 			domega     			= float(params['DEFAULT']['domega'])			# 7 the diffusion constant [variance=2*diffconst] of the gaussian distribution for the intrinsic frequencies
-			diffconstK 			= float(params['DEFAULT']['diffconstK'])				# 8 the diffusion constant [variance=2*diffconst] of the gaussian distribution for the coupling strength
-			diffconstSendDelay	= float(params['DEFAULT']['diffconstSendDelay'])		# the diffusion constant [variance=2*diffconst] of the gaussian distribution for the transmission delays
-			feedback_delay		= float(params['DEFAULT']['feedbackDelay'])				# feedback delay of the nodes
-			histtype			= str(params['DEFAULT']['histtype'])	  				# what history is being set? uncoupled PLLs (uncoupled), or PLLs in the synchronized state under investigation (syncstate)
+			diffconstK 			= float(params['DEFAULT']['diffconstK'])		# 8 the diffusion constant [variance=2*diffconst] of the gaussian distribution for the coupling strength
+			diffconstSendDelay	= float(params['DEFAULT']['diffconstSendDelay'])# the diffusion constant [variance=2*diffconst] of the gaussian distribution for the transmission delays
+			feedback_delay		= float(params['DEFAULT']['feedbackDelay'])		# feedback delay of the nodes
+			histtype			= str(params['DEFAULT']['histtype'])	  		# what history is being set? uncoupled PLLs (uncoupled), or PLLs in the synchronized state under investigation (syncstate)
 			# Tsim				= float(params['DEFAULT']['Tsim'])				# 9 the simulation time for each realization -- load above from csv
 			break
 		else:
@@ -1881,7 +1892,7 @@ if __name__ == '__main__':
 	# sim_mode = raw_input...
 	a_true = True
 	while a_true:
-		decision2 = raw_input('\nPlease specify simulation mode: \n\n[1] single realization, \n[2] statistics on noisy realizations, \n[3] brute-force basin of attraction scan, \n[4] single realization, adiabatic change of cLF. \n\nChoice: ')
+		decision2 = raw_input('\nPlease specify simulation mode: \n\n[1] single realization, \n[2] statistics on noisy realizations, \n[3] brute-force basin of attraction scan, \n[4] single realization, adiabatic change of cPD. \n\nChoice: ')
 		if decision2 == '1':
 			singleRealization(params)
 			break
