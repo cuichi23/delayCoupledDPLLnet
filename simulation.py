@@ -8,6 +8,7 @@ import numpy as np
 #cimport cython
 import networkx as nx
 from scipy.signal import sawtooth
+from scipy.stats import cauchy
 
 import evaluation as eva
 import datetime
@@ -203,8 +204,16 @@ class VoltageControlledOscillator:
 		self.diffconstK = diffconstK
 		self.domega = domega
 		self.Fc = Fc
+
+		lorentz = 1;
+
 		if domega != 0.0:
-			self.F = np.random.normal(loc=F, scale=np.sqrt(2.0*domega))			# set intrinsic frequency of the VCO plus gaussian dist. random variable from a distribution
+			if gaussian == 1:
+				self.F = np.random.normal(loc=F, scale=np.sqrt(2.0*domega))		# set intrinsic frequency of the VCO plus gaussian dist. random variable from a distribution
+				print('\nIntrinsic frequencies are Gaussian distributed with diffussion coeffcient: ', domega)
+			elif lorentz ==1:
+				self.F = cauchy.rvs(loc=F, scale=domega, size=1)				# set intrinsic frequency of the VCO plus gaussian dist. random variable from a distribution
+				print('\nIntrinsic frequencies are Lorentzian distributed with scale parameter: ', domega)
 			self.omega = 2.0*np.pi*self.F										# set intrinsic angular frequency of the VCO plus gaussian dist. random variable from a distribution
 			print('Intrinsic freq. from gaussian dist.:', self.omega, 'for diffusion constant domega:', self.domega)
 		else:
@@ -350,8 +359,13 @@ class PhaseDetectorCombiner:													# this class creates PD objects, these 
 		except:
 			print('NOTE: check again how to set this for XOR, multiplication and flip flop') # if there is no input (uncoupled PLL), then the phase detector output is zero
 			print('Also, this has to be set individually for each type of PD!')
-			sys.exit(1);
-			return -1.0
+
+			x_self = x[self.idx_self]
+			x_neighbours = x_delayed[self.idx_neighbours]
+			self.y = np.mean( self.h( x_neighbours - x_self ) )
+
+			#sys.exit(1);
+			return self.y
 
 class PhaseDetectorCombinerShifted(PhaseDetectorCombiner):						# this class creates PD objects, these are responsible to detect the phase differences and combine the results
 	"""A phase detector and combiner class"""									# of different inputs (coupling partners)
