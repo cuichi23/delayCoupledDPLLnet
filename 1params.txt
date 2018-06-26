@@ -12,7 +12,7 @@ f = 1.0
 #6: sample phases with fsim [hz] multiples of the intrinsic frequency -> goal: about 100 samples per period test-100000, 125
 fsim = 125
 #7: diffconst [variance=2*diffconst] of the gaussian dist. for the int. frequencies [or lorentzian's scale para, set in class VCO]
-domega = 0
+domega = 0.1
 #8: diffusion constant [variance=2*diffconst] of the gaussian distribution for the coupling strength
 diffconstk = 0
 #9: diffusion constant [variance=2*diffconst] of the gaussian distribution for the transmission delays

@@ -205,13 +205,13 @@ class VoltageControlledOscillator:
 		self.domega = domega
 		self.Fc = Fc
 
-		lorentz = 1;
+		gaussian = 0;
 
 		if domega != 0.0:
 			if gaussian == 1:
 				self.F = np.random.normal(loc=F, scale=np.sqrt(2.0*domega))		# set intrinsic frequency of the VCO plus gaussian dist. random variable from a distribution
 				print('\nIntrinsic frequencies are Gaussian distributed with diffussion coeffcient: ', domega)
-			elif lorentz ==1:
+			elif gaussian ==0:
 				self.F = cauchy.rvs(loc=F, scale=domega, size=1)				# set intrinsic frequency of the VCO plus gaussian dist. random variable from a distribution
 				print('\nIntrinsic frequencies are Lorentzian distributed with scale parameter: ', domega)
 			self.omega = 2.0*np.pi*self.F										# set intrinsic angular frequency of the VCO plus gaussian dist. random variable from a distribution
