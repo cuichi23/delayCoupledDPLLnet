@@ -535,7 +535,82 @@ def singleAdiabatChange(params):
 	x_true = True
 	while x_true:
 		# get user input to know which parameter should be analyzed
-		user_input = raw_input('\nPlease specify which parameters should be changed adiabatically {VCO noise inst. freq [c] or LF induced noise on PD signal [cPD]} : ')
+		user_input = raw_input('\nPlease specify which parameters should be changed adiabatically {coupling strength [K], VCO noise inst. freq [c] or LF induced noise on PD signal [cPD]} : ')
+		if user_input == 'K':
+			Kadiab_value_s = float(raw_input('\nPlease specify initial value of K in [Hz]: '))
+			Kadiab_value_r = float(raw_input('\nPlease specify the value of K in [Hz], at which the adiabatic change will reverse and change back to the initial value: '))
+			Trelax = float(raw_input('\nPlease specify the transient decay time Trelax, adiabatic change start after that time in [s] = '))
+			K = Kadiab_value_s													# this is the initial state
+
+			print('\nWill start with this K-value: ', Kadiab_value_s, ', reverse at', Kadiab_value_r,', with adiabatic change time Trelax: ', Trelax, '\n\n')
+
+			topology= chooseTopology()											# calls function that asks user for input of type of network topology
+			if ( topology == 'square-periodic' or topology == 'square-open' or topology == 'hexagon' or topology == 'octagon' or topology == 'hexagon-periodic' or topology == 'octagon-periodic'):
+				Nx, Ny = get2DosciNumbers()										# calls function that asks user for input of number of oscis in each direction
+				N = Nx*Ny
+				kx, ky = get2DTwistNumbers(Nx, Ny, topology)					# choose 2d-twist under investigation
+				k = kx															# set to dummy value
+			else:
+				N = chooseNumber()												# calls function that asks user for input of number of oscis
+				k = chooseTwistNumber(N, topology)								# choose twist under investigation
+				kx = k; ky = -999; Nx = N; Ny = 1;
+			Fc    	= chooseFc()												# calls function that asks user for input of cut-off frequency
+			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
+			cPD		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
+			# c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
+			c       = 0
+			Nsim    = 1															# calls function that asks user for input for number of realizations
+			case, rot_vs_orig = chooseDeltaPert(N)								# calls function that asks user for input for delta-like perturbation
+			if case == '4':
+				distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale = chooseDistribution()
+			else:
+				distrib='gamma'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
+			pert = []
+			#for i in range (Nsim):
+			#	pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
+			# There should be another loop over the different NSim cases for the different initial conditions in pert vector... CHECK! is that not in case_noisy.py?
+			# NO, not for each NSim it is necessary to introduce a new intial perturbation - however, that has to be clearly noted here!
+			# It does not work this way anyways... NSim determines how many realization are calculated in case_noisy.py... IF, the would be there were a new seed of
+			# initial perturbations should be drawn!!!
+
+			pert = setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k)
+
+			# if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
+			# 	h = synctools.Triangle(1.0 / (2.0 * np.pi))
+			# elif str(params['DEFAULT']['couplingfct']) == 'cos':
+			# 	h = synctools.Cos(1.0 / (2.0 * np.pi))
+			# elif str(params['DEFAULT']['couplingfct']) == 'sin':
+			# 	h = synctools.Sin(1.0 / (2.0 * np.pi))
+			print('params', params)
+
+			# perform a delay sweep
+			isRadian=False														# set this False to get values returned in [Hz] instead of [rad * Hz]
+			sf = synctools.SweepFactory(N, Ny, Nx, F, K, delay, str(params['DEFAULT']['couplingfct']), Fc, k, kx, ky,topology, np.array([cPD, cPD]), isRadians=isRadian)
+			print('\n\nAdjust code Daniel to fit cPD!!!!')
+
+			fsl = sf.sweep()
+			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
+			print('New parameter combinations with {N, F, K, Fc, delay, m, F_Omeg, ReLambda, ImLambda, Tsim, Nx, Ny, mx, my}: \n', para_mat)
+
+			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
+
+			if not ( para_mat == [] and len(para_mat) == 0 and cPD_value == [] and len(cPD_value) == 0):
+				plot_out = True
+
+				# for i in range (len(para_mat[:,0])):
+				print('\nSTART: python case_singleadiabatic.py '+str(topology)+' '+str(int(para_mat[0,0]))+' '+str(float(para_mat[0,2]))+' '+str(float((para_mat[0,3])))+' '
+												+str(float(delay))+' '+str(float(para_mat[0,6]))+' '+str(int(para_mat[0,5]))+' '+str(int(round(float(para_mat[0,9]))))+' '
+												+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(float(cPD))+' '+str(Trelax)+' '
+												+str(float(Kadiab_value_r))+' '.join(map(str, pert)))
+				print('Tsim: ', para_mat[0,9])
+				# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
+				# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
+				cadiab.singleadiabatic(str(topology), int(para_mat[0,0]), float(para_mat[0,2]), float((para_mat[0,3])), float(delay), float(para_mat[0,6]),
+								int(para_mat[0,5]), int(round(float(para_mat[0,9]))), float(c), float(cPD), float(Trelax), float(Kadiab_value_r), int(1), int(Nx), int(Ny), int(kx), int(ky),
+								pert, plot_out)
+				gc.collect()
+			break
+
 		if user_input == 'cPD':
 			cPD_value = float(raw_input('\nPlease specify initial value of cPD_s in [s*s], from there it will adiabatically change to zero = '))
 			Trelax = float(raw_input('\nPlease specify the transient decay time Trelax, adiabatic change start after that time in [s] = '))
@@ -564,8 +639,14 @@ def singleAdiabatChange(params):
 			else:
 				distrib='gamma'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
 			pert = []
-			for i in range (Nsim):
-				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
+			#for i in range (Nsim):
+			#	pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
+			# There should be another loop over the different NSim cases for the different initial conditions in pert vector... CHECK! is that not in case_noisy.py?
+			# NO, not for each NSim it is necessary to introduce a new intial perturbation - however, that has to be clearly noted here!
+			# It does not work this way anyways... NSim determines how many realization are calculated in case_noisy.py... IF, the would be there were a new seed of
+			# initial perturbations should be drawn!!!
+
+			pert = setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k)
 
 			# if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
 			# 	h = synctools.Triangle(1.0 / (2.0 * np.pi))
@@ -630,8 +711,14 @@ def singleAdiabatChange(params):
 			else:
 				distrib='gamma'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
 			pert = []
-			for i in range (Nsim):
-				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
+			#for i in range (Nsim):
+			#	pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
+			# There should be another loop over the different NSim cases for the different initial conditions in pert vector... CHECK! is that not in case_noisy.py?
+			# NO, not for each NSim it is necessary to introduce a new intial perturbation - however, that has to be clearly noted here!
+			# It does not work this way anyways... NSim determines how many realization are calculated in case_noisy.py... IF, the would be there were a new seed of
+			# initial perturbations should be drawn!!!
+
+			pert = setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k)
 
 			# if str(params['DEFAULT']['couplingfct']) == 'triang':			    # set the coupling function for evaluating the frequency and stability with Daniel's module
 			# 	h = synctools.Triangle(1.0 / (2.0 * np.pi))
@@ -714,8 +801,14 @@ def singleRealization(params):
 			else:
 				distrib='NONE'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
 			pert = []
-			for i in range (Nsim):
-				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
+			#for i in range (Nsim):
+			#	pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
+			# There should be another loop over the different NSim cases for the different initial conditions in pert vector... CHECK! is that not in case_noisy.py?
+			# NO, not for each NSim it is necessary to introduce a new intial perturbation - however, that has to be clearly noted here!
+			# It does not work this way anyways... NSim determines how many realization are calculated in case_noisy.py... IF, the would be there were a new seed of
+			# initial perturbations should be drawn!!!
+
+			pert = setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k)
 
 			# if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
 			# 	h = synctools.Triangle(1.0 / (2.0 * np.pi))
@@ -810,8 +903,14 @@ def singleRealization(params):
 			else:
 				distrib='gamma'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
 			pert = []
-			for i in range (Nsim):
-				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
+			#for i in range (Nsim):
+			#	pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
+			# There should be another loop over the different NSim cases for the different initial conditions in pert vector... CHECK! is that not in case_noisy.py?
+			# NO, not for each NSim it is necessary to introduce a new intial perturbation - however, that has to be clearly noted here!
+			# It does not work this way anyways... NSim determines how many realization are calculated in case_noisy.py... IF, the would be there were a new seed of
+			# initial perturbations should be drawn!!!
+
+			pert = setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k)
 
 			# if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
 			# 	h = synctools.Triangle(1.0 / (2.0 * np.pi))
@@ -899,8 +998,14 @@ def singleRealization(params):
 			else:
 				distrib='gamma'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
 			pert = []
-			for i in range (Nsim):
-				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
+			#for i in range (Nsim):
+			#	pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
+			# There should be another loop over the different NSim cases for the different initial conditions in pert vector... CHECK! is that not in case_noisy.py?
+			# NO, not for each NSim it is necessary to introduce a new intial perturbation - however, that has to be clearly noted here!
+			# It does not work this way anyways... NSim determines how many realization are calculated in case_noisy.py... IF, the would be there were a new seed of
+			# initial perturbations should be drawn!!!
+
+			pert = setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k)
 
 			# if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
 			# 	h = synctools.Triangle(1.0 / (2.0 * np.pi))
@@ -997,8 +1102,14 @@ def singleRealization(params):
 			else:
 				distrib='gamma'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
 			pert = []
-			for i in range (Nsim):
-				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
+			#for i in range (Nsim):
+			#	pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
+			# There should be another loop over the different NSim cases for the different initial conditions in pert vector... CHECK! is that not in case_noisy.py?
+			# NO, not for each NSim it is necessary to introduce a new intial perturbation - however, that has to be clearly noted here!
+			# It does not work this way anyways... NSim determines how many realization are calculated in case_noisy.py... IF, the would be there were a new seed of
+			# initial perturbations should be drawn!!!
+
+			pert = setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k)
 
 			# if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
 			# 	h = synctools.Triangle(1.0 / (2.0 * np.pi))
@@ -1108,9 +1219,17 @@ def noisyStatistics(params):
 				distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale = chooseDistribution()
 			else:
 				distrib='gamma'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
+
 			pert = []
-			for i in range (Nsim):
-				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
+			#for i in range (Nsim):
+			#	pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
+			# There should be another loop over the different NSim cases for the different initial conditions in pert vector... CHECK! is that not in case_noisy.py?
+			# NO, not for each NSim it is necessary to introduce a new intial perturbation - however, that has to be clearly noted here!
+			# It does not work this way anyways... NSim determines how many realization are calculated in case_noisy.py... IF, the would be there were a new seed of
+			# initial perturbations should be drawn!!!
+
+			pert = setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k)
+
 
 			# if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
 			# 	h = synctools.Triangle(1.0 / (2.0 * np.pi))
@@ -1153,6 +1272,7 @@ def noisyStatistics(params):
 				else:
 					plot_out = False
 
+				# NOTE: in this way, for each K value, multiple solutions could be contained in para_mat -- ALL of them are simulated now!
 				for i in range (len(para_mat[:,0])):
 					print('\nSTART: python case_noisy.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 												+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
@@ -1163,7 +1283,7 @@ def noisyStatistics(params):
 					# def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, Nx=0, Ny=0, kx=0, ky=0, phiSr=[], show_plot=True):
 					cnois.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
 									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cPD), int(Nsim), int(Nx), int(Ny), int(kx), int(ky),
-									pert[i], plot_out)
+									pert, plot_out)
 					gc.collect()
 			break
 
@@ -1200,10 +1320,10 @@ def noisyStatistics(params):
 				distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale = chooseDistribution()
 			else:
 				distrib='gamma'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
+
 			pert = []
 			for i in range (Nsim):
 				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
-
 
 			# if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
 			# 	h = synctools.Triangle(1.0 / (2.0 * np.pi))
@@ -1892,7 +2012,7 @@ if __name__ == '__main__':
 	# sim_mode = raw_input...
 	a_true = True
 	while a_true:
-		decision2 = raw_input('\nPlease specify simulation mode: \n\n[1] single realization, \n[2] statistics on noisy realizations, \n[3] brute-force basin of attraction scan, \n[4] single realization, adiabatic change of cPD. \n\nChoice: ')
+		decision2 = raw_input('\nPlease specify simulation mode: \n\n[1] single realization, \n[2] statistics on noisy realizations, \n[3] brute-force basin of attraction scan, \n[4] single realization, adiabatic change of cPD or K. \n\nChoice: ')
 		if decision2 == '1':
 			singleRealization(params)
 			break

@@ -52,16 +52,27 @@ annotationfont = {
         }
 
 ''' EVALUATION SINGLE REALIZATION '''
-def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cPD, cPD_t=[], coupFct='triang', Tsim=53, Fsim=None, show_plot=True):
+def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cPD, cPD_t=[], Kadiab_t=[], K_adiab_r=(-1), coupFct='triang', Tsim=53, Fsim=None, show_plot=True):
 
-	Trelax = Tsim
-	Nrelax = int(Trelax/dt)
-	rate   = 0.1 / Trelax
-	rate_per_step = 0.1 / Nrelax
-	''' use Trelax to calculate the rate and Nsteps until cPD is close to zero '''
-	Nsteps  	  = int(0.95 * c / rate_per_step)
-	delaysteps    = int(delay / dt)
-	Nsim   = Nrelax+Nsteps+delaysteps
+	if np.size(Kadiab_t) == 0 and np.size(cPD_t) != 0:
+		Trelax 			= Tsim
+		Nrelax 			= int(Trelax/dt)
+		rate   			= 0.1 / Trelax
+		rate_per_step 	= 0.1 / Nrelax
+		''' use Trelax to calculate the rate and Nsteps until cPD is close to zero '''
+		Nsteps  	  	= int(0.95 * c / rate_per_step)
+		delaysteps    	= int(delay / dt)
+		Nsim   			= Nrelax+Nsteps+delaysteps
+	elif np.size(Kadiab_t) != 0 and np.size(cPD_t) == 0:
+		Trelax 			= Tsim
+		Nrelax 			= int(Trelax/dt)
+		rate   			= 0.1 / Trelax											# self.K_rate is set in simulation.py
+		rate_per_step 	= 0.1 / Nrelax
+		''' calculate the rate and Nsteps until K has grown and decayed back to its initial value '''
+		Nsteps  	  	= 2 * int( (2.0*np.pi*(K_adiab_r - K)) / rate_per_step )
+		delaysteps    	= int(delay / dt)
+		Nsim   			= Nrelax+Nsteps+delaysteps
+
 	# print('cPD_t:', cPD_t)
 	if F > 0:																	# for f=0, there would otherwies be a float division by zero
 		F1=F
@@ -72,7 +83,7 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cPD, cPD_
 	# afterTransients = int( round( 0.5*Tsim / dt ) )
 	# phiSpect = phi[:,-afterTransients:,:]
 	now = datetime.datetime.now()
-	if np.size(cPD_t) == 0:
+	if np.size(cPD_t) == 0 and np.size(Kadiab_t) == 0:
 		if coupFct == 'triang':
 			print('Calculate spectrum for square wave signals. Fsim=%d' %Fsim)
 			# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'square')				# calculate spectrum of signals, i.e., of this state
@@ -220,6 +231,32 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cPD, cPD_
 			plt.ylabel(r'$R( t,m = %d )$' % k, fontdict = labelfont)
 			plt.savefig('results/orderP-c_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day))
 			plt.savefig('results/orderP-c_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), dpi=300)
+	elif not np.size(Kadiab_t) == 0:
+			plt.figure('order parameter over time, adiabatic change K')			# plot the order parameter in dependence of time
+			Kadiab_t=np.array(Kadiab_t)
+			Kadiab_t=Kadiab_t.flatten()
+			plt.clf()
+			plt.plot((t[0:(len(t)-1):10*int(1/dt)]*dt), orderparam[0:(len(t)-1):10*int(1/dt)])
+			plt.plot(t*dt, Kadiab_t)
+			plt.plot(delay, orderparam[int(round(delay/dt))], 'yo', ms=5)			# mark where the simulation starts
+			plt.grid()
+			plt.axvspan(t[-int(2*1.0/(F1*dt))]*dt, t[-1]*dt, color='b', alpha=0.3)
+			plt.title(r'$\bar{R}(t_{end}-2T_{\omega}:t_{end})=$%.2f, and $\bar{\sigma}=$%.4f' %(np.mean(orderparam[-int(round(2*1.0/(F1*dt))):]), np.std(orderparam[-int(round(2*1.0/(F1*dt))):])), fontdict = titlefont)
+			plt.xlabel(r'$t$ $[s]$', fontdict = labelfont)
+			plt.ylabel(r'$R( t,m = %d )$' % k, fontdict = labelfont)
+			plt.savefig('results/orderP-t_K0%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day))
+			plt.savefig('results/orderP-t_K0%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), dpi=300)
+			#print('\nlast entry order parameter: R-1 = %.3e' % (orderparam[-1]-1) )
+			#print('\nlast entries order parameter: R = ', orderparam[-25:])
+
+			plt.figure('order parameter vs adiabatic change in K')				# plot the order parameter in dependence of cPD
+			plt.clf()
+			plt.plot(Kadiab_t[0:(len(t)-1):10*int(1/dt)], orderparam[0:(len(t)-1):10*int(1/dt)])
+			plt.title(r'R(t) vs K(t) after Trelax, adiabatic-rate=%.4f' %(rate), fontdict = titlefont)
+			plt.xlabel(r'$K(t)$', fontdict = labelfont)
+			plt.ylabel(r'$R( t,m = %d )$' % k, fontdict = labelfont)
+			plt.savefig('results/orderP-Kt_K0%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day))
+			plt.savefig('results/orderP-Kt_K0%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), dpi=300)
 	else:
 		plt.figure('order parameter over time')									# plot the order parameter in dependence of time
 		plt.clf()
