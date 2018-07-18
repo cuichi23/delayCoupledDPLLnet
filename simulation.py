@@ -256,8 +256,12 @@ class VoltageControlledOscillator:
 		self.c 			= c														# noise strength -- chose something like variance or std here!
 		self.ct			= c
 		self.Trelax		= float(Trelax)
-		self.K_rate		= 0.1 / self.Trelax										# rate of change of K per second during adiabatic change
-		self.Treverse	= float(self.K_range/self.K_rate)						# time in seconds until the adiabatic change of K reverses
+		if self.Trelax > 0:
+			self.K_rate		= 0.1 / self.Trelax									# rate of change of K per second during adiabatic change
+			self.Treverse	= float(self.K_range/self.K_rate)					# time in seconds until the adiabatic change of K reverses
+		else:
+			self.K_rate 	= 0
+			self.Treverse 	= 0
 		# print('\nin constructor VCO, c=', c)
 		''' CAN OUTPUT RANDOM NUMBERS TO FILE FOR CHECK '''
 		# if c==8.0:

@@ -1719,13 +1719,14 @@ def bruteForce(params, param_cases_csv):
 
 				for i in range (len(para_mat[:,0])):
 					print('Tsim: ',     para_mat[i,9])
-					if Tsim < 2:
-						print('Tsim so small that it might cause a CRASH! CHECK!')
+					if para_mat[i,9] < 2:
+						print('Tsim so small that it might cause a CRASH or something might be wrong (e.g. dt TOO SMALL)! CHECK!')
+						para_mat[i,9] = 5;
 
 					print('\nSTART: python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '
 													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(cPD)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '
-													.join(map(str, pert)))
+													+str(float(cPD))+' '.join(map(str, pert)))
 					# os.system('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					# cbrut.bruteforceout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
@@ -1734,6 +1735,7 @@ def bruteForce(params, param_cases_csv):
 					cbrut.bruteforceout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
 									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cPD), int(1), int(Nx), int(Ny), int(kx), int(ky),
 									pert, plot_out)
+					# def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0, Ny=0, kx=0, ky=0, phiSr=[], show_plot=True):
 					gc.collect()
 			break
 
@@ -1795,14 +1797,15 @@ def bruteForce(params, param_cases_csv):
 					plot_out = False
 
 				for i in range (len(para_mat[:,0])):
-					print('Tsim: ', para_mat[i,9])#
-					if Tsim < 2:
-						print('Tsim so small that it might cause a CRASH! CHECK!')
+					print('Tsim: ',     para_mat[i,9])
+					if para_mat[i,9] < 2:
+						print('Tsim so small that it might cause a CRASH or something might be wrong (e.g. dt TOO SMALL)! CHECK!')
+						para_mat[i,9] = 5;
 
 					print('\nSTART: python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '
 													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(cPD)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '
-													.join(map(str, pert)))
+													+str(float(cPD))+' '.join(map(str, pert)))
 					# os.system('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					cbrut.bruteforceout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
@@ -1863,14 +1866,15 @@ def bruteForce(params, param_cases_csv):
 					plot_out = False
 
 				for i in range (len(para_mat[:,0])):
-					print('Tsim: ', para_mat[i,9])
-					if Tsim < 2:
-						print('Tsim so small that it might cause a CRASH! CHECK!')
+					print('Tsim: ',     para_mat[i,9])
+					if para_mat[i,9] < 2:
+						print('Tsim so small that it might cause a CRASH or something might be wrong (e.g. dt TOO SMALL)! CHECK!')
+						para_mat[i,9] = 5;
 
 					print('\nSTART: python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '
 													+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+str(cPD)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '
-													+' '.join(map(str, pert)))
+													+str(float(cPD))+' '.join(map(str, pert)))
 					# os.system('python case_bruteforce.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					cbrut.bruteforceout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),

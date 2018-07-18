@@ -320,7 +320,7 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0
 			#print( 'type of phiS', type(phiS))
 			#print( 'type of initPhiPrime0', type(initPhiPrime0))
 			#print( 'phiS = ', phiS, '\n')
-			data = simulatePllNetwork(mode,topology,couplingfct, histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx,Ny,kx,ky,plot_Phases_Freq)
+			data = simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx,Ny,kx,ky,plot_Phases_Freq)
 
 			''' evaluate dictionaries '''
 			results.append( [ data['mean_order'],  data['last_orderP'], data['stdev_orderP'] ] )
