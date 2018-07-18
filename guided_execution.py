@@ -859,7 +859,7 @@ def singleRealization(params):
 				for i in range (len(para_mat[:,0])):
 					print('\nSTART: python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 							+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-							+str(c)+' '+str(cPD)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '.join(map(str, pert)))
+							+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(cPD)+' '+' '.join(map(str, pert)))
 					print('Tsim: ', para_mat[i,9])
 					# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
@@ -961,7 +961,7 @@ def singleRealization(params):
 				for i in range (len(para_mat[:,0])):
 					print('\nSTART: python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-													+str(c)+' '+str(cPD)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '.join(map(str, pert)))
+													+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(cPD)+' '+' '.join(map(str, pert)))
 					print('Tsim: ', para_mat[i,9])
 					# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
@@ -1056,7 +1056,7 @@ def singleRealization(params):
 				for i in range (len(para_mat[:,0])):
 					print('\nSTART: python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-													+str(c)+' '+str(cPD)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '.join(map(str, pert)))
+													+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(cPD)+' '+' '.join(map(str, pert)))
 					print('Tsim: ', para_mat[i,9])
 					# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
@@ -1166,7 +1166,7 @@ def singleRealization(params):
 				for j in range (len(new_cPD_values)):
 					print('\nSTART: python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '
 													+str(float(delay))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '
-													+str(c)+' '+str(float(new_cPD_values[j]))+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '.join(map(str, pert)))
+													+str(c)+' '+'1'+' '+str(Nx)+' '+str(Ny)+' '+str(kx)+' '+str(ky)+' '+str(float(new_cPD_values[j]))+' '+' '.join(map(str, pert)))
 					print('Tsim: ', para_mat[i,9])
 					# os.system('python case_singleout.py '+str(topology)+' '+str(int(para_mat[i,0]))+' '+str(float(para_mat[i,2]))+' '+str(float((para_mat[i,3])))+' '+str(float(para_mat[i,4]))+' '+str(float(para_mat[i,6]))+' '+str(int(para_mat[i,5]))+' '+str(int(round(float(para_mat[i,9]))))+' '+str(c)+' '+'1'+str(Nx)+str(Ny)+str(kx)+str(ky)+' '+' '.join(map(str, pert)))
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')

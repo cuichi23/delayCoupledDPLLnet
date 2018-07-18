@@ -8,11 +8,11 @@ numbercores = 7
 #4: type of coupling function -- choose from {triang(ular), cos(ine), sin(e), sincos, triangshift}
 couplingfct = triang
 #5: free-running frequency of the plls [hz] test-997, 1, 0.15915494309189533577
-f = 997
+f = 1
 #6: sample phases with fsim [hz] multiples of the intrinsic frequency -> goal: about 100 samples per period test-100000, 125
-fsim = 100000
+fsim = 125
 #7: diffconst [variance=2*diffconst] of the gaussian dist. for the int. frequencies [or lorentzian's scale para, set in class VCO]
-domega = 0.0
+domega = 0.001
 #8: diffusion constant [variance=2*diffconst] of the gaussian distribution for the coupling strength
 diffconstk = 0
 #9: diffusion constant [variance=2*diffconst] of the gaussian distribution for the transmission delays

@@ -282,7 +282,7 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0, Ny
 
 	''' PLOT PHASE & FREQUENCY TIME SERIES '''
 	if plot_Phases_Freq:
-		out.plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cPD, cPD_t, K_adiab_t, couplingfct, Tsim, Fsim, show_plot)
+		out.plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cPD, cPD_t, K_adiab_t, -1, couplingfct, Tsim, Fsim, show_plot)
 
 	''' SAVE RESULTS '''
 	np.savez('results/orderparam_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cPD%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), results=results)
