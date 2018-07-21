@@ -587,6 +587,12 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,to
 	phi = np.empty([Nsteps+delay_steps,Nplls])									# prepare container for phase time series
 	# here the initial phases of all PLLs in pll_list are copied into the first  entry of the container phi for the phases of the PLLs
 	phi[0,:] = [pll.vco.phi for pll in pll_list]
+	if (histtype == 'uncoupled' and mode == 2):
+		phi[0,:] = [pll.set_delta_pertubation(0, phi, phiS[i], pll_list[i].vco.init_freq) for i,pll in enumerate(pll_list)]
+		# if Nplls>2:
+		# 	print('Free running PLL history, initial states with phase difference phi2-phi1 and phi3-phi2:', phi[0,1]-phi[0,0],'    ', phi[0,2]-phi[0,1],'\n')
+	else:
+		phi[0,:] = [pll.vco.phi for pll in pll_list]
 	# print('phi[0,:] ->', phi[0,:])
 	omega_0  = [pll.vco.omega for pll in pll_list]								# obtain the randomly distributed (gaussian) values for the intrinsic frequencies
 	K_0      = [pll.vco.K for pll in pll_list]									# obtain the randomly distributed (gaussian) values for the coupling strength of the VCO
@@ -632,7 +638,11 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,to
 				#print('self.F_Omeg when perturbation is set: ', F_Omeg, '\n')
 				#print('CHECK WHETHER CALCULATED AT THE TIME STEP; HERE FOR CALCULTED: instantaneous frequency TOWARDS last step of history:', inst_Freq)
 				#print('number of oscis:', Nplls)
-				phi[idx_time+1,:] = [pll.set_delta_pertubation(idx_time, phi, phiS[i], inst_Freq[i]) for i,pll in enumerate(pll_list)]
+				if histtype == 'syncstate':
+					phi[idx_time+1,:] = [pll.set_delta_pertubation(idx_time, phi, phiS[i], inst_Freq[i]) for i,pll in enumerate(pll_list)]
+				elif histtype == 'uncoupled':
+					phi[idx_time+1,:] = [pll.set_delta_pertubation(idx_time, phi, 0, inst_Freq[i]) for i,pll in enumerate(pll_list)]
+					# print('History of uncoupled oscis, phi[0,:] and phi[tau-dt,:],phi[tau,:]: ', phi[0,:],'   ', phi[idx_time,:],'    ', phi[idx_time+1,:],'\n')
 				#print('new   [step =', idx_time+1 ,'] entry phi-container simulateNetwork-fct:', phi[idx_time+1][:], 'difference: ', phi[idx_time+1][:] - phi[idx_time][:])
 		''' Output to monitor the intitial phases with and without perturbation in original and rotated coordinates '''
 		# if Nplls==3:
@@ -672,7 +682,11 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,to
 			phi = np.empty([Nsteps+Nrelax+delay_steps,Nplls])					# prepare container for phase time series
 			cPD_t = np.empty([Nsteps+Nrelax+delay_steps])						# prepare container for c_LF
 			''' SET INITIAL HISTORY AND PERTURBATION '''
-			phi[0,:] = [pll.set_delta_pertubation(0, phi, phiS[i], F_Omeg) for i,pll in enumerate(pll_list)]  # NOTE: phi[idx_time,:] is already set
+			if histtype == 'syncstate':
+				phi[0,:] = [pll.set_delta_pertubation(0, phi, phiS[i], F_Omeg) for i,pll in enumerate(pll_list)]  # NOTE: phi[idx_time,:] is already set
+			elif histtype == 'uncoupled':
+				phi[0,:] = [pll.set_delta_pertubation(0, phi, phiS[i], pll_list[i].vco.init_freq) for i,pll in enumerate(pll_list)]  # NOTE: phi[idx_time,:] is already set
+
 
 			''' adiabatic case, relaxation time '''
 			for idx_time in range(Nrelax):										# iterate over Nsteps from 0 to "Nsteps" no history, just initial conditions
@@ -699,7 +713,10 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,to
 			phi = np.empty([Nsteps+Nrelax+delay_steps,Nplls])					# prepare container for phase time series
 			cPD_t = np.empty([Nsteps+Nrelax+delay_steps])						# prepare container for c_LF
 			''' SET INITIAL HISTORY AND PERTURBATION '''
-			phi[0,:] = [pll.set_delta_pertubation(0, phi, phiS[i], F_Omeg) for i,pll in enumerate(pll_list)]  # NOTE: phi[idx_time,:] is already set
+			if histtype == 'syncstate':
+				phi[0,:] = [pll.set_delta_pertubation(0, phi, phiS[i], F_Omeg) for i,pll in enumerate(pll_list)]  # NOTE: phi[idx_time,:] is already set
+			elif histtype == 'uncoupled':
+				phi[0,:] = [pll.set_delta_pertubation(0, phi, phiS[i], pll_list[i].vco.init_freq) for i,pll in enumerate(pll_list)]  # NOTE: phi[idx_time,:] is already set
 
 			''' adiabatic case, relaxation time '''
 			for idx_time in range(Nrelax):										# iterate over Nsteps from 0 to "Nsteps" no history, just initial conditions
@@ -726,7 +743,10 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,to
 			phi = np.empty([Nsteps+Nrelax+delay_steps,Nplls])					# prepare container for phase time series
 			Kadiab_t = np.empty([Nsteps+Nrelax+delay_steps])					# prepare container for K_adiab
 			''' SET INITIAL HISTORY AND PERTURBATION '''
-			phi[0,:] = [pll.set_delta_pertubation(0, phi, phiS[i], F_Omeg) for i,pll in enumerate(pll_list)]  # NOTE: phi[idx_time,:] is already set
+			if histtype == 'syncstate':
+				phi[0,:] = [pll.set_delta_pertubation(0, phi, phiS[i], F_Omeg) for i,pll in enumerate(pll_list)]  # NOTE: phi[idx_time,:] is already set
+			elif histtype == 'uncoupled':
+				phi[0,:] = [pll.set_delta_pertubation(0, phi, phiS[i], pll_list[i].vco.init_freq) for i,pll in enumerate(pll_list)]  # NOTE: phi[idx_time,:] is already set
 
 			''' adiabatic case, relaxation time '''
 			for idx_time in range(Nrelax):										# iterate over Nsteps from 0 to "Nsteps" no history, just initial conditions
@@ -778,7 +798,10 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,to
 					#print('CHECK WHETHER CALCULATED AT THE TIME STEP; HERE FOR CALCULTED: instantaneous frequency TOWARDS last step of history:', inst_Freq)
 					#print('number of oscis:', Nplls)
 					cPD_t[idx_time]	 = [pll.vco.ct][0]
-					phi[idx_time+1,:] = [pll.set_delta_pertubation(idx_time, phi, phiS[i], inst_Freq[i]) for i,pll in enumerate(pll_list)]
+					if histtype == 'syncstate':
+						phi[idx_time+1,:] = [pll.set_delta_pertubation(idx_time, phi, phiS[i], inst_Freq[i]) for i,pll in enumerate(pll_list)]
+					elif histtype == 'uncoupled':
+						phi[idx_time+1,:] = [pll.set_delta_pertubation(idx_time, phi, 0, inst_Freq[i]) for i,pll in enumerate(pll_list)]
 					#print('new   [step =', idx_time+1 ,'] entry phi-container simulateNetwork-fct:', phi[idx_time+1][:], 'difference: ', phi[idx_time+1][:] - phi[idx_time][:])
 			''' NOW SIMULATE THE SYSTEM AFTER HISTORY IS SET '''
 			for idx_time in range(delay_steps,Nrelax+delay_steps):
@@ -828,7 +851,10 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,to
 					#print('CHECK WHETHER CALCULATED AT THE TIME STEP; HERE FOR CALCULTED: instantaneous frequency TOWARDS last step of history:', inst_Freq)
 					#print('number of oscis:', Nplls)
 					cPD_t[idx_time]	 = [pll.lf.cPD_t][0]
-					phi[idx_time+1,:] = [pll.set_delta_pertubation(idx_time, phi, phiS[i], inst_Freq[i]) for i,pll in enumerate(pll_list)]
+					if histtype == 'syncstate':
+						phi[idx_time+1,:] = [pll.set_delta_pertubation(idx_time, phi, phiS[i], inst_Freq[i]) for i,pll in enumerate(pll_list)]
+					elif histtype == 'uncoupled':
+						phi[idx_time+1,:] = [pll.set_delta_pertubation(idx_time, phi, 0, inst_Freq[i]) for i,pll in enumerate(pll_list)]
 					#print('new   [step =', idx_time+1 ,'] entry phi-container simulateNetwork-fct:', phi[idx_time+1][:], 'difference: ', phi[idx_time+1][:] - phi[idx_time][:])
 			''' NOW SIMULATE THE SYSTEM AFTER HISTORY IS SET '''
 			for idx_time in range(delay_steps,Nrelax+delay_steps):
@@ -878,7 +904,10 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,to
 					#print('CHECK WHETHER CALCULATED AT THE TIME STEP; HERE FOR CALCULTED: instantaneous frequency TOWARDS last step of history:', inst_Freq)
 					#print('number of oscis:', Nplls)
 					Kadiab_t[idx_time]	 = [pll.vco.Kt][0]
-					phi[idx_time+1,:] = [pll.set_delta_pertubation(idx_time, phi, phiS[i], inst_Freq[i]) for i,pll in enumerate(pll_list)]
+					if histtype == 'syncstate':
+						phi[idx_time+1,:] = [pll.set_delta_pertubation(idx_time, phi, phiS[i], inst_Freq[i]) for i,pll in enumerate(pll_list)]
+					elif histtype == 'uncoupled':
+						phi[idx_time+1,:] = [pll.set_delta_pertubation(idx_time, phi, 0, inst_Freq[i]) for i,pll in enumerate(pll_list)]
 					#print('new   [step =', idx_time+1 ,'] entry phi-container simulateNetwork-fct:', phi[idx_time+1][:], 'difference: ', phi[idx_time+1][:] - phi[idx_time][:])
 			''' NOW SIMULATE THE SYSTEM AFTER HISTORY IS SET '''
 			for idx_time in range(delay_steps,Nrelax+delay_steps):

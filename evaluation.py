@@ -63,7 +63,7 @@ def rotate_phases(phi0, isInverse=False):
 	w = np.zeros((n, n))
 	w[1:, 0] = -1.0 / np.sqrt(n - 1)
 	w[0, 1:] = 1.0 / np.sqrt(n - 1)
-	r = np.identity(n) + (np.cos(alpha) - 1) * v + np.sin(alpha) * w
+	r = np.identity(n) + (np.cos(alpha) - 1) * v + np.sin(alpha) * w			# for N=3 --> 
 	# print('---------------------------------------')
 	# print('---------------------------------------')
 	# print(v)
