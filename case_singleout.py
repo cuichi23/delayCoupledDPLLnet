@@ -92,6 +92,7 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0, Ny
 	mode = int(1);																# mode=0 -> algorithm usage mode, mode=1 -> single realization mode,
 																				# mode=2 -> brute force scanning mode for parameter interval scans
 																				# mode=3 -> calculate many noisy realization for the same parameter set
+																				# mode=4 -> calculate adiabatically changing parameter over time
 	params = configparser.ConfigParser()										# initiate configparser object to load parts of the system parameters
 	params.read('1params.txt')													# read the 1params.txt file from the python code directory
 

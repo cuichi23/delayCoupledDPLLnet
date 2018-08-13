@@ -105,6 +105,7 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0
 	mode = int(2);																# mode=0 -> algorithm usage mode, mode=1 -> single realization mode,
 																				# mode=2 -> brute force scanning mode for parameter interval scans
 																				# mode=3 -> calculate many noisy realization for the same parameter set
+																				# mode=4 -> calculate adiabatically changing parameter over time
 	params = configparser.ConfigParser()										# initiate configparser object to load parts of the system parameters
 	params.read('1params.txt')													# read the 1params.txt file from the python code directory
 
@@ -325,7 +326,7 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0
 			data = simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx,Ny,kx,ky,plot_Phases_Freq)
 
 			''' evaluate dictionaries '''
-			results.append( [ data['mean_order'],  data['last_orderP'], data['stdev_orderP'] ] )
+			np.concatenate((results, [ data['mean_order'],  data['last_orderP'], data['stdev_orderP'] ] ))
 			# phi.append( data['phases'] )
 			omega_0.append( data['intrinfreq'] )
 			K_0.append( data['coupling_strength'] )
@@ -335,7 +336,6 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0
 		''' SAVE RESULTS '''
 		np.savez('results/orderparam_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), results=results)
 		np.savez('results/allInitPerturbPoints_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), allPoints=allPoints)
-		del pool_data; del _allPoints;											# emtpy pool data, allPoints variables to free memory
 
 		print( 'size omega_0, K_0, results:', sys.getsizeof(omega_0), '\t', sys.getsizeof(K_0), '\t', sys.getsizeof(results), '\n' )
 		omega_0=np.array(omega_0); K_0=np.array(K_0); results=np.array(results);

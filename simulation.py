@@ -130,7 +130,7 @@ class LowPass:
 		# self.beta = (dt*2.0*np.pi*Fc) / (dt*2.0*np.pi*Fc + 1)
 		# self.beta = (dt*Fc) / (dt*Fc + 1)
 		# self.beta = (dt*self.wc)
-		self.beta = self.dt*self.Fc
+		self.beta = self.dt*self.wc
 
 		self.y = y																# denotes the control signal, output of the LF
 
@@ -410,7 +410,7 @@ class PhaseDetectorCombiner:													# this class creates PD objects, these 
 		self.h = lambda x: sawtooth(x,width=0.5)								# set the type of coupling function, here a sawtooth since we consider digital PLLs (rectangular signals)
 		self.idx_self = idx_self												# assigns the index
 		self.idx_neighbours = idx_neighbours									# assigns the neighbors according to the coupling topology
-		#self.idx_neighbours = [n for n in idx_neighbours] for networkx > v1.11
+		#self.idx_neighbours = [n for n in idx_neighbours] 						# for networkx > v1.11
 		# print('Osci ',idx_self,', my neighbors are:', idx_neighbours)
 
 	def next(self,x,x_delayed,idx_time=0):										# gets time-series results at delayed time and current time to calculate phase differences
@@ -433,6 +433,7 @@ class PhaseDetectorCombiner:													# this class creates PD objects, these 
 			# 	print('phase detector signal:', self.y)
 			return self.y
 		except:
+			print('\n\nCHECK: in PhaseDetectorCombiner set self.idx.neighbors to the iterator for networkx libs > v1.11!\n\n')
 			print('NOTE: check again how to set this for XOR, multiplication and flip flop') # if there is no input (uncoupled PLL), then the phase detector output is zero
 			print('Also, this has to be set individually for each type of PD!')
 
@@ -587,7 +588,7 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,to
 	phi = np.empty([Nsteps+delay_steps,Nplls])									# prepare container for phase time series
 	# here the initial phases of all PLLs in pll_list are copied into the first  entry of the container phi for the phases of the PLLs
 	phi[0,:] = [pll.vco.phi for pll in pll_list]
-	if (histtype == 'uncoupled' and mode == 2):
+	if (histtype == 'uncoupled' and ( mode == 2 or mode == 1 ) ):
 		phi[0,:] = [pll.set_delta_pertubation(0, phi, phiS[i], pll_list[i].vco.init_freq) for i,pll in enumerate(pll_list)]
 		# if Nplls>2:
 		# 	print('Free running PLL history, initial states with phase difference phi2-phi1 and phi3-phi2:', phi[0,1]-phi[0,0],'    ', phi[0,2]-phi[0,1],'\n')
@@ -629,6 +630,7 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,to
 			if idx_time <= (delay_steps-2):										# fill phi entries 1 to "delay_steps-2", note: we set idx_time+1 in the last call at idx_time==delay_steps-2
 				#print( 'prior [step =', idx_time ,'] entry phi-container simulateNetwork-fct:', phi[idx_time][:])
 				phi[idx_time+1,:] = [pll.setup_hist() for pll in pll_list]		# here the initial phase history is set
+				#print('Fequency of uncoupled oscis, (phi[idx_time+1,:]-phi[idx_time,:])/(dt*2*np.pi): ', (phi[idx_time+1,:]-phi[idx_time,:])/(dt*2*np.pi),'\n')
 				#print( 'new   [step =', idx_time+1 ,'] entry phi-container simulateNetwork-fct:', phi[idx_time+1][:], 'difference: ', phi[idx_time+1][:] - phi[idx_time][:])
 			if idx_time == (delay_steps-1):										# fill the last entry of the history in phi at delay_steps-1
 				# print( '\n\nhere is also STILL A PROBLEM HERE: if there is no perturbation, the history should grow constantly until delay_steps (included)\n')
@@ -642,7 +644,8 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,to
 					phi[idx_time+1,:] = [pll.set_delta_pertubation(idx_time, phi, phiS[i], inst_Freq[i]) for i,pll in enumerate(pll_list)]
 				elif histtype == 'uncoupled':
 					phi[idx_time+1,:] = [pll.set_delta_pertubation(idx_time, phi, 0, inst_Freq[i]) for i,pll in enumerate(pll_list)]
-					# print('History of uncoupled oscis, phi[0,:] and phi[tau-dt,:],phi[tau,:]: ', phi[0,:],'   ', phi[idx_time,:],'    ', phi[idx_time+1,:],'\n')
+					#print('History of uncoupled oscis, phi[0,:] and phi[tau-dt,:],phi[tau,:]: ', phi[0,:],'   ', phi[idx_time,:],'    ', phi[idx_time+1,:],'\n')
+					#print('Fequency of uncoupled oscis, (phi[idx_time+1,:]-phi[idx_time,:])/(dt*2*np.pi): ', (phi[idx_time+1,:]-phi[idx_time,:])/(dt*2*np.pi),'\n')
 				#print('new   [step =', idx_time+1 ,'] entry phi-container simulateNetwork-fct:', phi[idx_time+1][:], 'difference: ', phi[idx_time+1][:] - phi[idx_time][:])
 		''' Output to monitor the intitial phases with and without perturbation in original and rotated coordinates '''
 		# if Nplls==3:

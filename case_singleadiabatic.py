@@ -89,9 +89,10 @@ def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Ome
 
 def singleadiabatic(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Trelax, Kadiab_value_r, Nsim, Nx=0, Ny=1, kx=0, ky=0, phiSr=[], show_plot=True):
 
-	mode = int(1);																# mode=0 -> algorithm usage mode, mode=1 -> single realization mode,
+	mode = int(4);																# mode=0 -> algorithm usage mode, mode=1 -> single realization mode,
 																				# mode=2 -> brute force scanning mode for parameter interval scans
 																				# mode=3 -> calculate many noisy realization for the same parameter set
+																				# mode=4 -> calculate adiabatically changing parameter over time
 	params = configparser.ConfigParser()										# initiate configparser object to load parts of the system parameters
 	params.read('1params.txt')													# read the 1params.txt file from the python code directory
 
