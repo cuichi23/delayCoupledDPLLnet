@@ -95,14 +95,47 @@ def get_dphi_matrix(n):
 	return m
 
 
+def get_d_matrix(n):
+	'''Constructs a matrix to compute the phase differences from a 
+	   vector of non-rotated phases'''
+	d = np.zeros((n, n))
+	for i in range(n):
+		d[i, i] = -1
+		d[i, np.mod(i + 1, n)] = 1
+	return d
+
 class PhaseDifferenceCell(object):
 	def __init__(self, n):
 		self.n = n
 		self.dphi_matrix = get_dphi_matrix(n)
 		self.d_min = -np.pi
 		self.d_max = np.pi
+		self.d = get_d_matrix(n)
 
 	def is_inside(self, x, isRotated=False):
+		# Check if vector has the correct length
+		if len(x) != self.n:
+			raise Exception('Vector has not the required length n.')
+
+		# Rotate back to initial coordinate system if required
+		if isRotated:
+			x_tmp = rotate_phases(x, isInverse=False)
+		else:
+			x_tmp = x
+
+		# Map to phase difference space
+		dphi = np.dot(self.d, x_tmp)
+
+		is_inside = True
+		for i in range(len(dphi) - 1):
+			if np.abs(dphi[i]) > self.d_max:
+				is_inside = False
+				break
+
+		return is_inside
+
+
+	def is_inside_old(self, x, isRotated=False):
 		'''Checks if a vector is inside the phase difference unit cell.
 
 		Parameters
