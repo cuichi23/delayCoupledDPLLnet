@@ -66,12 +66,31 @@ def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Ome
 		r = eva.oracle_CheckerboardOrderParameter1d(phi[-int(2*1.0/(F1*dt)):, :], k)
 		orderparam = eva.oracle_CheckerboardOrderParameter1d(phi[:, :])			# calculate the order parameter for all times
 	elif ( topology == "ring" or topology == 'global'):
-		r = eva.oracle_mTwistOrderParameter(phi[-int(2*1.0/(F1*dt)):, :], k)		# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
+		r = eva.oracle_mTwistOrderParameter(phi[-int(2*1.0/(F1*dt)):, :], k)	# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
 		orderparam = eva.oracle_mTwistOrderParameter(phi[:, :], k)				# calculate the m-twist order parameter for all times
 
 	# r = eva.oracle_mTwistOrderParameter(phi[-int(2*1.0/(F1*dt)):, :], k)			# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
 	# orderparam = eva.oracle_mTwistOrderParameter(phi[:, :], k)					# calculate the m-twist order parameter for all times
 	# print('mean of modulus of the order parameter, R, over 2T:', np.mean(r), ' last value of R', r[-1])
+
+	results=[];
+	results.append( [ np.mean(r),  r[len(r)-1], np.var(r) ] )
+	now = datetime.datetime.now()												# single realization mode
+	''' cut phases if too long time-series '''
+	if Nsteps > int(300*1.0/(F1*dt)):
+		phi_end = phi[-int(20*1.0/(F1*dt)):, :]
+		phi_sta = phi[1:int(50*1.0/(F1*dt)), :]
+		phi_cut = []; phi_cut.append( [phi_sta, phi_end] )
+		print('\nNOTE: cut out a piece of the phase time-series, since length exceeded Tmax=%i, only saved Ts-> 1 to %i and Te-> -%i to %i' %(int(300*1.0/(F1*dt)),int(50*1.0/(F1*dt)),int(20*1.0/(F1*dt)),Nsteps))
+	else:
+		phi_cut = phi;
+
+	''' SAVE RESULTS '''
+	np.savez('results/PRE_orderparam_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cPD%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), results=results)
+	np.savez('results/PRE_initialperturb_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cPD%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), phiS=phiS)
+	np.savez('results/PRE_phases_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cPD%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), phases=phi_cut)
+	np.savez('results/PRE_Kadiab_t_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cPD%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), Kadiab_t=Kadiab_t)
+	np.savez('results/PRE_cPD_t_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cPD%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), cPD_t=cPD_t)
 
 	''' RETURN '''																# return value of mean order parameter, last order parameter, and the variance of r during the last 2T_{\omega}
 	return {'mean_order':np.mean(r), 'last_orderP':r[len(r)-1], 'stdev_orderP':np.var(r), 'phases': phi,
@@ -89,10 +108,9 @@ def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Ome
 
 def singleadiabatic(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Trelax, Kadiab_value_r, Nsim, Nx=0, Ny=1, kx=0, ky=0, phiSr=[], show_plot=True):
 
-	mode = int(4);																# mode=0 -> algorithm usage mode, mode=1 -> single realization mode,
+	mode = int(1);																# mode=0 -> algorithm usage mode, mode=1 -> single realization mode,
 																				# mode=2 -> brute force scanning mode for parameter interval scans
 																				# mode=3 -> calculate many noisy realization for the same parameter set
-																				# mode=4 -> calculate adiabatically changing parameter over time
 	params = configparser.ConfigParser()										# initiate configparser object to load parts of the system parameters
 	params.read('1params.txt')													# read the 1params.txt file from the python code directory
 
@@ -274,10 +292,10 @@ def singleadiabatic(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Trelax, 
 	phi=np.array(phi); omega_0=np.array(omega_0); K_0=np.array(K_0); delays_0=np.array(delays_0);
 	results=np.array(results); orderparam=np.array(orderparam);
 
-	''' SAVE RESULTS '''
-	np.savez('results/orderparam_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cPD%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), results=results)
-	np.savez('results/initialperturb_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cPD%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), phiS=phiS)
-	np.savez('results/phases_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cPD%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), phases=phi)
+	# ''' SAVE RESULTS '''
+	# np.savez('results/orderparam_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cPD%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), results=results)
+	# np.savez('results/initialperturb_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cPD%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), phiS=phiS)
+	# np.savez('results/phases_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cPD%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), phases=phi)
 
 	''' PLOT PHASE & FREQUENCY TIME SERIES '''
 	if plot_Phases_Freq:
@@ -338,7 +356,7 @@ if __name__ == '__main__':
 	my				= int(sys.argv[14])											# twist number in y-direction
 	cPD				= float(sys.argv[15])										# diff constant of GWN in LF
 	Trelax			= float(sys.argv[16])										# number of steps for the system to relax to "equilibrium"
-	Kadiab_value_r 	= float(sys.argv[17])
+	Kadiab_value_r 	= float(sys.argv[17])										# max value of coupling strength
 	phiSr 			= np.asarray([float(phi) for phi in sys.argv[18:(18+N)]])	# this input allows to simulate specific points in !rotated phase space plane
 
 	singleadiabatic(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Trelax, Kadiab_value_r, Nsim, Nx, Ny, mx, my, phiSr, True)

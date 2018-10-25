@@ -18,6 +18,8 @@ from itertools import combinations as combi
 import time
 import datetime
 
+global_variable = 1;
+
 ''' SIMULATION CALL '''
 def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx=0,Ny=0,kx=0,ky=0,isPlottingTimeSeries=False):
 	''' SIMULATION OF NETWORK & UNIT CELL CHECK '''
@@ -71,9 +73,13 @@ def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Ome
 	# print('mean of modulus of the order parameter, R, over 2T:', np.mean(r), ' last value of R', r[-1])
 
 	# ''' PLOT PHASE & FREQUENCY TIME SERIES '''
-	# if isPlottingTimeSeries:
-	# 	out.plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K)
-
+	if (isPlottingTimeSeries):
+		phi1=[]; phi1.append(simresult['phases']); phi1=np.array(phi1);
+		orderparam1=[]; orderparam1.append(orderparam); orderparam1=np.array(orderparam1);
+		Fsim1=int(1.0/dt); Tsim1=round(Nsteps/Fsim1)
+		print('Plot realization! np.shape(phi)', np.shape(phi1), '   type(phi1)', type(phi1), '   TSim:', Tsim1, '   Fsim:', Fsim1); cPD_t=[]; K_adiab_t=[];
+		# def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cPD, cPD_t=[], Kadiab_t=[], K_adiab_r=(-1), coupFct='triang', Tsim=53, Fsim=None, show_plot=True):
+		out.plotTimeSeries(phi1, F, Fc, dt, orderparam1, k, delay, F_Omeg, K, c, cPD, cPD_t, K_adiab_t, -1, couplingfct, Nsteps*dt, Fsim1)
 	#print('initial order parameter: ', r[0], '\n')
 
 	''' RETURN '''																# return value of mean order parameter, last order parameter, and the variance of r during the last 2T_{\omega}
@@ -139,9 +145,6 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0
 	print('total simulation time in multiples of the eigenfrequency:', int(Tsim*F),'\n')
 
 	plot_Phases_Freq = False													# whether or not the phases and frequencies are being plotted
-	# choose the value of phi'_0, i.e., where the plane, rectangular to the axis phi'_0 in the rotated phase space, is placed
-	# this direction corresponds to the case where all phi_k in the original phase space are equal phi_0==phi_1==...==phi_N-1 or (all) have constant phase differences
-	initPhiPrime0 = ( 0.0 * np.pi )
 
 	twistdelta=0; cheqdelta=0; twistdelta_x=0; twistdelta_y=0;
 	if not ( topology == 'ring' or topology == 'chain' ):
@@ -222,13 +225,17 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0
 	phiMr = eva.rotate_phases(phiM, isInverse=True)								# calculate phiM in terms of rotated phase space
 	print('m-twist or chequerboard phases phiM =', phiM, 'in coordinates of rotated system, phiMr =', phiMr, '\n')
 
+	# choose the value of phi'_0, i.e., where the plane, rectangular to the axis phi'_0 in the rotated phase space, is placed
+	# this direction corresponds to the case where all phi_k in the original phase space are equal phi_0==phi_1==...==phi_N-1 or (all) have constant phase differences
+	initPhiPrime0 = ( 0.0 * np.pi )
+
 	if N > 2:
 		print('shift along the first axis in rotated phase space, equivalent to phase kick of all oscillators before simulation starts: phi`_0=', initPhiPrime0)
 		# phiSr[0] = initPhiPrime0												# set first dimension in rotated phase space constant for systems of more than 2 oscillators
 		#print('phiMr =', phiMr, '\n')
 	# the space about each twist solution is scanned in [phiM-pi, phiM+pi] where phiM are the initial phases of the m-twist under investigation
 
-	print('CHECK!!!! phiS should ONLY be the relative perturbation! BUT then in multihelper be careful when checking the unit cell')
+	# print('CHECK!!!! phiS should ONLY be the relative perturbation! BUT then in multihelper be careful when checking the unit cell')
 
 	if N==2:
 		scanValues = np.zeros((N,paramDiscretization), dtype=np.float)			# create container for all points in the discretized rotated phase space, +/- pi around each dimension (unit area)
@@ -251,7 +258,13 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0
 		scanValues = np.zeros((N-1,paramDiscretization), dtype=np.float)		# create container for all points in the discretized rotated phase space, +/- pi around each dimension (unit area)
 		for i in range (0, N-1):												# the different coordinates of the solution, discretize an interval plus/minus pi around each variable
 			# scanValues[i,:] = np.linspace(phiMr[i+1]-np.pi, phiMr[i+1]+np.pi, paramDiscretization) # all entries are in rotated, and reduced phase space
-			scanValues[i,:] = np.linspace(-(np.pi), +(np.pi), paramDiscretization) 	# all entries are in rotated, and reduced phase space NOTE: adjust unit cell accordingly!
+			if i==0:															# theta2 (x-axis)
+				#scanValues[i,:] = np.linspace(-(np.pi), +(np.pi), paramDiscretization) 	# all entries are in rotated, and reduced phase space NOTE: adjust unit cell accordingly!
+				scanValues[i,:] = np.linspace(-0.1*np.pi, 0.1*np.pi, paramDiscretization)
+			else:																# theta3 (y-axis)
+				#scanValues[i,:] = np.linspace(-(1.35*np.pi), +(1.35*np.pi), paramDiscretization)
+				scanValues[i,:] = np.linspace(-0.35*np.pi, 0.15*np.pi, paramDiscretization)
+
 			#print('row', i,'of matrix with all intervals of the rotated phase space:\n', scanValues[i,:], '\n')
 
 		_allPoints 			= itertools.product(*scanValues)
@@ -309,6 +322,7 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0
 		#print('results:', results)
 		print('time needed for execution of simulations in multiproc mode: ', (time.time()-t0), ' seconds')
 	else:
+		plot_Phases_Freq = True
 		results=[]; phi=[]; omega_0=[]; K_0=[]; delays_0=[]; #cPD_t=[]    		# prepare container for results of simulatePllNetwork
 		for i in range (allPoints.shape[0]):									# iterate through all points in the N-1 dimensional rotated phase space
 			print('calculation #:', i+1, 'of', allPoints.shape[0])

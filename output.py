@@ -79,31 +79,32 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cPD, cPD_
 	else:
 		F1=.1
 	# print('\n\nUncomment \"matplotlib.use(\'Agg\')\" in ouput.py to enable plotting figures to the desktop, DISABLE for queue-jobs!')
-	phi = phi[:,:,:]; orderparam = orderparam[0,:]								# there is only one realization of interest -reduces dimensionof phi array
+	phi = phi[:,:,:]; orderparam = orderparam[0,:]								# there is only one realization of interest -reduces dimension of phi array
 	# afterTransients = int( round( 0.5*Tsim / dt ) )
 	# phiSpect = phi[:,-afterTransients:,:]
 	now = datetime.datetime.now()
+	''' only plot power spetral density if there is no adiabatic change '''
 	if np.size(cPD_t) == 0 and np.size(Kadiab_t) == 0:
 		if coupFct == 'triang':
 			print('Calculate spectrum for square wave signals. Fsim=%d' %Fsim)
-			# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'square')			# calculate spectrum of signals, i.e., of this state
-			f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'square')				# calculate spectrum of signals, i.e., of this state
+			# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'square')				# calculate spectrum of signals, i.e., of this state
+			f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'square')					# calculate spectrum of signals, i.e., of this state
 		elif coupFct == 'triangshift':
 			print('Calculate spectrum for ??? wave signals, here triang[x]+a*triang[b*x]. Fsim=%d' %Fsim)
-			# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'square')			# calculate spectrum of signals, i.e., of this state
-			f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'square')				# calculate spectrum of signals, i.e., of this state
+			# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'square')				# calculate spectrum of signals, i.e., of this state
+			f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'square')					# calculate spectrum of signals, i.e., of this state
 		elif coupFct == 'sin':
 			print('check that... sine coupFct only if cos and sin signal input')
-			# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'sin')			# calculate spectrum of signals, i.e., of this state
-			f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'sin')					# calculate spectrum of signals, i.e., of this state
+			# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'sin')				# calculate spectrum of signals, i.e., of this state
+			f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'sin')						# calculate spectrum of signals, i.e., of this state
 		elif coupFct == 'cos':
 			print('Calculate spectrum for cosinusoidal signals. Fsim=%d' %Fsim)
-			# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'cos')			# calculate spectrum of signals, i.e., of this state
-			f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'cos')					# calculate spectrum of signals, i.e., of this state
+			# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'cos')				# calculate spectrum of signals, i.e., of this state
+			f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'cos')						# calculate spectrum of signals, i.e., of this state
 		elif coupFct == 'sincos':
 			print('Calculate spectrum for mix sine and cosine signals. Fsim=%d' %Fsim)
-			# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'cos')			# calculate spectrum of signals, i.e., of this state
-			f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'sin')					# calculate spectrum of signals, i.e., of this state
+			# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'cos')				# calculate spectrum of signals, i.e., of this state
+			f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'sin')						# calculate spectrum of signals, i.e., of this state
 
 		plt.figure('spectrum of synchronized state')							# plot spectrum
 		plt.clf()
@@ -143,9 +144,17 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cPD, cPD_
 		plt.savefig('results/phaseHistoTSim_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day))
 		plt.savefig('results/phaseHistoTSim_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), dpi=300)
 
+
 	plt.figure('phases over time')
 	plt.clf()
-	plt.plot((t*dt),phi)
+	if len((t*dt))!=len(phi[:,0]):												# in case we cut out a piece of the phase time-series (see case_singleadiabatic.py etc)
+		tcut = np.arange(0,length(phi[:,0])-1) 									# then t has to be recalculated
+		tcut = tcut*dt;										 					# make new tcut vector and correct time for entries after cut
+		time_after_cut = t[-int(20*1.0/(F1*dt))];
+		tcut[-int(20*1.0/(F1*dt)):] = tcut[-int(20*1.0/(F1*dt)):] + time_after_cut
+		plt.plot(tcut,phi)
+	else:
+		plt.plot((t*dt),phi)
 	plt.plot(delay, phi[int(round(delay/dt)),0], 'yo', ms=5)
 	plt.axvspan(t[-int(2*1.0/(F1*dt))]*dt, t[-1]*dt, color='b', alpha=0.3)
 	plt.title(r'time series phases, inst. freq: $\dot{\phi}_0(t_{start})=%.4f$, $\dot{\phi}_0(t_{end})=%.4f$  [rad Hz]' %( (phi[int(2*1.0/(F1*dt))][0]-phi[1][0])/(2*1.0/F1-dt), (phi[-4][0]-phi[-3-int(2*1.0/(F1*dt))][0])/(2*1.0/F1-dt) ), fontdict = titlefont)
@@ -170,8 +179,8 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cPD, cPD_
 	plt.figure('REWORK --> check poincare sections!!!!!        phase configuration between oscis, phase plot, poincare sections')
 	plt.clf()
 	for i in range(len(phi[0,:])):
-		plt.plot((t*dt),((phi[:,i]-phi[:,0]+np.pi)%(2.*np.pi)-np.pi))			#math.fmod(phi[:,:], 2.*np.pi))
-	plt.plot(delay, 0.0, 'yo', ms=5)
+		plt.plot((t*dt),(phi[:,i]-phi[:,0])%(2.*np.pi))							#math.fmod(phi[:,:], 2.*np.pi))
+	plt.plot(delay, phi[int(round(delay/dt)),0], 'yo', ms=5)
 	plt.axvspan(t[-int(2*1.0/(F1*dt))]*dt, t[-1]*dt, color='b', alpha=0.3)
 	plt.title(r'time series phase differences, inst. freq: $\dot{\phi}_0(t_{start})=%.4f$, $\dot{\phi}_0(t_{end})=%.4f$  [rad Hz]' %( (phi[int(2*1.0/(F1*dt))][0]-phi[1][0])/(2*1.0/F1-dt), (phi[-4][0]-phi[-3-int(2*1.0/(F1*dt))][0])/(2*1.0/F1-dt) ), fontdict = titlefont)
 	plt.xlabel(r'$t$ $[s]$', fontdict = labelfont)

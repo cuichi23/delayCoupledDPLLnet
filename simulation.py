@@ -129,7 +129,7 @@ class LowPass:
 		''' TEST CASES '''
 		# self.beta = (dt*2.0*np.pi*Fc) / (dt*2.0*np.pi*Fc + 1)
 		# self.beta = (dt*Fc) / (dt*Fc + 1)
-		# self.beta = (dt*self.wc)
+		# self.beta = (dt*self.Fc)
 		self.beta = self.dt*self.wc
 
 		self.y = y																# denotes the control signal, output of the LF
@@ -589,6 +589,19 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,to
 	# here the initial phases of all PLLs in pll_list are copied into the first  entry of the container phi for the phases of the PLLs
 	phi[0,:] = [pll.vco.phi for pll in pll_list]
 	if (histtype == 'uncoupled' and ( mode == 2 or mode == 1 ) ):
+
+		# Here we need to compensate for drift between the PLLs due to unequal intrinsic frequencies in such a way, that over the time of the history, i.e., the delay,
+		# the phase difference due to the deviations from the mean frequency are compensated for
+
+		if ( Nplls==3 and mode ==2 ):
+			F_init=[1.008, 0.906, 1.011]; mean_F_init=np.mean(F_init);
+			print('\nphiS before correction:', phiS);
+			for i in range(Nplls):
+				correction = 2.0*np.pi*(F_init[i]-mean_F_init)*delay; 			# the deviation of the frequency from the mean intrinsic frequency determines the extra phase shift until t=0,
+																				# when coupling is turned on
+				phiS[i] = phiS[i] - correction;
+			print('\nphiS after correction:', phiS);
+
 		phi[0,:] = [pll.set_delta_pertubation(0, phi, phiS[i], pll_list[i].vco.init_freq) for i,pll in enumerate(pll_list)]
 		# if Nplls>2:
 		# 	print('Free running PLL history, initial states with phase difference phi2-phi1 and phi3-phi2:', phi[0,1]-phi[0,0],'    ', phi[0,2]-phi[0,1],'\n')
@@ -643,7 +656,10 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,to
 				if histtype == 'syncstate':
 					phi[idx_time+1,:] = [pll.set_delta_pertubation(idx_time, phi, phiS[i], inst_Freq[i]) for i,pll in enumerate(pll_list)]
 				elif histtype == 'uncoupled':
+					# here we set phiS[i] == 0 for all i, since we set the initial ohase value already above!
+					print('\nvalue of the phase difference of between the PLLs at end of history:', phi[idx_time,:])
 					phi[idx_time+1,:] = [pll.set_delta_pertubation(idx_time, phi, 0, inst_Freq[i]) for i,pll in enumerate(pll_list)]
+					print('value of the phase difference of between the PLLs at end of history:', phi[idx_time+1,:],'\n')
 					#print('History of uncoupled oscis, phi[0,:] and phi[tau-dt,:],phi[tau,:]: ', phi[0,:],'   ', phi[idx_time,:],'    ', phi[idx_time+1,:],'\n')
 					#print('Fequency of uncoupled oscis, (phi[idx_time+1,:]-phi[idx_time,:])/(dt*2*np.pi): ', (phi[idx_time+1,:]-phi[idx_time,:])/(dt*2*np.pi),'\n')
 				#print('new   [step =', idx_time+1 ,'] entry phi-container simulateNetwork-fct:', phi[idx_time+1][:], 'difference: ', phi[idx_time+1][:] - phi[idx_time][:])
@@ -1067,13 +1083,22 @@ def generatePllObjects(mode,topology,couplingfct,histtype,Nplls,dt,c,delay,feedb
 				# nx.draw(G, pos=nx.spring_layout(G), node_size=(0.5+phiM)*1000 ,ax=axs[0])
 				# nx.draw(G, node_size=(0.5+phiM)*1000,ax=axs[1])
 				# ''' Test and check '''
-
-				pll_list = [ PhaseLockedLoop(									# setup PLLs and storage in a list as PLL class objects
-									Delayer(delay,dt,feedback_delay,diffconstSendDelay),		# delayer takes a time series and returns values at t and t-tau
-									PhaseDetectorCombiner(idx_pll, G.neighbors(idx_pll)),
-									LowPass(Fc,dt,K,F_Omeg,F,cPD,Trelax=0,y=y0),
-									VoltageControlledOscillator(F,Fc,F_Omeg,K,dt,domega,diffconstK,histtype,c,phi=phiM[idx_pll]) # set intrinsic frequency of VCO, frequency of synchronized state under investigation, coupling strength
-									)  for idx_pll in range(Nplls) ]			# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
+				if ( Nplls==3 and mode==2 ):
+					print('\n\nSPECIAL MODE: individual intrinsic frequencies!!!!!!!!!!!!!!!!!!!\n\n')
+					F_init=[1.008, 0.906, 1.011];									# put here the frequencies in Hz of the PLLs in the experimental setup_hist
+					pll_list = [ PhaseLockedLoop(									# setup PLLs and storage in a list as PLL class objects
+										Delayer(delay,dt,feedback_delay,diffconstSendDelay),		# delayer takes a time series and returns values at t and t-tau
+										PhaseDetectorCombiner(idx_pll, G.neighbors(idx_pll)),
+										LowPass(Fc,dt,K,F_Omeg,F,cPD,Trelax=0,y=y0),
+										VoltageControlledOscillator(F_init[idx_pll],Fc,F_Omeg,K,dt,domega,diffconstK,histtype,c,phi=phiM[idx_pll]) # set intrinsic frequency of VCO, frequency of synchronized state under investigation, coupling strength
+										)  for idx_pll in range(Nplls) ]			# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
+				else:
+					pll_list = [ PhaseLockedLoop(									# setup PLLs and storage in a list as PLL class objects
+										Delayer(delay,dt,feedback_delay,diffconstSendDelay),		# delayer takes a time series and returns values at t and t-tau
+										PhaseDetectorCombiner(idx_pll, G.neighbors(idx_pll)),
+										LowPass(Fc,dt,K,F_Omeg,F,cPD,Trelax=0,y=y0),
+										VoltageControlledOscillator(F,Fc,F_Omeg,K,dt,domega,diffconstK,histtype,c,phi=phiM[idx_pll]) # set intrinsic frequency of VCO, frequency of synchronized state under investigation, coupling strength
+										)  for idx_pll in range(Nplls) ]			# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
 
 			if couplingfct == 'triangshift':									# triang(x) + a * triang(b*x)
 				# print('Initiate (phase shifted) PLL objects. Simulate with additive noise, triangular coupling function.')

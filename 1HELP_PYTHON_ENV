@@ -1,0 +1,12 @@
+on LAPTOP
+
+source activate env_python2
+
+
+
+on WORKSTATION
+
+module avail
+module load intelpython2      OR [python3, ... etc!]
+
+https://uisapp2.iu.edu/confluence-prd/pages/viewpage.action?pageId=115540061

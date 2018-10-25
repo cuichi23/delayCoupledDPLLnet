@@ -283,6 +283,7 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0, Ny
 
 	''' PLOT PHASE & FREQUENCY TIME SERIES '''
 	if plot_Phases_Freq:
+		print('Plot realization! np.shape(phi)', np.shape(phi), '   type(phi)', type(phi));
 		out.plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cPD, cPD_t, K_adiab_t, -1, couplingfct, Tsim, Fsim, show_plot)
 
 	''' SAVE RESULTS '''
