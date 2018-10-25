@@ -594,10 +594,10 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,to
 		# the phase difference due to the deviations from the mean frequency are compensated for
 
 		if ( Nplls==3 and mode ==2 ):
-			F_init=[1.008, 0.906, 1.011]; mean_F_init=np.mean(F_init);
+			F_intrin=[1.008, 0.906, 1.011]; mean_F_intrin=np.mean(F_intrin);
 			print('\nphiS before correction:', phiS);
 			for i in range(Nplls):
-				correction = 2.0*np.pi*(F_init[i]-mean_F_init)*delay; 			# the deviation of the frequency from the mean intrinsic frequency determines the extra phase shift until t=0,
+				correction = 2.0*np.pi*(F_intrin[i]-mean_F_intrin)*delay; 			# the deviation of the frequency from the mean intrinsic frequency determines the extra phase shift until t=0,
 																				# when coupling is turned on
 				phiS[i] = phiS[i] - correction;
 			print('\nphiS after correction:', phiS);
@@ -1084,13 +1084,14 @@ def generatePllObjects(mode,topology,couplingfct,histtype,Nplls,dt,c,delay,feedb
 				# nx.draw(G, node_size=(0.5+phiM)*1000,ax=axs[1])
 				# ''' Test and check '''
 				if ( Nplls==3 and mode==2 ):
-					print('\n\nSPECIAL MODE: individual intrinsic frequencies!!!!!!!!!!!!!!!!!!!\n\n')
-					F_init=[1.008, 0.906, 1.011];									# put here the frequencies in Hz of the PLLs in the experimental setup_hist
-					pll_list = [ PhaseLockedLoop(									# setup PLLs and storage in a list as PLL class objects
+					print('\nSPECIAL MODE: individual intrinsic frequencies!\n')
+					F_intrin=[1.006, 1.008, 1.011];								# put here the frequencies in Hz of the PLLs in the experimental setup_hist
+					K_k     =[0.4045, 0.408, 0.4065]							# the coupling strengths
+					pll_list = [ PhaseLockedLoop(								# setup PLLs and storage in a list as PLL class objects
 										Delayer(delay,dt,feedback_delay,diffconstSendDelay),		# delayer takes a time series and returns values at t and t-tau
 										PhaseDetectorCombiner(idx_pll, G.neighbors(idx_pll)),
 										LowPass(Fc,dt,K,F_Omeg,F,cPD,Trelax=0,y=y0),
-										VoltageControlledOscillator(F_init[idx_pll],Fc,F_Omeg,K,dt,domega,diffconstK,histtype,c,phi=phiM[idx_pll]) # set intrinsic frequency of VCO, frequency of synchronized state under investigation, coupling strength
+										VoltageControlledOscillator(F_intrin[idx_pll],Fc,F_Omeg,K_k[idx_pll],dt,domega,diffconstK,histtype,c,phi=phiM[idx_pll]) # set intrinsic frequency of VCO, frequency of synchronized state under investigation, coupling strength
 										)  for idx_pll in range(Nplls) ]			# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
 				else:
 					pll_list = [ PhaseLockedLoop(									# setup PLLs and storage in a list as PLL class objects

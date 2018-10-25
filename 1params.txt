@@ -1,6 +1,6 @@
 [DEFAULT]
 #1: for multiprocessing set to TRUE, otherwise FALSE, in FALSE mode case_bruteForce prints one realization
-multiproc = False
+multiproc = TRUE
 #2: discretization for brute force scan in rotated phase space with phi_k_prime (for each dimension)
 paramdiscretization = 3
 #3: number of processors that can be used --> with intel ht: 2*number of cores of proc.
