@@ -18,8 +18,6 @@ from itertools import combinations as combi
 import time
 import datetime
 
-global_variable = 1;
-
 ''' SIMULATION CALL '''
 def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx=0,Ny=0,kx=0,ky=0,isPlottingTimeSeries=False):
 	''' SIMULATION OF NETWORK & UNIT CELL CHECK '''
@@ -144,7 +142,8 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0
 	Nsteps 	= int(round(Tsim*Fsim))												# calculate number of iterations -- add output?
 	print('total simulation time in multiples of the eigenfrequency:', int(Tsim*F),'\n')
 
-	plot_Phases_Freq = False													# whether or not the phases and frequencies are being plotted
+	plot_Phases_Freq = True														# whether or not the phases and frequencies are being plotted
+	print('\nPlotting time-series for one realizations avtivated, see line 145 in case_bruteforce.py!')
 
 	twistdelta=0; cheqdelta=0; twistdelta_x=0; twistdelta_y=0;
 	if not ( topology == 'ring' or topology == 'chain' ):
