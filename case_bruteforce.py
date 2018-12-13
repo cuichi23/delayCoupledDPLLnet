@@ -81,7 +81,7 @@ def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Ome
 	#print('initial order parameter: ', r[0], '\n')
 
 	''' RETURN '''																# return value of mean order parameter, last order parameter, and the variance of r during the last 2T_{\omega}
-	return {'mean_order': np.mean(r), 'last_orderP': r[len(r)-1], 'stdev_orderP': np.var(r), 'phases': phi,
+	return {'mean_order': np.mean(r), 'last_orderP': r[len(r)-1], 'stdev_orderP': np.var(r), # 'phases': phi, --> DO NOT RETURN PHASES...
 	 		'intrinfreq': omega_0, 'coupling_strength': K_0, 'transdelays': delays_0}
 
 def multihelper(phiSr,initPhiPrime0,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx,Ny,kx,ky,plot_Phases_Freq,mode):
@@ -283,16 +283,17 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0
 	if multiproc == 'TRUE':														# multiprocessing option for parameter sweep calulcations
 		Nsim = allPoints.shape[0]
 		print('multiprocessing', Nsim, 'realizations')
-		pool_data=[];
+		pool_data=[];															# should this be recated to be an np.array?
 		freeze_support()
 		pool = Pool(processes=numberCores)										# create a Pool object
 
-		#def multihelper(phiSr,initPhiPrime0,topology,couplingfct,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx,Ny,kx,ky,plot_Phases_Freq,mode):
+		#def multihelper(phiSr,initPhiPrime0,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx,Ny,kx,ky,plot_Phases_Freq,mode):
 		pool_data.append( pool.map(multihelper_star, itertools.izip( 			# this makes a map of all parameter combinations that have to be simulated, itertools.repeat() names the constants
-							itertools.product(*scanValues), itertools.repeat(initPhiPrime0), itertools.repeat(topology), itertools.repeat(couplingfct), itertools.repeat(histtype), itertools.repeat(F), itertools.repeat(Nsteps),
-							itertools.repeat(dt), itertools.repeat(c),itertools.repeat(Fc), itertools.repeat(F_Omeg), itertools.repeat(K), itertools.repeat(N), itertools.repeat(k), itertools.repeat(delay), itertools.repeat(feedback_delay),
-							itertools.repeat(phiM), itertools.repeat(domega), itertools.repeat(diffconstK), itertools.repeat(diffconstSendDelay), itertools.repeat(cPD), itertools.repeat(Nx), itertools.repeat(Ny), itertools.repeat(kx), itertools.repeat(ky),
-							itertools.repeat(plot_Phases_Freq), itertools.repeat(mode) ) ) )
+							itertools.product(*scanValues), itertools.repeat(initPhiPrime0), itertools.repeat(topology), itertools.repeat(couplingfct), itertools.repeat(histtype),
+							itertools.repeat(F), itertools.repeat(Nsteps), itertools.repeat(dt), itertools.repeat(c),itertools.repeat(Fc), itertools.repeat(F_Omeg), itertools.repeat(K),
+							itertools.repeat(N), itertools.repeat(k), itertools.repeat(delay), itertools.repeat(feedback_delay), itertools.repeat(phiM), itertools.repeat(domega),
+							itertools.repeat(diffconstK), itertools.repeat(diffconstSendDelay), itertools.repeat(cPD), itertools.repeat(Nx), itertools.repeat(Ny), itertools.repeat(kx),
+							itertools.repeat(ky), itertools.repeat(plot_Phases_Freq), itertools.repeat(mode) ) ) )
 		results=[]; phi=[]; omega_0=[]; K_0=[]; delays_0=[]; #cPD_t=[]
 		for i in range(Nsim):
 			''' evaluate dictionaries '''

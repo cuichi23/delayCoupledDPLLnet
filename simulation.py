@@ -598,7 +598,7 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,to
 
 		if ( Nplls==3 and ( mode==2 or mode==1 ) and couplingfct == 'triang' ):
 			''' heterogeneous intrinsic frequencies - values, also change below ~line 1194 '''
-			F_intrin=[1.006, 0.968, 1.011]; mean_F_intrin=np.mean(F_intrin);
+			F_intrin=[1.006, 1.008, 1.011]; mean_F_intrin=np.mean(F_intrin);
 			# print('\nphiS before correction:', phiS, '   for intrinsic frequencies:', F_intrin);
 			for i in range(Nplls):
 				correction = 2.0*np.pi*(F_intrin[i]-mean_F_intrin)*(delay+3*dt);# the deviation of the frequency from the mean intrinsic frequency determines the extra phase shift until t=0, the +3*dt is for correction, see how hist. is set up
@@ -1089,7 +1089,7 @@ def generatePllObjects(mode,topology,couplingfct,histtype,Nplls,dt,c,delay,feedb
 				# ''' Test and check '''
 				if ( Nplls==3 and ( mode==2 or mode==1 ) and couplingfct == 'triang' ):
 					# print('\nSPECIAL MODE: individual intrinsic frequencies!\n')
-					F_intrin=[1.006, 0.968, 1.011];								# put here the frequencies in Hz of the PLLs in the experimental setup_hist
+					F_intrin=[1.006, 1.008, 1.011];								# put here the frequencies in Hz of the PLLs in the experimental setup_hist
 					K_k     =[0.4045, 0.408, 0.4065]							# the coupling strengths
 					Fc_k    =[0.0154, 0.0154, 0.0154]							# the cut-off frequencies
 					pll_list = [ PhaseLockedLoop(								# setup PLLs and storage in a list as PLL class objects
