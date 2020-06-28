@@ -10,10 +10,11 @@ import numpy as np
 
 import synctools3 as st
 
-
 TOPO_0D_GLOBAL = 'global'
 TOPO_1D_RING = 'ring'
 TOPO_1D_CHAIN = 'chain'
+TOPO_1D_ENTRAINONE = 'entrainOne'
+TOPO_1D_ENTRAINALL = 'entrainAll'
 TOPO_2D_CUBIC_OPEN = 'square-open'
 TOPO_2D_CUBIC_PERIODIC = 'square-periodic'
 TOPO_2D_HEXAGONAL_OPEN = 'hexagon-open'
@@ -28,9 +29,6 @@ COUPLING_FUNCTION_SINCOS = 'sincos'
 COUPLING_FUNCTION_TRIANGLE = 'triang'
 COUPLING_FUNCTION_TRIANGSHIFT = 'triangshift'
 
-
-
-
 # #############################################################################
 
 
@@ -40,16 +38,16 @@ def generate_delay_plot(n, ny, nx, w, k, h, wc, m, mx, my, topology, isRadians=T
     n_points = 250
     if isRadians:
         tau_max = 2.0 / (w / (2 * np.pi))
-        f = w / (2 * np.pi)
+        f  = w / (2 * np.pi)
         fc = wc / (2 * np.pi)
         kc = k  / (2 * np.pi)
     else:
         tau_max = 2.0 / w
-        f = w
+        f  = w
         fc = wc
         kc = k
     tau = np.linspace(0, tau_max, n_points)
-    sf = SweepFactory(n, ny, nx, w, k, tau, h, wc, m, mx, my, topology, 0, isRadians=isRadians)
+    sf  = SweepFactory(n, ny, nx, w, k, tau, h, wc, m, mx, my, topology, 0, isRadians=isRadians)
     fsl = sf.sweep()
 
     # Create parameter string
@@ -214,6 +212,12 @@ class SweepFactory(object):
         elif self.topology == TOPO_1D_RING:
             arr = st.Ring(self.n)
             g = st.NearestNeighbor(arr, h_func, self.k, self.tau, hasNormalizedCoupling=True)
+        elif self.topology == TOPO_1D_ENTRAINONE:
+            arr = st.Chain(self.n)
+            #g = st.
+        elif self.topology == TOPO_1D_ENTRAINALL:
+            arr = st.Ring(self.n)
+            #g = st.
         elif self.topology == TOPO_2D_CUBIC_OPEN:
             arr = st.OpenCubic2D(self.nx, self.ny)
             g = st.CubicNearestNeighbor(arr, h_func, self.k, self.tau, hasNormalizedCoupling=True)
@@ -297,9 +301,6 @@ class SweepFactory(object):
             fsl.add_states(s)
 
         return fsl
-
-
-
 
 
 # ##############################################################################

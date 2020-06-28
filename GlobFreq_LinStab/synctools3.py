@@ -23,15 +23,8 @@ def get_sign_changes(x):
     else:
         return []
 
-
-
-
 def wrap2pi(x):
     return np.mod(x + np.pi, 2 * np.pi) - np.pi
-
-
-
-
 
 # #############################################################################
 # Geometry classes describing the virtual arrangement of the oscillators
@@ -121,7 +114,6 @@ class Chain(Linear):
             return None
 
 
-
 class Cubic2D(Arrangement):
     def __init__(self, nx, ny):
         self.nx = nx
@@ -152,7 +144,6 @@ class Cubic2D(Arrangement):
         return self.nx * yx[0] + yx[1]
 
 
-
 class PeriodicCubic2D(Cubic2D):
     def site_exists(self, yx):
         return True
@@ -161,7 +152,6 @@ class PeriodicCubic2D(Cubic2D):
         y_wrap = int(np.mod(yx[0], self.ny))
         x_wrap = int(np.mod(yx[1], self.nx))
         return np.array([y_wrap, x_wrap], dtype=np.int)
-
 
 
 class OpenCubic2D(Cubic2D):
@@ -176,11 +166,6 @@ class OpenCubic2D(Cubic2D):
             return yx
         else:
             return None
-
-
-
-
-
 
 # #############################################################################
 # Coupling functions
@@ -278,10 +263,10 @@ class Square(CouplingFunction):
 
 class Graph(object):
     def __init__(self, arrangement, coupling_func, strength, delay, hasNormalizedCoupling):
-        self.arr = arrangement
+        self.arr  = arrangement
         self.func = coupling_func
-        self.k = strength
-        self.tau = delay
+        self.k    = strength
+        self.tau  = delay
         self.hasNormalizedCoupling = hasNormalizedCoupling
 
     def get_single_site_coupling(self, i):
@@ -345,6 +330,24 @@ class NearestNeighbor(Graph):
     def __init__(self, arrangement, coupling_func, strength, delay, hasNormalizedCoupling):
         if isinstance(arrangement, Linear):
             super(NearestNeighbor, self).__init__(arrangement, coupling_func, strength, delay, hasNormalizedCoupling)
+            self.d = np.array([-1, 1])
+        else:
+            raise Exception('Incompatible spatial lattice class')
+
+
+class EntrainOne(Graph):
+    def __init__(self, arrangement, coupling_func, strength, delay, hasNormalizedCoupling):
+        if isinstance(arrangement, Linear):
+            super(EntrainOne, self).__init__(arrangement, coupling_func, strength, delay, hasNormalizedCoupling)
+            self.d = np.array([-1, 1])
+        else:
+            raise Exception('Incompatible spatial lattice class')
+
+
+class EntrainAll(Graph):
+    def __init__(self, arrangement, coupling_func, strength, delay, hasNormalizedCoupling):
+        if isinstance(arrangement, Linear):
+            super(EntrainAll, self).__init__(arrangement, coupling_func, strength, delay, hasNormalizedCoupling)
             self.d = np.array([-1, 1])
         else:
             raise Exception('Incompatible spatial lattice class')

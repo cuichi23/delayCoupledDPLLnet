@@ -29,12 +29,13 @@ def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Ome
 	# print('type phi:', type(phi), 'phi:', phi)
 
 	''' MODIFIED KURAMOTO ORDER PARAMETERS '''
+	numb_av_T = 3;																# number of periods of free-running frequencies to average over
 	if F > 0:																	# for f=0, there would otherwies be a float division by zero
 		F1=F
 	else:
 		F1=F+1E-3
 	if topology == "square-periodic" or topology == "hexagon-periodic" or topology == "octagon-periodic":
-		r = eva.oracle_mTwistOrderParameter2d(phi[-int(2*1.0/(F1*dt)):, :], Nx, Ny, kx, ky)
+		r = eva.oracle_mTwistOrderParameter2d(phi[-int(numb_av_T*1.0/(F1*dt)):, :], Nx, Ny, kx, ky)
 		orderparam = eva.oracle_mTwistOrderParameter2d(phi[:, :], Nx, Ny, kx, ky)
 	elif topology == "square-open" or topology == "hexagon" or topology == "octagon":
 		if kx==1 and ky==1:
@@ -51,7 +52,7 @@ def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Ome
 				k == 2 : xy checkerboard state
 				k == 3 : in-phase synchronized
 			"""
-		r = eva.oracle_CheckerboardOrderParameter2d(phi[-int(2*1.0/(F1*dt)):, :], Nx, Ny, ktemp)
+		r = eva.oracle_CheckerboardOrderParameter2d(phi[-int(numb_av_T*1.0/(F1*dt)):, :], Nx, Ny, ktemp)
 		# ry = np.nonzero(rmat > 0.995)[0]
 		# rx = np.nonzero(rmat > 0.995)[1]
 		orderparam = eva.oracle_CheckerboardOrderParameter2d(phi[:, :], Nx, Ny, ktemp)
@@ -60,10 +61,13 @@ def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Ome
 				k  > 0 : x  checkerboard state
 				k == 0 : in-phase synchronized
 			"""
-		r = eva.oracle_CheckerboardOrderParameter1d(phi[-int(2*1.0/(F1*dt)):, :], k)
+		r = eva.oracle_CheckerboardOrderParameter1d(phi[-int(numb_av_T*1.0/(F1*dt)):, :], k)
 		orderparam = eva.oracle_CheckerboardOrderParameter1d(phi[:, :])			# calculate the order parameter for all times
 	elif ( topology == "ring" or topology == 'global'):
-		r = eva.oracle_mTwistOrderParameter(phi[-int(2*1.0/(F1*dt)):, :], k)		# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
+		r = eva.oracle_mTwistOrderParameter(phi[-int(numb_av_T*1.0/(F1*dt)):, :], k)	# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
+		orderparam = eva.oracle_mTwistOrderParameter(phi[:, :], k)				# calculate the m-twist order parameter for all times
+	elif ( topology == "entrainOne" or topology == "entrainAll" ):
+		r = eva.oracle_mTwistOrderParameter(phi[-int(numb_av_T*1.0/(F1*dt)):, :], k)	# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
 		orderparam = eva.oracle_mTwistOrderParameter(phi[:, :], k)				# calculate the m-twist order parameter for all times
 
 	# r = eva.oracle_mTwistOrderParameter(phi[-int(2*1.0/(F1*dt)):, :], k)			# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
@@ -136,7 +140,7 @@ if __name__ == '__main__':
 	now = datetime.datetime.now()
 	# print('algorithm mode (Josefine)')
 	# process arguments -- provided on program call, e.g. python oracle.py [arg0] [arg1] ... [argN], call, e.g.: oracle.py ring 3 1 0.25 0.1 1.15 1 1. 1. 1. 0.0 0.0 0.0
-	topology	= str(sys.argv[1])												# topology: {global, chain, ring, square-open, square-periodic, hexagonal lattice, osctagon}
+	topology	= str(sys.argv[1])												# topology: {global, chain, ring, square-open, square-periodic, hexagonal lattice, osctagon, entrainOne, entrainAll}
 	N 		 	= int(float(sys.argv[2]))										# number of oscillators
 	K 			= float(sys.argv[3])											# coupling strength
 	Fc 			= float(sys.argv[4])											# cut-off frequency of the loop filter
@@ -219,7 +223,7 @@ if __name__ == '__main__':
 						phiMreorder[counter]=phiM[i][j]; counter=counter+1;
 				phiM = phiMreorder%(2.0*np.pi)
 				# phiM = phiM.flatten(); # print('phiM: ', phiM)
-	if ( topology == 'ring' or topology == 'chain' ):
+	if ( topology == 'ring' or topology == 'chain' or topology == 'entrainOne' or topology == 'entrainAll' ):
 		if topology == 'chain':
 			cheqdelta = np.pi													# phase difference between neighboring oscillators in a stable chequerboard state
 			print('phase differences of',k,' chequerboard:', cheqdelta, '\n')
@@ -236,6 +240,7 @@ if __name__ == '__main__':
 			else:
 				phiM = np.arange(0.0, N*twistdelta, twistdelta)					# vector mit N entries from 0 increasing by twistdelta for every element, i.e., the phase-configuration
 				# print('phiM: ', phiM)											# in the original phase space of an m-twist solution
+	print('phiM: ', phiM)
 	if topology == 'global':
 		phiM = np.zeros(N)														# for all-to-all coupling we assume no twist states with m > 0
 

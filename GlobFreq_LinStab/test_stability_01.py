@@ -13,8 +13,6 @@ import numpy as np
 import synctools
 reload(synctools)
 
-
-
 # ##############################################################################
 # Parameters
 # ##############################################################################
@@ -28,12 +26,12 @@ wc = w
 n = 12
 nx = 4
 ny = 3
-topo_global = synctools.Global(n)
-topo_ring = synctools.Ring(n)
+topo_global          = synctools.Global(n)
+topo_ring            = synctools.Ring(n)
 topo_square_periodic = synctools.SquarePeriodic(nx, ny)
-topo_square_open = synctools.SquareOpen(nx, ny)
-twist_number1d = synctools.Twist1D(1)
-twist_number2d = synctools.Twist2D(1, 0)
+topo_square_open     = synctools.SquareOpen(nx, ny)
+twist_number1d       = synctools.Twist1D(1)
+twist_number2d       = synctools.Twist2D(1, 0)
 
 # Plotting
 cmap = cm.coolwarm
@@ -84,8 +82,8 @@ plt.tight_layout()
 # ##############################################################################
 print '2. Build coupling derivative matrices'
 
-in_phase = synctools.InPhase()
-twist = synctools.Twist1D(1)
+in_phase          = synctools.InPhase()
+twist             = synctools.Twist1D(1)
 d_global          = topo_global.get_couling_derivate_matrix(h, in_phase, 0.21)
 d_ring            = topo_ring.get_couling_derivate_matrix(h, twist_number1d, 0.21)
 d_square_periodic = topo_square_periodic.get_couling_derivate_matrix(h, twist_number2d, 0.21)

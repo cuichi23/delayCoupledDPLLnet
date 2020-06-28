@@ -31,12 +31,13 @@ def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Ome
 	# print('type(phi), phi.shape:', type(phi), phi.shape, '    phi:', phi)
 
 	''' MODIFIED KURAMOTO ORDER PARAMETERS '''
+	numb_av_T = 3;																# number of periods of free-running frequencies to average over
 	if F > 0:																	# for f=0, there would otherwies be a float division by zero
 		F1=F
 	else:
 		F1=F+1E-3
 	if topology == "square-periodic" or topology == "hexagon-periodic" or topology == "octagon-periodic":
-		r = eva.oracle_mTwistOrderParameter2d(phi[-int(2*1.0/(F1*dt)):, :], Nx, Ny, kx, ky)
+		r = eva.oracle_mTwistOrderParameter2d(phi[-int(numb_av_T*1.0/(F1*dt)):, :], Nx, Ny, kx, ky)
 		orderparam = eva.oracle_mTwistOrderParameter2d(phi[:, :], Nx, Ny, kx, ky)
 	elif topology == "square-open" or topology == "hexagon" or topology == "octagon":
 		if kx==1 and ky==1:
@@ -53,7 +54,7 @@ def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Ome
 				k == 2 : xy checkerboard state
 				k == 3 : in-phase synchronized
 			"""
-		r = eva.oracle_CheckerboardOrderParameter2d(phi[-int(2*1.0/(F1*dt)):, :], Nx, Ny, ktemp)
+		r = eva.oracle_CheckerboardOrderParameter2d(phi[-int(numb_av_T*1.0/(F1*dt)):, :], Nx, Ny, ktemp)
 		# ry = np.nonzero(rmat > 0.995)[0]
 		# rx = np.nonzero(rmat > 0.995)[1]
 		orderparam = eva.oracle_CheckerboardOrderParameter2d(phi[:, :], Nx, Ny, ktemp)
@@ -62,10 +63,13 @@ def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Ome
 				k  > 0 : x  checkerboard state
 				k == 0 : in-phase synchronized
 			"""
-		r = eva.oracle_CheckerboardOrderParameter1d(phi[-int(2*1.0/(F1*dt)):, :], k)
+		r = eva.oracle_CheckerboardOrderParameter1d(phi[-int(numb_av_T*1.0/(F1*dt)):, :], k)
 		orderparam = eva.oracle_CheckerboardOrderParameter1d(phi[:, :])			# calculate the order parameter for all times
 	elif ( topology == "ring" or topology == 'global'):
-		r = eva.oracle_mTwistOrderParameter(phi[-int(2*1.0/(F1*dt)):, :], k)		# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
+		r = eva.oracle_mTwistOrderParameter(phi[-int(numb_av_T*1.0/(F1*dt)):, :], k)		# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
+		orderparam = eva.oracle_mTwistOrderParameter(phi[:, :], k)				# calculate the m-twist order parameter for all times
+	elif ( topology == "entrainOne" or topology == "entrainAll" ):
+		r = eva.oracle_mTwistOrderParameter(phi[-int(numb_av_T*1.0/(F1*dt)):, :], k)	# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
 		orderparam = eva.oracle_mTwistOrderParameter(phi[:, :], k)				# calculate the m-twist order parameter for all times
 
 	# r = eva.oracle_mTwistOrderParameter(phi[-int(2*1.0/(F1*dt)):, :], k)			# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
@@ -114,40 +118,52 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0, Ny
 	now = datetime.datetime.now()												# single realization mode
 	plot_Phases_Freq = True										  				# plot phase time series for this realization
 
-	phiS=[]
-	phiSrtemp = np.array(phiSr)
-	# print('\n\nlen(phiSr):', len(temp[0,:]), 'type(phiSr)', type(phiSr), '\nphiSr:', phiSr)
-	if len(phiSrtemp.shape)==1 and len(phiSrtemp) > 0:
-		if len(phiSrtemp)==N:
-			print('Parameters set, perturbations provided manually in rotated phase space of phases.')
-			# choose the value of phi'_0, i.e., where the plane, rectangular to the axis phi'_0 in the rotated phase space, is placed
-			# this direction corresponds to the case where all phi_k in the original phase space are equal phi_0==phi_1==...==phi_N-1 or (all) have constant phase differences
-			initPhiPrime0 = 0.0
-			print('shift along the first axis in rotated phase space, equivalent to phase kick of all oscillators before simulation starts: phi`_0=', initPhiPrime0)
-			phiSrtemp[0] = initPhiPrime0						  				# set value of the first dimension, phi'_0, the axis along which all phase differences are preserved
-			phiSr = phiSrtemp; del phiSrtemp
-			print('\nvalues of the perturbations in ROTATED phase space, i.e., last time-step of history set as initial condition:', phiSr)
-			phiS = eva.rotate_phases(phiSr.flatten(), isInverse=False)		  	# rotate back into physical phase space for simulation
-			print('dirac delta phase perturbation in ORIGINAL phase space:', phiS, '\n')
-	elif len(phiSrtemp.shape)==2:
-		if len(phiSrtemp[0,:])==N:
-			print('Parameters set, perturbations provided manually in rotated phase space of phases.')
-			# choose the value of phi'_0, i.e., where the plane, rectangular to the axis phi'_0 in the rotated phase space, is placed
-			# this direction corresponds to the case where all phi_k in the original phase space are equal phi_0==phi_1==...==phi_N-1 or (all) have constant phase differences
-			initPhiPrime0 = 0.0
-			print('shift along the first axis in rotated phase space, equivalent to phase kick of all oscillators before simulation starts: phi`_0=', initPhiPrime0)
-			phiSrtemp[:,0] = initPhiPrime0						  				# set value of the first dimension, phi'_0, the axis along which all phase differences are preserved
-			phiSr = phiSrtemp; del phiSrtemp
-			print('\nvalues of the initial phases in ROTATED phase space, i.e., last time-step of history set as initial condition:', phiSr)
-			phiS = eva.rotate_phases(phiSr.flatten(), isInverse=False)		  	# rotate back into physical phase space for simulation
-			print('values of initial phase in ORIGINAL phase space:', phiS, '\n')
+
+	if ( topology == 'entrainOne' or topology == 'entrainAll' ):
+		print('Provide phase-configuration for these cases in physical coordinates!')
+		phiM  = eva.rotate_phases(phiSr.flatten(), isInverse=False);
+		phiS  = [0, 0, 0];
+		phiSr = eva.rotate_phases(phiSr.flatten(), isInverse=True)
+		print('For entrainOne and entrainAll assumed initial phase-configuration of entrained synced state (physical coordinates):', phiM, ' and on top a perturbation of (rotated coordinates):', phiSr, '\n')
+		#phiS  = phiSr;
+		#phiSr =	eva.rotate_phases(phiS.flatten(), isInverse=True)		  		# rotate back into rotated phase space for simulation
+		#print('For entrainOne and entrainAll assumed initial phase-configuration of entrained synced state (physical coordinates):', phiS, ' and (rotated coordinates):', phiSr, '\n')
 	else:
-		print('phiSr: ', phiSr)
-		print('Either no initial perturbations given, or Error in parameters - supply:\ncase_[sim_mode].py [topology] [#osci] [K] [F_c] [delay] [F_Omeg] [k] [Tsim] [c] [Nsim] [Nx] [Ny] [mx] [my] [cPD] [N entries for the value of the perturbation to oscis]')
-		# sys.exit(0)
-		phiSValues = np.zeros(N, dtype=np.float)								# create vector that will contain the initial perturbation (in the history) for each realizations
-		print('\nNo perturbation set, hence all perturbations have the default value zero (in original phase space of phases)!')
-		phiS=phiSValues
+		print('Test single evaluation and plot phase and frequency time series, PROVIDE initial condition in ROTATED phase space!')
+		phiS=[]
+		phiSrtemp = np.array(phiSr)
+		# print('\n\nlen(phiSr):', len(temp[0,:]), 'type(phiSr)', type(phiSr), '\nphiSr:', phiSr)
+		if len(phiSrtemp.shape)==1 and len(phiSrtemp) > 0:
+			if len(phiSrtemp)==N:
+				print('Parameters set, perturbations provided manually in rotated phase space of phases.')
+				# choose the value of phi'_0, i.e., where the plane, rectangular to the axis phi'_0 in the rotated phase space, is placed
+				# this direction corresponds to the case where all phi_k in the original phase space are equal phi_0==phi_1==...==phi_N-1 or (all) have constant phase differences
+				initPhiPrime0 = 0.0
+				print('shift along the first axis in rotated phase space, equivalent to phase kick of all oscillators before simulation starts: phi`_0=', initPhiPrime0)
+				phiSrtemp[0] = initPhiPrime0						  				# set value of the first dimension, phi'_0, the axis along which all phase differences are preserved
+				phiSr = phiSrtemp; del phiSrtemp
+				print('\nvalues of the perturbations in ROTATED phase space, i.e., last time-step of history set as initial condition:', phiSr)
+				phiS = eva.rotate_phases(phiSr.flatten(), isInverse=False)		  	# rotate back into physical phase space for simulation
+				print('dirac delta phase perturbation in ORIGINAL phase space:', phiS, '\n')
+		elif len(phiSrtemp.shape)==2:
+			if len(phiSrtemp[0,:])==N:
+				print('Parameters set, perturbations provided manually in rotated phase space of phases.')
+				# choose the value of phi'_0, i.e., where the plane, rectangular to the axis phi'_0 in the rotated phase space, is placed
+				# this direction corresponds to the case where all phi_k in the original phase space are equal phi_0==phi_1==...==phi_N-1 or (all) have constant phase differences
+				initPhiPrime0 = 0.0
+				print('shift along the first axis in rotated phase space, equivalent to phase kick of all oscillators before simulation starts: phi`_0=', initPhiPrime0)
+				phiSrtemp[:,0] = initPhiPrime0						  				# set value of the first dimension, phi'_0, the axis along which all phase differences are preserved
+				phiSr = phiSrtemp; del phiSrtemp
+				print('\nvalues of the initial phases in ROTATED phase space, i.e., last time-step of history set as initial condition:', phiSr)
+				phiS = eva.rotate_phases(phiSr.flatten(), isInverse=False)		  	# rotate back into physical phase space for simulation
+				print('values of initial phase in ORIGINAL phase space:', phiS, '\n')
+		else:
+			print('phiSr: ', phiSr)
+			print('Either no initial perturbations given, or Error in parameters - supply:\ncase_[sim_mode].py [topology] [#osci] [K] [F_c] [delay] [F_Omeg] [k] [Tsim] [c] [Nsim] [Nx] [Ny] [mx] [my] [cPD] [N entries for the value of the perturbation to oscis]')
+			# sys.exit(0)
+			phiSValues = np.zeros(N, dtype=np.float)								# create vector that will contain the initial perturbation (in the history) for each realizations
+			print('\nNo perturbation set, hence all perturbations have the default value zero (in original phase space of phases)!')
+			phiS=phiSValues
 
 	if F > 1E-3:
 		Tsim   = Tsim*(1.0/F)				  									# simulation time in multiples of the period of the uncoupled oscillators
@@ -161,7 +177,7 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0, Ny
 	print('NOTE: single realizations will be simulated for 2*Tsim to have enough waveforms after transients have decayed to plot spectral density.')
 	Nsteps 	= int(round(Tsim*Fsim))												# calculate number of iterations -- add output?
 	Nsim 	= 1
-	print('Test single evaluation and plot phase and frequency time series, PROVIDE initial condition in ROTATED phase space!')
+
 
 	twistdelta=0; cheqdelta=0; twistdelta_x=0; twistdelta_y=0;
 	if not ( topology == 'ring' or topology == 'chain' ):
@@ -252,7 +268,6 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0, Ny
 				# print('phiM: ', phiM)											# in the original phase space of an m-twist solution
 	if topology == 'global':
 		phiM = np.zeros(N)														# for all-to-all coupling we assume no twist states with m > 0
-
 
 	# print('time-step dt=', dt)
 	# print('delay:', delay)

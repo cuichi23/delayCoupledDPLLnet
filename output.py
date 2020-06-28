@@ -179,12 +179,15 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cPD, cPD_
 	plt.figure('REWORK --> check poincare sections!!!!!        phase configuration between oscis, phase plot, poincare sections')
 	plt.clf()
 	for i in range(len(phi[0,:])):
-		plt.plot((t*dt),((phi[:,i]-phi[:,0]+np.pi)%(2.*np.pi))-np.pi)			#math.fmod(phi[:,:], 2.*np.pi))
+		labelname = r'$\phi_{%i}$-$\phi_{0}$' %(i);
+		plt.plot((t*dt),((phi[:,i]-phi[:,0]+np.pi)%(2.*np.pi))-np.pi,label=labelname)			#math.fmod(phi[:,:], 2.*np.pi))
 	plt.plot(delay, ((phi[int(round(delay/dt)),0]-phi[int(round(delay/dt)),1]+np.pi)%(2.*np.pi))-np.pi, 'yo', ms=5)
-	plt.axvspan(t[-int(2*1.0/(F1*dt))]*dt, t[-1]*dt, color='b', alpha=0.3)
-	plt.title(r'time series phase differences, inst. freq: $\dot{\phi}_0(t_{start})=%.4f$, $\dot{\phi}_0(t_{end})=%.4f$  [rad Hz]' %( (phi[int(2*1.0/(F1*dt))][0]-phi[1][0])/(2*1.0/F1-dt), (phi[-4][0]-phi[-3-int(2*1.0/(F1*dt))][0])/(2*1.0/F1-dt) ), fontdict = titlefont)
+	#plt.axvspan(t[-int(5.5*1.0/(F1*dt))]*dt, t[-1]*dt, color='b', alpha=0.3)
+	plt.title(r'phase differences $\Delta\phi_{10}=%.4f$, $\Delta\phi_{20}=%.4f$  [rad]' %( np.mod(phi[-10][1]-phi[-10][0]+np.pi, 2.0*np.pi)-np.pi,
+																	np.mod(phi[-10][2]-phi[-10][0]+np.pi, 2.0*np.pi)-np.pi ), fontdict = titlefont)
 	plt.xlabel(r'$t$ $[s]$', fontdict = labelfont)
 	plt.ylabel(r'$\phi_k(t)-\phi_0(t)$', fontdict = labelfont)
+	plt.legend();
 	plt.savefig('results/phaseConf-t_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day))
 	plt.savefig('results/phaseConf-t_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), dpi=300)
 
@@ -285,7 +288,7 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cPD, cPD_
 		plt.show()
 
 ''' EVALUATION BRUTE-FORCE BASIN OF ATTRACTION '''
-def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints, initPhiPrime0, phiMr, paramDiscretization, delays_0, twistdelta_x, twistdelta_y, topology, show_plot=True):
+def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints, initPhiPrime0, phiMr, paramDiscretization, delays_0, twistdelta_x, twistdelta_y, topology, phiConfig, show_plot=True):
 	''' Here addtional output, e.g., graphs or matrices can be implemented for testing '''
 	# we want to plot all the m-twist locations in rotated phase space: calculate phases, rotate and then plot into the results
 	twist_points  = np.zeros((N, N), dtype=np.float)							# twist points in physical phase space
@@ -313,10 +316,18 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 					alltwistP.append(vtemp)
 					# print('vtemp:', vtemp, '\n')
 
-		alltwistP = np.array(alltwistP)
-		# print('alltwistP:\n', alltwistP, '\n')
-		alltwistPR= np.transpose(eva.rotate_phases(np.transpose(alltwistP), isInverse=True))	# express the points in rotated phase space
-		# print('alltwistP rotated (alltwistPR):\n', alltwistPR, '\n')
+		if (topology == 'entrainOne' or topology == 'entrainAll'):
+			alltwistP = phiConfig;												# phase-configuration of entrained synced state
+			if not len(phiConfig) == 0:
+				R_config  = eva.calcKuramotoOrderParameter(phiConfig);
+				absR_conf = np.abs(R_config)
+			alltwistPR= np.transpose(eva.rotate_phases(np.transpose(alltwistP), isInverse=True))	# express the points in rotated phase space
+			print('order parameter of the expected phase-configuration:', absR_conf)
+		else:
+			alltwistP = np.array(alltwistP);
+			# print('alltwistP:\n', alltwistP, '\n')
+			alltwistPR= np.transpose(eva.rotate_phases(np.transpose(alltwistP), isInverse=True))	# express the points in rotated phase space
+			# print('alltwistP rotated (alltwistPR):\n', alltwistPR, '\n')
 
 	''' PLOTS '''
 	dpi_value = 300
@@ -340,7 +351,17 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	  'blue' :  ( (0.0, 1.0, 1.0), (0.02, .75, .75), (1., 0.45, 0.45))
 	}
 
-	colormap = matplotlib.colors.LinearSegmentedColormap('my_colormap', cdict, 1024)
+	# cmaps['Diverging'] = [
+    #        'PiYG', 'PRGn', 'BrBG', 'PuOr', 'RdGy', 'RdBu',
+    #        'RdYlBu', 'RdYlGn', 'Spectral', 'coolwarm', 'bwr', 'seismic']
+
+	if (topology == 'entrainOne' or topology == 'entrainAll'):
+		# cmap=plt.cm.get_cmap('Blues', 6)
+		cmap 	  = plt.cm.get_cmap('seismic', 256);
+		colormap  = eva.shiftedColorMap(cmap, start=0.0, midpoint=absR_conf, stop=1.0, name='shiftedcmap')
+		colormap1 = eva.shiftedColorMap(cmap, start=0.0, midpoint=absR_conf, stop=max(results[:,1]), name='shiftedcmap')
+	else:
+		colormap  = matplotlib.colors.LinearSegmentedColormap('my_colormap', cdict, 1024)
 
 	''' IMPORTANT: since we add the perturbations additively, here we need to shift allPoints around the initial phases of the respective m-twist state, using phiMr '''
 	plt.figure(1)																# plot the mean of the order parameter over a period 2T
@@ -355,8 +376,10 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	elif N==2:
 		plt.xlabel(r'$\phi_0^{\prime}$')
 		plt.ylabel(r'$\phi_1^{\prime}$')
-	if N==3 and topology != "square-open" and topology != "chain":
+	if ( N==3 and not ( topology == "square-open" or topology == "chain" or topology == "entrainOne" or topology == "entrainAll" ) ):
 		plt.plot(alltwistPR[:,1],alltwistPR[:,2], 'yo', ms=8)
+	if ( N==3 and ( topology == "entrainOne" or topology == "entrainAll" ) ):
+		plt.plot(alltwistPR[1], alltwistPR[2], 'yo', ms=2)
 	plt.xlim([1.05*allPoints[:,0].min()+phiMr[d1], 1.05*allPoints[:,0].max()+phiMr[d1]])
 	plt.ylim([1.05*allPoints[:,1].min()+phiMr[d2], 1.05*allPoints[:,1].max()+phiMr[d2]])
 	plt.colorbar()
@@ -367,7 +390,7 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	plt.clf()
 	ax = plt.subplot(1, 1, 1)
 	ax.set_aspect('equal')
-	plt.scatter(allPoints[:,0]+phiMr[d1], allPoints[:,1]+phiMr[d2], c=results[:,1], alpha=0.5, edgecolor='', cmap=colormap, vmin=0, vmax=max(results[:,1]))
+	plt.scatter(allPoints[:,0]+phiMr[d1], allPoints[:,1]+phiMr[d2], c=results[:,1], alpha=0.5, edgecolor='', cmap=colormap1, vmin=0, vmax=max(results[:,1]))
 	plt.title(r'last $R(t,m=%d )$, constant dim: $\phi_0^{\prime}=%.2f$' %(int(k) ,initPhiPrime0) )
 	if N==3:
 		plt.xlabel(r'$\phi_1^{\prime}$')
@@ -375,8 +398,10 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	elif N==2:
 		plt.xlabel(r'$\phi_0^{\prime}$')
 		plt.ylabel(r'$\phi_1^{\prime}$')
-	if N==3 and topology != "square-open" and topology != "chain":
+	if ( N==3 and not ( topology == "square-open" or topology == "chain" or topology == "entrainOne" or topology == "entrainAll" ) ):
 		plt.plot(alltwistPR[:,1],alltwistPR[:,2], 'yo', ms=8)
+	if ( N==3 and ( topology == "entrainOne" or topology == "entrainAll" ) ):
+		plt.plot(alltwistPR[1], alltwistPR[2], 'yo', ms=2)
 	plt.xlim([1.05*allPoints[:,0].min()+phiMr[d1], 1.05*allPoints[:,0].max()+phiMr[d1]])
 	plt.ylim([1.05*allPoints[:,1].min()+phiMr[d2], 1.05*allPoints[:,1].max()+phiMr[d2]])
 	plt.colorbar()
@@ -390,7 +415,10 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	tempresults = results[:,0].reshape((paramDiscretization, paramDiscretization))   #np.flipud()
 	tempresults = np.transpose(tempresults)
 	tempresults_ma = ma.masked_where(tempresults < 0, tempresults)				# Create masked array
-	plt.imshow(tempresults_ma, interpolation='nearest', cmap=cm.coolwarm, aspect='auto', origin='lower', extent=(allPoints[:,0].min()+phiMr[d1], allPoints[:,0].max()+phiMr[d1], allPoints[:,1].min()+phiMr[d2], allPoints[:,1].max()+phiMr[d2]), vmin=0, vmax=1)
+	if ( N==3 and ( topology == "entrainOne" or topology == "entrainAll" ) ):
+		plt.imshow(tempresults_ma, interpolation='nearest', cmap=colormap, aspect='auto', origin='lower', extent=(allPoints[:,0].min()+phiMr[d1], allPoints[:,0].max()+phiMr[d1], allPoints[:,1].min()+phiMr[d2], allPoints[:,1].max()+phiMr[d2]), vmin=0, vmax=1)
+	else:
+		plt.imshow(tempresults_ma, interpolation='nearest', cmap=cm.coolwarm, aspect='auto', origin='lower', extent=(allPoints[:,0].min()+phiMr[d1], allPoints[:,0].max()+phiMr[d1], allPoints[:,1].min()+phiMr[d2], allPoints[:,1].max()+phiMr[d2]), vmin=0, vmax=1)
 	plt.title(r'mean $R(t,m=%d )$, constant dim: $\phi_0^{\prime}=%.2f$' %(int(k) ,initPhiPrime0) )
 	if N==3:
 		plt.xlabel(r'$\phi_1^{\prime}$')
@@ -398,8 +426,10 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	elif N==2:
 		plt.xlabel(r'$\phi_0^{\prime}$')
 		plt.ylabel(r'$\phi_1^{\prime}$')
-	if N==3 and topology != "square-open" and topology != "chain":
+	if ( N==3 and not ( topology == "square-open" or topology == "chain" or topology == "entrainOne" or topology == "entrainAll" ) ):
 		plt.plot(alltwistPR[:,1],alltwistPR[:,2], 'yo', ms=8)
+	if ( N==3 and ( topology == "entrainOne" or topology == "entrainAll" ) ):
+		plt.plot(alltwistPR[1], alltwistPR[2], 'yo', ms=2)
 	plt.xlim([1.05*allPoints[:,0].min()+phiMr[d1], 1.05*allPoints[:,0].max()+phiMr[d1]])
 	plt.ylim([1.05*allPoints[:,1].min()+phiMr[d2], 1.05*allPoints[:,1].max()+phiMr[d2]])
 	plt.colorbar()
@@ -413,7 +443,10 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	tempresults = results[:,1].reshape((paramDiscretization, paramDiscretization))   #np.flipud()
 	tempresults = np.transpose(tempresults)
 	tempresults_ma = ma.masked_where(tempresults < 0, tempresults)				# Create masked array
-	plt.imshow(tempresults_ma, interpolation='nearest', cmap=cm.coolwarm, aspect='auto', origin='lower', extent=(allPoints[:,0].min()+phiMr[d1], allPoints[:,0].max()+phiMr[d1], allPoints[:,1].min()+phiMr[d2], allPoints[:,1].max()+phiMr[d2]), vmin=0, vmax=1)
+	if ( N==3 and ( topology == "entrainOne" or topology == "entrainAll" ) ):
+		plt.imshow(tempresults_ma, interpolation='nearest', cmap=colormap, aspect='auto', origin='lower', extent=(allPoints[:,0].min()+phiMr[d1], allPoints[:,0].max()+phiMr[d1], allPoints[:,1].min()+phiMr[d2], allPoints[:,1].max()+phiMr[d2]), vmin=0, vmax=1)
+	else:
+		plt.imshow(tempresults_ma, interpolation='nearest', cmap=cm.coolwarm, aspect='auto', origin='lower', extent=(allPoints[:,0].min()+phiMr[d1], allPoints[:,0].max()+phiMr[d1], allPoints[:,1].min()+phiMr[d2], allPoints[:,1].max()+phiMr[d2]), vmin=0, vmax=1)
 	plt.title(r'last $R(t,m=%d )$, constant dim: $\phi_0^{\prime}=%.2f$' %(int(k) ,initPhiPrime0) )
 	if N==3:
 		plt.xlabel(r'$\phi_1^{\prime}$')
@@ -421,8 +454,10 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	elif N==2:
 		plt.xlabel(r'$\phi_0^{\prime}$')
 		plt.ylabel(r'$\phi_1^{\prime}$')
-	if N==3 and topology != "square-open" and topology != "chain":
+	if ( N==3 and not ( topology == "square-open" or topology == "chain" or topology == "entrainOne" or topology == "entrainAll" ) ):
 		plt.plot(alltwistPR[:,1],alltwistPR[:,2], 'yo', ms=8)
+	if ( N==3 and ( topology == "entrainOne" or topology == "entrainAll" ) ):
+		plt.plot(alltwistPR[1], alltwistPR[2], 'yo', ms=2)
 	plt.xlim([1.05*allPoints[:,0].min()+phiMr[d1], 1.05*allPoints[:,0].max()+phiMr[d1]])
 	plt.ylim([1.05*allPoints[:,1].min()+phiMr[d2], 1.05*allPoints[:,1].max()+phiMr[d2]])
 	plt.colorbar()
@@ -455,7 +490,10 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	my_cmap.set_under('w')
 	ax = plt.subplot(1, 1, 1)
 	ax.set_aspect('equal')
-	plt.scatter(allPoints[:,0]+phiMr[d1], allPoints[:,1]+phiMr[d2], c=results[:,0], s=10, alpha=0.5, edgecolor='', cmap=my_cmap, vmin=0.0, vmax=1.0)#, vmin=0, vmax=1)
+	if ( N==3 and ( topology == "entrainOne" or topology == "entrainAll" ) ):
+		plt.scatter(allPoints[:,0]+phiMr[d1], allPoints[:,1]+phiMr[d2], c=results[:,0], s=10, alpha=0.5, edgecolor='', cmap=colormap, vmin=0.0, vmax=1.0)#, vmin=0, vmax=1)
+	else:
+		plt.scatter(allPoints[:,0]+phiMr[d1], allPoints[:,1]+phiMr[d2], c=results[:,0], s=10, alpha=0.5, edgecolor='', cmap=my_cmap, vmin=0.0, vmax=1.0)#, vmin=0, vmax=1)
 	plt.title(r'mean $R(t,m=%d )$, constant dim: $\phi_0^{\prime}=%.2f$' %(int(k) ,initPhiPrime0) )
 	if N==3:
 		plt.xlabel(r'$\phi_1^{\prime}$')
@@ -463,8 +501,10 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	elif N==2:
 		plt.xlabel(r'$\phi_0^{\prime}$')
 		plt.ylabel(r'$\phi_1^{\prime}$')
-	if N==3 and topology != "square-open" and topology != "chain":
-		plt.plot(alltwistPR[:,1],alltwistPR[:,2], 'yo', ms=2)
+	if ( N==3 and not ( topology == "square-open" or topology == "chain" or topology == "entrainOne" or topology == "entrainAll" ) ):
+		plt.plot(alltwistPR[:,1],alltwistPR[:,2], 'yo', ms=8)
+	if ( N==3 and ( topology == "entrainOne" or topology == "entrainAll" ) ):
+		plt.plot(alltwistPR[1], alltwistPR[2], 'yo', ms=2)
 	plt.xlim([1.05*allPoints[:,0].min()+phiMr[d1], 1.05*allPoints[:,0].max()+phiMr[d1]])
 	plt.ylim([1.05*allPoints[:,1].min()+phiMr[d2], 1.05*allPoints[:,1].max()+phiMr[d2]])
 	plt.colorbar()
@@ -477,7 +517,10 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	my_cmap.set_under('w')
 	ax = plt.subplot(1, 1, 1)
 	ax.set_aspect('equal')
-	plt.scatter(allPoints[:,0]+phiMr[d1], allPoints[:,1]+phiMr[d2], c=results[:,0], s=5, alpha=0.5, edgecolor='', cmap=my_cmap, vmin=0.0, vmax=1.0)#, vmin=0, vmax=1)
+	if ( N==3 and ( topology == "entrainOne" or topology == "entrainAll" ) ):
+		plt.scatter(allPoints[:,0]+phiMr[d1], allPoints[:,1]+phiMr[d2], c=results[:,0], s=5, alpha=0.5, edgecolor='', cmap=colormap, vmin=0.0, vmax=1.0)#, vmin=0, vmax=1)
+	else:
+		plt.scatter(allPoints[:,0]+phiMr[d1], allPoints[:,1]+phiMr[d2], c=results[:,0], s=5, alpha=0.5, edgecolor='', cmap=my_cmap, vmin=0.0, vmax=1.0)#, vmin=0, vmax=1)
 	plt.title(r'mean $R(t,m=%d )$, constant dim: $\phi_0^{\prime}=%.2f$' %(int(k) ,initPhiPrime0) )
 	if N==3:
 		plt.xlabel(r'$\phi_1^{\prime}$')
@@ -485,8 +528,10 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	elif N==2:
 		plt.xlabel(r'$\phi_0^{\prime}$')
 		plt.ylabel(r'$\phi_1^{\prime}$')
-	if N==3 and topology != "square-open" and topology != "chain":
-		plt.plot(alltwistPR[:,1],alltwistPR[:,2], 'yo', ms=2)
+	if ( N==3 and not ( topology == "square-open" or topology == "chain" or topology == "entrainOne" or topology == "entrainAll" ) ):
+		plt.plot(alltwistPR[:,1],alltwistPR[:,2], 'yo', ms=8)
+	if ( N==3 and ( topology == "entrainOne" or topology == "entrainAll" ) ):
+		plt.plot(alltwistPR[1], alltwistPR[2], 'yo', ms=2)
 	plt.xlim([1.05*allPoints[:,0].min()+phiMr[d1], 1.05*allPoints[:,0].max()+phiMr[d1]])
 	plt.ylim([1.05*allPoints[:,1].min()+phiMr[d2], 1.05*allPoints[:,1].max()+phiMr[d2]])
 	plt.colorbar()
@@ -496,7 +541,7 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	plt.draw()
 	if show_plot:
 		plt.show()
-
+	plt.show()
 	return 0.0
 
 ''' EVALUATION MANY (noisy, dstributed parameters) REALIZATIONS '''
@@ -831,13 +876,22 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, Nx, Ny, k, mx, my, delay, c, cPD, Tsim,
 		plt.show()
 
 	if len(orderparam[:,0]) > 24:												# only save if many realizations have been computed
+		writeHeaderFlag = 0;
 		# SAVE DATA, APPEND TO RESULTS FILE
+		with open('results/1Anoisy_res.csv') as f:								# open in readmode to check whether first line is empty, if so add header!
+			reader = csv.reader(f, delimiter=',')
+			if ([0] in reader) in (None, ''):
+				writeHeaderFlag = 1;
 		print('Writing results to noisy_results.csv')
 		temp = []; TempOrdParame = [];
 		with open('results/1Anoisy_res.csv', 'a') as f:							# 'a' means append to file! other modes: 'w' write only and replace existing file, 'r' readonly...
-			writer = csv.writer(f, delimiter=',') 								#, dtype={'K':np.float, 'Fc':np.float, 'delay':np.float, 'F_Omeg':np.float, 'k':np.int,
+			writer = csv.writer(f, delimiter=',')
+																				#, dtype={'K':np.float, 'Fc':np.float, 'delay':np.float, 'F_Omeg':np.float, 'k':np.int,
 																				#'Tsim':np.int, 'id':np.int, 'ReLambda':np.float, 'SimSeconds':np.float, 'topology':np.str,
 																				#'c':np.float, 'N':np.int, 'couplingfct':np.str, 'Nx':np.int, 'Ny':np.int, 'mx':np.int, 'my':np.int})
+			if writeHeaderFlag == 1:
+				writer.writerow(['Nx', 'Ny', 'mx', ',my', 'K', 'Fc', 'delay', 'topology', 'F1', 'F_Omeg', 'Tsim', 'reali', 'c', 'cPD', 'sum-R[-1,:]/reali', 'std mean last R',
+										'mean of averaged R', 'std mean averaged R', 'mean freq', 'std freq', 'year', 'month', 'day'])
 			#lastLineCsvF = len(param_cases_csv.sort_values('id'))+3			# add 3 in order to account for the header of the csv file
 			mlastFreqReal = np.mean(lastfreqs)									# the mean of all last frequencies
 			mstdFreqReali = np.std(lastfreqs)									# the std of all last frequencies
@@ -855,6 +909,8 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, Nx, Ny, k, mx, my, delay, c, cPD, Tsim,
 
 			temp = [str(int(Nx)), str(int(Ny)), str(int(mx)), str(int(my)), str(float(K)), str(float(Fc)), str(float(delay)), str(topology), str(float(F1)),
 					str(float(F_Omeg)), str(int(Tsim)), str(int(Realizations)), str(float(c)), str(float(cPD)), str(float(mlastOrderPar)), str(float(mstdOrderPara)),
-					str(float(mAverOrderPar)), str(float(mstdAverOrdPa)), str(float(mlastFreqReal)), str(float(mstdFreqReali))]	#list of strings containing the information
+					str(float(mAverOrderPar)), str(float(mstdAverOrdPa)), str(float(mlastFreqReal)), str(float(mstdFreqReali)), str(now.year), str(now.month), str(now.day)]	#list of strings containing the information
 			print('\nWRITEOUT:', temp, '\n')
 			writer.writerow(temp)
+	else:
+		print('Not enough realizations to obtain statistics.')

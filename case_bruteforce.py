@@ -29,12 +29,13 @@ def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Ome
 	# print('type phi:', type(phi), 'phi:', phi)
 
 	''' MODIFIED KURAMOTO ORDER PARAMETERS '''
+	numb_av_T = 3;																# number of periods of free-running frequencies to average over
 	if F > 0:																	# for f=0, there would otherwies be a float division by zero
 		F1=F
 	else:
 		F1=F+1E-3
 	if topology == "square-periodic" or topology == "hexagon-periodic" or topology == "octagon-periodic":
-		r = eva.oracle_mTwistOrderParameter2d(phi[-int(2*1.0/(F1*dt)):, :], Nx, Ny, kx, ky)
+		r = eva.oracle_mTwistOrderParameter2d(phi[-int(numb_av_T*1.0/(F1*dt)):, :], Nx, Ny, kx, ky)
 		orderparam = eva.oracle_mTwistOrderParameter2d(phi[:, :], Nx, Ny, kx, ky)
 	elif topology == "square-open" or topology == "hexagon" or topology == "octagon":
 		if kx==1 and ky==1:
@@ -51,7 +52,7 @@ def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Ome
 				k == 2 : xy checkerboard state
 				k == 3 : in-phase synchronized
 			"""
-		r = eva.oracle_CheckerboardOrderParameter2d(phi[-int(2*1.0/(F1*dt)):, :], Nx, Ny, ktemp)
+		r = eva.oracle_CheckerboardOrderParameter2d(phi[-int(numb_av_T*1.0/(F1*dt)):, :], Nx, Ny, ktemp)
 		# ry = np.nonzero(rmat > 0.995)[0]
 		# rx = np.nonzero(rmat > 0.995)[1]
 		orderparam = eva.oracle_CheckerboardOrderParameter2d(phi[:, :], Nx, Ny, ktemp)
@@ -60,10 +61,13 @@ def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Ome
 				k  > 0 : x  checkerboard state
 				k == 0 : in-phase synchronized
 			"""
-		r = eva.oracle_CheckerboardOrderParameter1d(phi[-int(2*1.0/(F1*dt)):, :], k)
+		r = eva.oracle_CheckerboardOrderParameter1d(phi[-int(numb_av_T*1.0/(F1*dt)):, :], k)
 		orderparam = eva.oracle_CheckerboardOrderParameter1d(phi[:, :])			# calculate the order parameter for all times
 	elif ( topology == "ring" or topology == 'global'):
-		r = eva.oracle_mTwistOrderParameter(phi[-int(2*1.0/(F1*dt)):, :], k)		# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
+		r = eva.oracle_mTwistOrderParameter(phi[-int(numb_av_T*1.0/(F1*dt)):, :], k)		# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
+		orderparam = eva.oracle_mTwistOrderParameter(phi[:, :], k)				# calculate the m-twist order parameter for all times
+	elif ( topology == "entrainOne" or topology == "entrainAll" ):
+		r = eva.oracle_mTwistOrderParameter(phi[-int(numb_av_T*1.0/(F1*dt)):, :], k)	# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
 		orderparam = eva.oracle_mTwistOrderParameter(phi[:, :], k)				# calculate the m-twist order parameter for all times
 
 	# r = eva.oracle_mTwistOrderParameter(phi[-int(2*1.0/(F*dt)):, :], k)			# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
@@ -104,7 +108,7 @@ def multihelper(phiSr,initPhiPrime0,topology,couplingfct,histtype,F,Nsteps,dt,c,
 def multihelper_star(dynparam_fixparam):
 	return multihelper(*dynparam_fixparam)
 
-def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0, Ny=0, kx=0, ky=0, phiSr=[], show_plot=True):
+def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0, Ny=0, kx=0, ky=0, phiConfig=[], phiSr=[], show_plot=True):
 	# print('\n\nkx:', kx, '\n', type(kx))
 	mode = int(2);																# mode=0 -> algorithm usage mode, mode=1 -> single realization mode,
 																				# mode=2 -> brute force scanning mode for parameter interval scans
@@ -142,8 +146,9 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0
 	Nsteps 	= int(round(Tsim*Fsim))												# calculate number of iterations -- add output?
 	print('total simulation time in multiples of the eigenfrequency:', int(Tsim*F),'\n')
 
-	plot_Phases_Freq = True														# whether or not the phases and frequencies are being plotted
-	print('\nPlotting time-series for one realizations avtivated, see line 145 in case_bruteforce.py!')
+	plot_Phases_Freq = False													# whether or not the phases and frequencies are being plotted
+	if plot_Phases_Freq == True:
+		print('\nPlotting time-series for one realizations avtivated, see line 145 in case_bruteforce.py!')
 
 	twistdelta=0; cheqdelta=0; twistdelta_x=0; twistdelta_y=0;
 	if not ( topology == 'ring' or topology == 'chain' ):
@@ -198,7 +203,7 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0
 						phiMreorder[counter]=phiM[i][j]; counter=counter+1;
 				phiM = phiMreorder%(2.0*np.pi)
 				# phiM = phiM.flatten(); # print('phiM: ', phiM)
-	if ( topology == 'ring' or topology == 'chain' ):
+	if ( topology == 'ring' or topology == 'chain'):
 		if topology == 'chain':
 			cheqdelta = np.pi													# phase difference between neighboring oscillators in a stable chequerboard state
 			twistdelta = cheqdelta												# important for evaluation, cheqdelta is just a temporary variable here
@@ -220,13 +225,19 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0
 	if topology == 'global':
 		phiM = np.zeros(N)														# for all-to-all coupling we assume no twist states with m > 0
 
+	if ( topology == 'entrainOne' or topology == 'entrainAll' ):				# in this case the phase-configuration is given by the solution of the dynamical equations
+		phiM = phiConfig;
+
 
 	phiMr = eva.rotate_phases(phiM, isInverse=True)								# calculate phiM in terms of rotated phase space
-	print('m-twist or chequerboard phases phiM =', phiM, 'in coordinates of rotated system, phiMr =', phiMr, '\n')
+	print('m-twist, entrainOne, entrainAll or chequerboard phases phiM =', phiM, 'in coordinates of rotated system, phiMr =', phiMr, '\n')
 
 	# choose the value of phi'_0, i.e., where the plane, rectangular to the axis phi'_0 in the rotated phase space, is placed
 	# this direction corresponds to the case where all phi_k in the original phase space are equal phi_0==phi_1==...==phi_N-1 or (all) have constant phase differences
-	initPhiPrime0 = ( 0.0 * np.pi )
+	if ( topology == 'entrainOne' or topology == 'entrainAll' ):
+		initPhiPrime0 = phiMr[0]
+	else:
+		initPhiPrime0 = ( 0.0 * np.pi )
 
 	if N > 2:
 		print('shift along the first axis in rotated phase space, equivalent to phase kick of all oscillators before simulation starts: phi`_0=', initPhiPrime0)
@@ -259,10 +270,10 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0
 			# scanValues[i,:] = np.linspace(phiMr[i+1]-np.pi, phiMr[i+1]+np.pi, paramDiscretization) # all entries are in rotated, and reduced phase space
 			if i==0:															# theta2 (x-axis)
 				#scanValues[i,:] = np.linspace(-(np.pi), +(np.pi), paramDiscretization) 	# all entries are in rotated, and reduced phase space NOTE: adjust unit cell accordingly!
-				scanValues[i,:] = np.linspace(-0.1*np.pi, 0.1*np.pi, paramDiscretization)
+				scanValues[i,:] = np.linspace(-1.0*np.pi, 1.0*np.pi, paramDiscretization)
 			else:																# theta3 (y-axis)
 				#scanValues[i,:] = np.linspace(-(1.35*np.pi), +(1.35*np.pi), paramDiscretization)
-				scanValues[i,:] = np.linspace(-0.35*np.pi, 0.15*np.pi, paramDiscretization)
+				scanValues[i,:] = np.linspace(-1.35*np.pi, 1.35*np.pi, paramDiscretization)
 
 			#print('row', i,'of matrix with all intervals of the rotated phase space:\n', scanValues[i,:], '\n')
 
@@ -367,7 +378,7 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0
 	# np.savez('results/allInitPerturbPoints_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), allPoints=allPoints)
 
 	''' EXTRA EVALUATION '''
-	out.doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints, initPhiPrime0, phiMr, paramDiscretization, delays_0, twistdelta_x, twistdelta_y, topology, show_plot)
+	out.doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints, initPhiPrime0, phiMr, paramDiscretization, delays_0, twistdelta_x, twistdelta_y, topology, phiConfig, show_plot)
 
 	del results; del allPoints; del initPhiPrime0; del K_0;						# emtpy data container to free memory
 	return None
@@ -424,5 +435,6 @@ if __name__ == '__main__':
 	mx			= int(float(sys.argv[13]))										# twist number in x-direction
 	my			= int(float(sys.argv[14]))										# twist number in y-direction
 	cPD			= float(sys.argv[15])											# diff constant of GWN in LF
+	phiConfig	= np.asarray([float(phi) for phi in sys.argv[16:19]])			# the phase-configuration of an entrained state with N=3 clocks, 2 mutually coupled, 1 reference
 
-	bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx, Ny, mx, my, [], False)
+	bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx, Ny, mx, my, phiConfig, [], False)

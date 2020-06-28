@@ -416,7 +416,7 @@ class PhaseDetectorCombiner:													# this class creates PD objects, these 
 			self.idx_neighbours = idx_neighbours								# assigns the neighbors according to the coupling topology
 		else:
 			self.idx_neighbours = [n for n in idx_neighbours] 					# for networkx > v1.11
-		#print('Osci ',idx_self,', my neighbors are:', idx_neighbours)
+		# print('Osci ',idx_self,', my neighbors are:', idx_neighbours)
 
 	def next(self,x,x_delayed,idx_time=0):										# gets time-series results at delayed time and current time to calculate phase differences
 		try:
@@ -601,7 +601,7 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,to
 	phi = np.empty([Nsteps+delay_steps,Nplls])									# prepare container for phase time series
 	# here the initial phases of all PLLs in pll_list are copied into the first  entry of the container phi for the phases of the PLLs
 	phi[0,:] = [pll.vco.phi for pll in pll_list]
-	if (histtype == 'uncoupled' and ( mode == 2 or mode == 1 or mode==0 ) ):
+	if (histtype == 'uncoupled' and ( mode == 2 or mode == 1 ) ):
 
 		# Here we need to compensate for drift between the PLLs due to unequal intrinsic frequencies in such a way, that over the time of the history, i.e., the delay,
 		# the phase difference due to the deviations from the mean frequency are compensated for
@@ -609,7 +609,7 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,to
 		if ( Nplls==3 and ( mode==2 or mode==1 or mode==0 ) and couplingfct == 'triang' ):
 			''' heterogeneous intrinsic frequencies - values, also change below ~line 1194 '''
 			#F_intrin=[1.012, 1.070, 1.012]; mean_F_intrin=np.mean(F_intrin);
-			F_intrin=[F, F, F]; mean_F_intrin=np.mean(F_intrin);
+			F_intrin=[1.012, 1.008, 1.011]; mean_F_intrin=np.mean(F_intrin);
 			# print('\nphiS before correction:', phiS, '   for intrinsic frequencies:', F_intrin);
 			for i in range(Nplls):
 				correction = 2.0*np.pi*(F_intrin[i]-mean_F_intrin)*(delay+3*dt);# the deviation of the frequency from the mean intrinsic frequency determines the extra phase shift until t=0, the +3*dt is for correction, see how hist. is set up
@@ -622,7 +622,6 @@ def simulateNetwork(mode,Nplls,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,to
 		# 	print('Free running PLL history, initial states with phase difference phi2-phi1 and phi3-phi2:', phi[0,1]-phi[0,0],'    ', phi[0,2]-phi[0,1],'\n')
 	else:
 		phi[0,:] = [pll.vco.phi for pll in pll_list]
-
 	# print('phi[0,:] ->', phi[0,:])
 	omega_0  = [pll.vco.omega for pll in pll_list]								# obtain the randomly distributed (gaussian) values for the intrinsic frequencies
 	K_0      = [pll.vco.K for pll in pll_list]									# obtain the randomly distributed (gaussian) values for the coupling strength of the VCO
@@ -977,25 +976,11 @@ def generatePllObjects(mode,topology,couplingfct,histtype,Nplls,dt,c,delay,feedb
 		G = nx.complete_graph(Nplls)
 		# print('G and G.neighbors(PLL0):', G, G.neighbors(0)); sys.exit(1)
 
-	elif ( topology == 'ring' or topology == 'entrainAll' ):
+	elif topology == 'ring':
 		G = nx.cycle_graph(Nplls)
 
-	elif ( topology == 'chain' or topology == 'entrainOne' ):
+	elif topology == 'chain':
 		G = nx.path_graph(Nplls)
-
-	# elif topology == 'entrainOne':
-	# 	print('STOP, not working yet with G.neighbors(idx)! Topology of entrainment of synchronized state -- reference feeds into one of the oscillators.')
-	# 	if not Nplls == 3:
-	# 		print('Not yet configured for N != 3! Check.')
-	# 	G = nx.MultiDiGraph();
-	# 	G.add_edges_from([(0,1),(1,2),(2,1)]);
-	#
-	# elif topology == 'entrainAll':
-	# 	print('STOP, not working yet with G.neighbors(idx)! Topology of entrainment of synchronized state -- reference feeds into all of the oscillators.')
-	# 	if not Nplls == 3:
-	# 		print('Not yet configured for N != 3! Check.')
-	# 	G = nx.MultiDiGraph();
-	# 	G.add_edges_from([(0,1),(0,2),(1,2),(2,1)]);
 
 	else:
 		N = np.sqrt(Nplls)
@@ -1006,10 +991,10 @@ def generatePllObjects(mode,topology,couplingfct,histtype,Nplls,dt,c,delay,feedb
 				raise ValueError('Npll is not valid: sqrt(N) is not an integer')
 
 		if topology == 'square-open':
-			G = nx.grid_2d_graph(Nx,Ny)
+			G=nx.grid_2d_graph(Nx,Ny)
 
 		elif topology == 'square-periodic':
-			G = nx.grid_2d_graph(Nx,Ny, periodic=True)                            # for periodic boundary conditions:
+			G=nx.grid_2d_graph(Nx,Ny, periodic=True)                            # for periodic boundary conditions:
 
 		elif topology == 'hexagon':
 			print('\nIf Nx =! Ny, then check the graph that is generated again!')
@@ -1113,12 +1098,11 @@ def generatePllObjects(mode,topology,couplingfct,histtype,Nplls,dt,c,delay,feedb
 				# nx.draw(G, pos=nx.spring_layout(G), node_size=(0.5+phiM)*1000 ,ax=axs[0])
 				# nx.draw(G, node_size=(0.5+phiM)*1000,ax=axs[1])
 				# ''' Test and check '''
-
-				if ( Nplls==3 and ( mode==2 or mode==1 or mode==0 ) and couplingfct == 'triang' and not ( topology == 'entrainOne' or topology == 'entrainAll') ):
-					#print('\nSPECIAL MODE: individual intrinsic frequencies!\n')
-					F_intrin=[1.048, 0.996, 0.997];							    #[1.006, 1.008, 1.011];	# put here the frequencies in Hz of the PLLs in the experimental setup_hist
-					K_k     =[0.3995, 0.4135, 0.408]						    # the coupling strengths [0.3995, 0.3904, 0.3984]
-					Fc_k    =[0.015, 0.015, 0.015] 								#[0.04986, 0.0496, 0.049953] # the cut-off frequencies
+				if ( Nplls==3 and ( mode==2 or mode==1 or mode==0 ) and couplingfct == 'triang' ):
+					# print('\nSPECIAL MODE: individual intrinsic frequencies!\n')
+					F_intrin=[1.012, 1.008, 1.011];     #[1.006, 1.008, 1.011];	# put here the frequencies in Hz of the PLLs in the experimental setup_hist
+					K_k     =[0.4025, 0.4035, 0.408]						    # the coupling strengths [0.3995, 0.3904, 0.3984]
+					Fc_k    =[0.04986, 0.0496, 0.049953] 						# the cut-off frequencies
 					# F_intrin=[1.006, 1.008, 1.011];							# put here the frequencies in Hz of the PLLs in the experimental setup_hist
 					# K_k     =[0.4045, 0.408, 0.4065]							# the coupling strengths
 					# Fc_k    =[0.0154, 0.0154, 0.0154]							# the cut-off frequencies
@@ -1126,24 +1110,8 @@ def generatePllObjects(mode,topology,couplingfct,histtype,Nplls,dt,c,delay,feedb
 										Delayer(delay,dt,feedback_delay,diffconstSendDelay),		# delayer takes a time series and returns values at t and t-tau
 										PhaseDetectorCombiner(idx_pll, G.neighbors(idx_pll)),
 										LowPass(Fc_k[idx_pll],dt,K_k[idx_pll],F_Omeg,F_intrin[idx_pll],cPD,Trelax=0,y=y0),
-										VoltageControlledOscillator(F_intrin[idx_pll],Fc_k[idx_pll],F_Omeg,K_k[idx_pll],dt,domega,diffconstK,histtype,c,phi=phiM[idx_pll]) # set intrinsic frequency of VCO, frequency of synchronized state under investigation, coupling strength
+										VoltageControlledOscillator(F_intrin[idx_pll],Fc,F_Omeg,K_k[idx_pll],dt,domega,diffconstK,histtype,c,phi=phiM[idx_pll]) # set intrinsic frequency of VCO, frequency of synchronized state under investigation, coupling strength
 										)  for idx_pll in range(Nplls) ]		# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
-
-				if ( Nplls==3 and ( mode==2 or mode==1 or mode==0 ) and couplingfct == 'triang'  and ( topology == 'entrainOne' or topology == 'entrainAll') ):
-					#print('\nSPECIAL MODE: individual intrinsic frequencies!\n')
-					F_intrin=[1.080, 0.996, 0.997];							    #[1.006, 1.008, 1.011];	# put here the frequencies in Hz of the PLLs in the experimental setup_hist
-					K_k     =[0, 0.4135, 0.408]						    		# the coupling strengths [0.3995, 0.3904, 0.3984]
-					Fc_k    =[0.015, 0.015, 0.015] 								#[0.04986, 0.0496, 0.049953] # the cut-off frequencies
-					# F_intrin=[1.006, 1.008, 1.011];							# put here the frequencies in Hz of the PLLs in the experimental setup_hist
-					# K_k     =[0.4045, 0.408, 0.4065]							# the coupling strengths
-					# Fc_k    =[0.0154, 0.0154, 0.0154]							# the cut-off frequencies
-					pll_list = [ PhaseLockedLoop(								# setup PLLs and storage in a list as PLL class objects
-										Delayer(delay,dt,feedback_delay,diffconstSendDelay),		# delayer takes a time series and returns values at t and t-tau
-										PhaseDetectorCombiner(idx_pll, G.neighbors(idx_pll)),
-										LowPass(Fc_k[idx_pll],dt,K_k[idx_pll],F_Omeg,F_intrin[idx_pll],cPD,Trelax=0,y=y0),
-										VoltageControlledOscillator(F_intrin[idx_pll],Fc_k[idx_pll],F_Omeg,K_k[idx_pll],dt,domega,diffconstK,histtype,c,phi=phiM[idx_pll]) # set intrinsic frequency of VCO, frequency of synchronized state under investigation, coupling strength
-										)  for idx_pll in range(Nplls) ]		# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
-
 				else:
 					pll_list = [ PhaseLockedLoop(									# setup PLLs and storage in a list as PLL class objects
 										Delayer(delay,dt,feedback_delay,diffconstSendDelay),		# delayer takes a time series and returns values at t and t-tau

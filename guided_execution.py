@@ -35,8 +35,8 @@ def chooseTopology():															# ask user-input for topology
 	a_true = True
 	while a_true:
 		# get user input to know which topology should be analyzed
-		topology = str(raw_input('\nPlease specify topology from 1-dim [chain, ring], 2-dim [square-open, square-periodic, hexagon, octagon, hexagon-periodic, octagon-periodic] or mean-field [global] to be analyzed: '))
-		if ( topology == 'square-open' or topology == 'square-periodic' or topology == 'hexagon' or topology == 'octagon' or topology == 'hexagon-periodic' or topology == 'octagon-periodic' or topology == 'chain' or topology == 'ring' or topology == 'global' ):
+		topology = str(raw_input('\nPlease specify topology from 1-dim [chain, ring, entrainOne, entrainAll], 2-dim [square-open, square-periodic, hexagon, octagon, hexagon-periodic, octagon-periodic] or mean-field [global] to be analyzed: '))
+		if ( topology == 'square-open' or topology == 'square-periodic' or topology == 'hexagon' or topology == 'octagon' or topology == 'hexagon-periodic' or topology == 'octagon-periodic' or topology == 'chain' or topology == 'ring' or topology == 'global' or topology == 'entrainOne' or topology == 'entrainAll' ):
 			break
 		else:
 			print('Please provide one of these input-strings: [chain, ring, square-open, square-periodic, hexagon, octagon, hexagon-periodic, octagon-periodic, global]!')
@@ -1248,7 +1248,7 @@ def noisyStatistics(params):
 			para_mat = fsl.get_parameter_matrix(isRadians=False)				# extract variables from the sweep, this matrix contains all cases
 			print('New parameter combinations with {N, F, K, Fc, delay, m, F_Omeg, ReLambda, ImLambda, Tsim, Nx, Ny, mx, my}: \n', para_mat)
 			# print('{tau, K, w, wc, m, Omega, Re(lambda)}', delay, new_K_values, 2*np.pi*F, 2*np.pi*Fc, k, para_mat[:,6], para_mat[:,7] )
-			# print('{tau, K, F, Fc, m, F_Omeg, Re(lambda)}', float(para_mat[0,4]), para_mat[0,2], float(para_mat[0,1]), float(para_mat[0,3]), int(para_mat[0,5]), para_mat[:,6], para_mat[:,7] )
+			print('{tau, K, F, Fc, m, F_Omeg, Re(lambda)}', float(para_mat[0,4]), para_mat[0,2], float(para_mat[0,1]), float(para_mat[0,3]), int(para_mat[0,5]), para_mat[:,6], para_mat[:,7] )
 
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
@@ -1256,7 +1256,7 @@ def noisyStatistics(params):
 				print('length of para_mat[:,0]:', len(para_mat[:,0]))
 
 				upper_TSim = 2000
-				lower_TSim = 50
+				lower_TSim = 1000
 				for i in range (len(para_mat[:,0])):
 					para_mat[i,9]=2.*para_mat[i,9]								# when computing noisy cases, the decay time approximation is not valid
 					if para_mat[i,9]<lower_TSim:
@@ -1352,7 +1352,7 @@ def noisyStatistics(params):
 			if not ( para_mat == [] and new_c_values == [] ):
 
 				upper_TSim = 2000
-				lower_TSim = 50
+				lower_TSim = 1000
 				for i in range (len(para_mat[:,0])):
 					para_mat[i,9]=2.*para_mat[i,9]								# when computing noisy cases, the decay time approximation is not valid
 					if para_mat[i,9]<lower_TSim:
@@ -1446,7 +1446,7 @@ def noisyStatistics(params):
 			if not para_mat == [] and not len(para_mat) == 0:
 
 				upper_TSim = 2000
-				lower_TSim = 50
+				lower_TSim = 1000
 				for i in range (len(para_mat[:,0])):
 					para_mat[i,9]=2.*para_mat[i,9]								# when computing noisy cases, the decay time approximation is not valid
 					if para_mat[i,9]<lower_TSim:
@@ -1617,7 +1617,7 @@ def noisyStatistics(params):
 			para_mat = simulateOnlyLinStableCases(para_mat)						# correct for negative Tsim = -25 / Re(Lambda)....
 
 			upper_TSim = 2000
-			lower_TSim = 50
+			lower_TSim = 500
 			for i in range (len(para_mat[:,0])):
 				para_mat[i,9]=2.*para_mat[i,9]									# when computing noisy cases, the decay time approximation is not valid
 				if para_mat[i,9]<lower_TSim:
