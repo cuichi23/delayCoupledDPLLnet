@@ -52,7 +52,7 @@ annotationfont = {
         }
 
 ''' EVALUATION SINGLE REALIZATION '''
-def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cPD, cPD_t=[], Kadiab_t=[], K_adiab_r=(-1), coupFct='triang', Tsim=53, Fsim=None, show_plot=True):
+def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, phiM, topology, c, cPD, cPD_t=[], Kadiab_t=[], K_adiab_r=(-1), coupFct='triang', Tsim=53, Fsim=None, show_plot=True):
 
 	if np.size(Kadiab_t) == 0 and np.size(cPD_t) != 0:
 		Trelax 			= Tsim
@@ -82,6 +82,7 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cPD, cPD_
 	phi = phi[:,:,:]; orderparam = orderparam[0,:]								# there is only one realization of interest -reduces dimension of phi array
 	# afterTransients = int( round( 0.5*Tsim / dt ) )
 	# phiSpect = phi[:,-afterTransients:,:]
+
 	now = datetime.datetime.now()
 	''' only plot power spetral density if there is no adiabatic change '''
 	if np.size(cPD_t) == 0 and np.size(Kadiab_t) == 0:
@@ -190,6 +191,21 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cPD, cPD_
 	plt.legend();
 	plt.savefig('results/phaseConf-t_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day))
 	plt.savefig('results/phaseConf-t_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), dpi=300)
+
+	plt.figure('phase-relations')
+	plt.clf()
+	plt.plot((t*dt),((phi[:,0]-phi[:,1]+np.pi)%(2.*np.pi))-np.pi,label=r'$\phi_{0}-\phi_{1}$')			#math.fmod(phi[:,:], 2.*np.pi))
+	plt.plot((t*dt),((phi[:,1]-phi[:,2]+np.pi)%(2.*np.pi))-np.pi,label=r'$\phi_{1}-\phi_{2}$')
+	plt.plot((t*dt),((phi[:,0]-phi[:,2]+np.pi)%(2.*np.pi))-np.pi,label=r'$\phi_{0}-\phi_{2}$')
+	plt.plot(delay, ((phi[int(round(delay/dt)),0]-phi[int(round(delay/dt)),1]+np.pi)%(2.*np.pi))-np.pi, 'yo', ms=5)
+	#plt.axvspan(t[-int(5.5*1.0/(F1*dt))]*dt, t[-1]*dt, color='b', alpha=0.3)
+	plt.title(r'phase differences $\Delta\phi_{01}=%.4f$, $\Delta\phi_{12}=%.4f$, $\Delta\phi_{02}=%.4f$  [rad]' %( np.mod(phi[-10][0]-phi[-10][1]+np.pi, 2.0*np.pi)-np.pi,
+																	np.mod(phi[-10][1]-phi[-10][2]+np.pi, 2.0*np.pi)-np.pi, np.mod(phi[-10][0]-phi[-10][2]+np.pi, 2.0*np.pi)-np.pi ), fontdict = titlefont)
+	plt.xlabel(r'$t$ $[s]$', fontdict = labelfont)
+	plt.ylabel(r'$\phi_k(t)-\phi_0(t)$', fontdict = labelfont)
+	plt.legend();
+	plt.savefig('results/phaseRela-t_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day))
+	plt.savefig('results/phaseRela-t_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), dpi=300)
 
 	plt.figure('frequencies over time')											# plot the frequencies of the oscillators over time
 	plt.clf()
@@ -322,7 +338,10 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 				R_config  = eva.calcKuramotoOrderParameter(phiConfig);
 				absR_conf = np.abs(R_config)
 			alltwistPR= np.transpose(eva.rotate_phases(np.transpose(alltwistP), isInverse=True))	# express the points in rotated phase space
-			print('order parameter of the expected phase-configuration:', absR_conf)
+			print('value of unadjusted order parameter of the expected phase-configuration:', absR_conf)
+			# phi_constant_expected = eva.rotate_phases(phiMr, isInverse=False)
+			# r = eva.calcKuramotoOrderParEntrainSelfOrgState(phi[-int(numb_av_T*1.0/(F1*dt)):, :], phi_constant_expected);
+			# orderparam = eva.calcKuramotoOrderParEntrainSelfOrgState(phi[:, :], phi_constant_expected);
 		else:
 			alltwistP = np.array(alltwistP);
 			# print('alltwistP:\n', alltwistP, '\n')
@@ -355,16 +374,19 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
     #        'PiYG', 'PRGn', 'BrBG', 'PuOr', 'RdGy', 'RdBu',
     #        'RdYlBu', 'RdYlGn', 'Spectral', 'coolwarm', 'bwr', 'seismic']
 
-	if (topology == 'entrainOne' or topology == 'entrainAll'):
-		# cmap=plt.cm.get_cmap('Blues', 6)
-		cmap 	  = plt.cm.get_cmap('seismic', 256);
-		colormap  = eva.shiftedColorMap(cmap, start=0.0, midpoint=absR_conf, stop=1.0, name='shiftedcmap')
-		colormap1 = eva.shiftedColorMap(cmap, start=0.0, midpoint=absR_conf, stop=max(results[:,1]), name='shiftedcmap')
-	else:
-		colormap  = matplotlib.colors.LinearSegmentedColormap('my_colormap', cdict, 1024)
+	# if (topology == 'entrainOne' or topology == 'entrainAll'):
+	# 	# cmap=plt.cm.get_cmap('Blues', 6)
+	# 	cmap 	  = plt.cm.get_cmap('seismic', 256);
+	# 	cmap1 	  = plt.cm.get_cmap('seismic', 256);
+	# 	colormap  = eva.shiftedColorMap(cmap,  start=0.0, midpoint=absR_conf, stop=1.0, name='shiftedcmap')
+	# 	colormap1 = eva.shiftedColorMap(cmap1, start=0.0, midpoint=absR_conf, stop=1.0, name='shiftedcmap1')
+	# 	print('absR_conf=', absR_conf, ', min(results[:,1])=', min(results[:,1]), ', max(results[:,1])=', max(results[:,1]))
+	# else:
+	colormap  = matplotlib.colors.LinearSegmentedColormap('my_colormap', cdict, 1024)
 
 	''' IMPORTANT: since we add the perturbations additively, here we need to shift allPoints around the initial phases of the respective m-twist state, using phiMr '''
-	plt.figure(1)																# plot the mean of the order parameter over a period 2T
+	plt.figure(1)
+					# plot the mean of the order parameter over a period 2T
 	plt.clf()
 	ax = plt.subplot(1, 1, 1)
 	ax.set_aspect('equal')
@@ -390,7 +412,7 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	plt.clf()
 	ax = plt.subplot(1, 1, 1)
 	ax.set_aspect('equal')
-	plt.scatter(allPoints[:,0]+phiMr[d1], allPoints[:,1]+phiMr[d2], c=results[:,1], alpha=0.5, edgecolor='', cmap=colormap1, vmin=0, vmax=max(results[:,1]))
+	plt.scatter(allPoints[:,0]+phiMr[d1], allPoints[:,1]+phiMr[d2], c=results[:,1], alpha=0.5, edgecolor='', cmap=colormap, vmin=0.0, vmax=1.0)
 	plt.title(r'last $R(t,m=%d )$, constant dim: $\phi_0^{\prime}=%.2f$' %(int(k) ,initPhiPrime0) )
 	if N==3:
 		plt.xlabel(r'$\phi_1^{\prime}$')
@@ -415,10 +437,7 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	tempresults = results[:,0].reshape((paramDiscretization, paramDiscretization))   #np.flipud()
 	tempresults = np.transpose(tempresults)
 	tempresults_ma = ma.masked_where(tempresults < 0, tempresults)				# Create masked array
-	if ( N==3 and ( topology == "entrainOne" or topology == "entrainAll" ) ):
-		plt.imshow(tempresults_ma, interpolation='nearest', cmap=colormap, aspect='auto', origin='lower', extent=(allPoints[:,0].min()+phiMr[d1], allPoints[:,0].max()+phiMr[d1], allPoints[:,1].min()+phiMr[d2], allPoints[:,1].max()+phiMr[d2]), vmin=0, vmax=1)
-	else:
-		plt.imshow(tempresults_ma, interpolation='nearest', cmap=cm.coolwarm, aspect='auto', origin='lower', extent=(allPoints[:,0].min()+phiMr[d1], allPoints[:,0].max()+phiMr[d1], allPoints[:,1].min()+phiMr[d2], allPoints[:,1].max()+phiMr[d2]), vmin=0, vmax=1)
+	plt.imshow(tempresults_ma, interpolation='nearest', cmap=cm.coolwarm, aspect='auto', origin='lower', extent=(allPoints[:,0].min()+phiMr[d1], allPoints[:,0].max()+phiMr[d1], allPoints[:,1].min()+phiMr[d2], allPoints[:,1].max()+phiMr[d2]), vmin=0, vmax=1)
 	plt.title(r'mean $R(t,m=%d )$, constant dim: $\phi_0^{\prime}=%.2f$' %(int(k) ,initPhiPrime0) )
 	if N==3:
 		plt.xlabel(r'$\phi_1^{\prime}$')
@@ -443,10 +462,7 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	tempresults = results[:,1].reshape((paramDiscretization, paramDiscretization))   #np.flipud()
 	tempresults = np.transpose(tempresults)
 	tempresults_ma = ma.masked_where(tempresults < 0, tempresults)				# Create masked array
-	if ( N==3 and ( topology == "entrainOne" or topology == "entrainAll" ) ):
-		plt.imshow(tempresults_ma, interpolation='nearest', cmap=colormap, aspect='auto', origin='lower', extent=(allPoints[:,0].min()+phiMr[d1], allPoints[:,0].max()+phiMr[d1], allPoints[:,1].min()+phiMr[d2], allPoints[:,1].max()+phiMr[d2]), vmin=0, vmax=1)
-	else:
-		plt.imshow(tempresults_ma, interpolation='nearest', cmap=cm.coolwarm, aspect='auto', origin='lower', extent=(allPoints[:,0].min()+phiMr[d1], allPoints[:,0].max()+phiMr[d1], allPoints[:,1].min()+phiMr[d2], allPoints[:,1].max()+phiMr[d2]), vmin=0, vmax=1)
+	plt.imshow(tempresults_ma, interpolation='nearest', cmap=cm.coolwarm, aspect='auto', origin='lower', extent=(allPoints[:,0].min()+phiMr[d1], allPoints[:,0].max()+phiMr[d1], allPoints[:,1].min()+phiMr[d2], allPoints[:,1].max()+phiMr[d2]), vmin=0, vmax=1)
 	plt.title(r'last $R(t,m=%d )$, constant dim: $\phi_0^{\prime}=%.2f$' %(int(k) ,initPhiPrime0) )
 	if N==3:
 		plt.xlabel(r'$\phi_1^{\prime}$')
@@ -490,10 +506,7 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	my_cmap.set_under('w')
 	ax = plt.subplot(1, 1, 1)
 	ax.set_aspect('equal')
-	if ( N==3 and ( topology == "entrainOne" or topology == "entrainAll" ) ):
-		plt.scatter(allPoints[:,0]+phiMr[d1], allPoints[:,1]+phiMr[d2], c=results[:,0], s=10, alpha=0.5, edgecolor='', cmap=colormap, vmin=0.0, vmax=1.0)#, vmin=0, vmax=1)
-	else:
-		plt.scatter(allPoints[:,0]+phiMr[d1], allPoints[:,1]+phiMr[d2], c=results[:,0], s=10, alpha=0.5, edgecolor='', cmap=my_cmap, vmin=0.0, vmax=1.0)#, vmin=0, vmax=1)
+	plt.scatter(allPoints[:,0]+phiMr[d1], allPoints[:,1]+phiMr[d2], c=results[:,0], s=10, alpha=0.5, edgecolor='', cmap=my_cmap, vmin=0.0, vmax=1.0)#, vmin=0, vmax=1)
 	plt.title(r'mean $R(t,m=%d )$, constant dim: $\phi_0^{\prime}=%.2f$' %(int(k) ,initPhiPrime0) )
 	if N==3:
 		plt.xlabel(r'$\phi_1^{\prime}$')
@@ -517,10 +530,7 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	my_cmap.set_under('w')
 	ax = plt.subplot(1, 1, 1)
 	ax.set_aspect('equal')
-	if ( N==3 and ( topology == "entrainOne" or topology == "entrainAll" ) ):
-		plt.scatter(allPoints[:,0]+phiMr[d1], allPoints[:,1]+phiMr[d2], c=results[:,0], s=5, alpha=0.5, edgecolor='', cmap=colormap, vmin=0.0, vmax=1.0)#, vmin=0, vmax=1)
-	else:
-		plt.scatter(allPoints[:,0]+phiMr[d1], allPoints[:,1]+phiMr[d2], c=results[:,0], s=5, alpha=0.5, edgecolor='', cmap=my_cmap, vmin=0.0, vmax=1.0)#, vmin=0, vmax=1)
+	plt.scatter(allPoints[:,0]+phiMr[d1], allPoints[:,1]+phiMr[d2], c=results[:,0], s=5, alpha=0.5, edgecolor='', cmap=my_cmap, vmin=0.0, vmax=1.0)#, vmin=0, vmax=1)
 	plt.title(r'mean $R(t,m=%d )$, constant dim: $\phi_0^{\prime}=%.2f$' %(int(k) ,initPhiPrime0) )
 	if N==3:
 		plt.xlabel(r'$\phi_1^{\prime}$')
@@ -545,7 +555,7 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	return 0.0
 
 ''' EVALUATION MANY (noisy, dstributed parameters) REALIZATIONS '''
-def doEvalManyNoisy(F, Fc, F_Omeg, K, N, Nx, Ny, k, mx, my, delay, c, cPD, Tsim, topology, domega, twistdelta, results, allPoints, dt, orderparam, r, phi, omega_0, K_0, delays_0, show_plot=True):
+def doEvalManyNoisy(F, Fc, F_Omeg, K, N, Nx, Ny, k, mx, my, delay, c, cPD, Tsim, Fsim, topology, domega, twistdelta, results, allPoints, dt, orderparam, r, phi, omega_0, K_0, delays_0, show_plot=True, coupFct='triang'):
 	orderparam = np.array(orderparam)
 	r          = np.array(r)
 
@@ -870,6 +880,41 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, Nx, Ny, k, mx, my, delay, c, cPD, Tsim,
 	plt.ylabel(r'$\dot{\phi}(t)$ [rad Hz]', fontdict=labelfont)
 	plt.savefig('results/freq-vs-time_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day))
 	plt.savefig('results/freq-vs-time_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), dpi=dpi_value)
+
+	phi_first = phi[0,:,:]
+	# PLOT power spectrum
+	if coupFct == 'triang':
+		print('Calculate spectrum for square wave signals. Fsim=%d' %Fsim)
+		# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'square')				# calculate spectrum of signals, i.e., of this state
+		f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'square')					# calculate spectrum of signals, i.e., of this state
+	elif coupFct == 'triangshift':
+		print('Calculate spectrum for ??? wave signals, here triang[x]+a*triang[b*x]. Fsim=%d' %Fsim)
+		# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'square')				# calculate spectrum of signals, i.e., of this state
+		f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'square')					# calculate spectrum of signals, i.e., of this state
+	elif coupFct == 'sin':
+		print('check that... sine coupFct only if cos and sin signal input')
+		# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'sin')				# calculate spectrum of signals, i.e., of this state
+		f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'sin')						# calculate spectrum of signals, i.e., of this state
+	elif coupFct == 'cos':
+		print('Calculate spectrum for cosinusoidal signals. Fsim=%d' %Fsim)
+		# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'cos')				# calculate spectrum of signals, i.e., of this state
+		f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'cos')						# calculate spectrum of signals, i.e., of this state
+	elif coupFct == 'sincos':
+		print('Calculate spectrum for mix sine and cosine signals. Fsim=%d' %Fsim)
+		# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'cos')				# calculate spectrum of signals, i.e., of this state
+		f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'sin')						# calculate spectrum of signals, i.e., of this state
+
+	plt.figure('spectrum of synchronized state')								# plot spectrum
+	plt.clf()
+	for i in range (len(f)):
+		plt.plot(f[i], Pxx_db[i], '-')
+	plt.title('power spectrum', fontdict = titlefont)
+	plt.xlim(0,F1+20*K);	#plt.ylim(-100,0);
+	plt.xlabel('frequencies [Hz]', fontdict = labelfont); plt.ylabel('P [dB]', fontdict = labelfont)
+	plt.grid()
+	plt.savefig('results/powerdensity_dB_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day))
+	plt.savefig('results/powerdensity_dB_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), dpi=300)
+
 
 	plt.draw()
 	if show_plot:

@@ -141,14 +141,14 @@ class PhaseDifferenceCell(object):
 		Parameters
 		----------
 		x  :  np.array
- 				coordinate vector of length n which is the number of non-reduced dimensions
+				coordinate vector of length n which is the number of non-reduced dimensions
 		isRotated  :  boolean
- 						True if x is given in rotated coordinates
+						True if x is given in rotated coordinates
 
 		Returns
 		-------
 		is_inside  :  boolean
- 						True if point is inside unit cell
+						True if point is inside unit cell
 		'''
 		# Check if vector has the correct length
 		if len(x) != self.n:
@@ -184,19 +184,52 @@ def calcKuramotoOrderParameter(phi):
 	   Parameters
 	   ----------
 	   phi:  np.array
-	 		real-valued 2d matrix or 1d vector of phases
-	 		in the 2d case the columns of the matrix represent the individual oscillators
+			real-valued 2d matrix or 1d vector of phases
+			in the 2d case the columns of the matrix represent the individual oscillators
 
 	   Returns
 	   -------
 	   r  :  np.array
-	 		real value or real-valued 1d vetor of the Kuramotot order parameter
+			real value or real-valued 1d vetor of the Kuramotot order parameter
 
 	   Authors
 	   -------
 	   Lucas Wetzel, Daniel Platz'''
 	# Complex phasor representation
 	z = np.exp(1j * phi)
+
+	# Kuramoto order parameter
+	if len(phi.shape) == 1:
+		r = np.abs(np.mean(z))
+	elif len(phi.shape) == 2:
+		r = np.abs(np.mean(z, axis=1))
+	else:
+		print( 'Error: phi with wrong dimensions' )
+		r = None
+
+	return r
+
+
+''' CALCULATE KURAMOTO ORDER PARAMETER FOR ENTRAINMENT OF SYNCED STATES'''
+def calcKuramotoOrderParEntrainSelfOrgState(phi, phi_constant_expected):
+	'''Computes the Kuramoto order parameter r for in-phase synchronized states
+
+	   Parameters
+	   ----------
+	   phi:  np.array
+			real-valued 2d matrix or 1d vector of phases
+			in the 2d case the columns of the matrix represent the individual oscillators
+
+	   Returns
+	   -------
+	   r  :  np.array
+			real value or real-valued 1d vetor of the Kuramotot order parameter
+
+	   Authors
+	   -------
+	   Lucas Wetzel, Daniel Platz'''
+	# Complex phasor representation
+	z = np.exp(1j * (phi - phi_constant_expected))
 
 	# Kuramoto order parameter
 	if len(phi.shape) == 1:
@@ -452,52 +485,52 @@ def fitModelDemir(f_model,d_model,fitrange=0):
 	return f_model, optimize_func(p_final), p_final
 
 def shiftedColorMap(cmap, start=0, midpoint=0.5, stop=1.0, name='shiftedcmap'):
-    '''
-    Function to offset the "center" of a colormap. Useful for
-    data with a negative min and positive max and you want the
-    middle of the colormap's dynamic range to be at zero.
+	'''
+	Function to offset the "center" of a colormap. Useful for
+	data with a negative min and positive max and you want the
+	middle of the colormap's dynamic range to be at zero.
 
-    Input
-    -----
-      cmap : The matplotlib colormap to be altered
-      start : Offset from lowest point in the colormap's range.
-          Defaults to 0.0 (no lower offset). Should be between
-          0.0 and `midpoint`.
-      midpoint : The new center of the colormap. Defaults to
-          0.5 (no shift). Should be between 0.0 and 1.0. In
-          general, this should be  1 - vmax / (vmax + abs(vmin))
-          For example if your data range from -15.0 to +5.0 and
-          you want the center of the colormap at 0.0, `midpoint`
-          should be set to  1 - 5/(5 + 15)) or 0.75
-      stop : Offset from highest point in the colormap's range.
-          Defaults to 1.0 (no upper offset). Should be between
-          `midpoint` and 1.0.
-    '''
-    cdict = {
-        'red': [],
-        'green': [],
-        'blue': [],
-        'alpha': []
-    }
+	Input
+	-----
+	  cmap : The matplotlib colormap to be altered
+	  start : Offset from lowest point in the colormap's range.
+		  Defaults to 0.0 (no lower offset). Should be between
+		  0.0 and `midpoint`.
+	  midpoint : The new center of the colormap. Defaults to
+		  0.5 (no shift). Should be between 0.0 and 1.0. In
+		  general, this should be  1 - vmax / (vmax + abs(vmin))
+		  For example if your data range from -15.0 to +5.0 and
+		  you want the center of the colormap at 0.0, `midpoint`
+		  should be set to  1 - 5/(5 + 15)) or 0.75
+	  stop : Offset from highest point in the colormap's range.
+		  Defaults to 1.0 (no upper offset). Should be between
+		  `midpoint` and 1.0.
+	'''
+	cdict = {
+		'red': [],
+		'green': [],
+		'blue': [],
+		'alpha': []
+	}
 
-    # regular index to compute the colors
-    reg_index = np.linspace(start, stop, 257)
+	# regular index to compute the colors
+	reg_index = np.linspace(start, stop, 257)
 
-    # shifted index to match the data
-    shift_index = np.hstack([
-        np.linspace(0.0, midpoint, 128, endpoint=False),
-        np.linspace(midpoint, 1.0, 129, endpoint=True)
-    ])
+	# shifted index to match the data
+	shift_index = np.hstack([
+		np.linspace(0.0, midpoint, 128, endpoint=False),
+		np.linspace(midpoint, 1.0, 129, endpoint=True)
+	])
 
-    for ri, si in zip(reg_index, shift_index):
-        r, g, b, a = cmap(ri)
+	for ri, si in zip(reg_index, shift_index):
+		r, g, b, a = cmap(ri)
 
-        cdict['red'].append((si, r, r))
-        cdict['green'].append((si, g, g))
-        cdict['blue'].append((si, b, b))
-        cdict['alpha'].append((si, a, a))
+		cdict['red'].append((si, r, r))
+		cdict['green'].append((si, g, g))
+		cdict['blue'].append((si, b, b))
+		cdict['alpha'].append((si, a, a))
 
-    newcmap = matplotlib.colors.LinearSegmentedColormap(name, cdict)
-    plt.register_cmap(cmap=newcmap)
+	newcmap = matplotlib.colors.LinearSegmentedColormap(name, cdict)
+	plt.register_cmap(cmap=newcmap)
 
-    return newcmap
+	return newcmap

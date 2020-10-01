@@ -1315,6 +1315,7 @@ def noisyStatistics(params):
 			delay 	= chooseTransDelay()										# calls function that asks user for input of mean transmission delay
 			K    	= chooseK(float(params['DEFAULT']['F']))					# calls function that asks user for input of the coupling strength
 			Nsim    = chooseNsim()												# calls function that asks user for input for number of realizations
+			cPD		= chooseLF_DiffConst()
 			case, rot_vs_orig = chooseDeltaPert(N)								# calls function that asks user for input for delta-like perturbation
 			if case == '4':
 				distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale = chooseDistribution()

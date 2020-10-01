@@ -979,9 +979,16 @@ def generatePllObjects(mode,topology,couplingfct,histtype,Nplls,dt,c,delay,feedb
 
 	elif ( topology == 'ring' or topology == 'entrainAll' ):
 		G = nx.cycle_graph(Nplls)
+		# if topology == 'entrainAll':
+		# 	G.remove_edge(0,2);
+		# 	G.remove_edge(1,2);
 
 	elif ( topology == 'chain' or topology == 'entrainOne' ):
 		G = nx.path_graph(Nplls)
+		# if topology == 'entrainOne':
+		# 	G.remove_edge(0,2);
+		# 	G.remove_edge(1,2);
+		# 	G.remove_edge(2,1);
 
 	# elif topology == 'entrainOne':
 	# 	print('STOP, not working yet with G.neighbors(idx)! Topology of entrainment of synchronized state -- reference feeds into one of the oscillators.')
@@ -1116,8 +1123,8 @@ def generatePllObjects(mode,topology,couplingfct,histtype,Nplls,dt,c,delay,feedb
 
 				if ( Nplls==3 and ( mode==2 or mode==1 or mode==0 ) and couplingfct == 'triang' and not ( topology == 'entrainOne' or topology == 'entrainAll') ):
 					#print('\nSPECIAL MODE: individual intrinsic frequencies!\n')
-					F_intrin=[1.048, 0.996, 0.997];							    #[1.006, 1.008, 1.011];	# put here the frequencies in Hz of the PLLs in the experimental setup_hist
-					K_k     =[0.3995, 0.4135, 0.408]						    # the coupling strengths [0.3995, 0.3904, 0.3984]
+					F_intrin=[0.996, 1.004, 0.997];							    #[1.006, 1.008, 1.011];	# put here the frequencies in Hz of the PLLs in the experimental setup_hist
+					K_k     =[0.4135, 0.3995, 0.408]						    # the coupling strengths [0.3995, 0.3904, 0.3984]
 					Fc_k    =[0.015, 0.015, 0.015] 								#[0.04986, 0.0496, 0.049953] # the cut-off frequencies
 					# F_intrin=[1.006, 1.008, 1.011];							# put here the frequencies in Hz of the PLLs in the experimental setup_hist
 					# K_k     =[0.4045, 0.408, 0.4065]							# the coupling strengths
@@ -1130,9 +1137,9 @@ def generatePllObjects(mode,topology,couplingfct,histtype,Nplls,dt,c,delay,feedb
 										)  for idx_pll in range(Nplls) ]		# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
 
 				if ( Nplls==3 and ( mode==2 or mode==1 or mode==0 ) and couplingfct == 'triang'  and ( topology == 'entrainOne' or topology == 'entrainAll') ):
-					#print('\nSPECIAL MODE: individual intrinsic frequencies!\n')
-					F_intrin=[1.080, 0.996, 0.997];							    #[1.006, 1.008, 1.011];	# put here the frequencies in Hz of the PLLs in the experimental setup_hist
-					K_k     =[0, 0.4135, 0.408]						    		# the coupling strengths [0.3995, 0.3904, 0.3984]
+					#print('\nSPECIAL MODE: individual intrinsic frequencies! (entrainment of self-org. sync. states)\n')
+					F_intrin=[0.996, 1.004, 1.097];							    #[1.006, 1.008, 1.011];	# put here the frequencies in Hz of the PLLs in the experimental setup_hist
+					K_k     =[0.4135, 0.408, 0.0]						    	# the coupling strengths [0.3995, 0.3904, 0.3984] zero coupling strength for reference...
 					Fc_k    =[0.015, 0.015, 0.015] 								#[0.04986, 0.0496, 0.049953] # the cut-off frequencies
 					# F_intrin=[1.006, 1.008, 1.011];							# put here the frequencies in Hz of the PLLs in the experimental setup_hist
 					# K_k     =[0.4045, 0.408, 0.4065]							# the coupling strengths

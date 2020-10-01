@@ -69,9 +69,9 @@ def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Ome
 		r = eva.oracle_mTwistOrderParameter(phi[-int(numb_av_T*1.0/(F1*dt)):, :], k)		# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
 		orderparam = eva.oracle_mTwistOrderParameter(phi[:, :], k)				# calculate the m-twist order parameter for all times
 	elif ( topology == "entrainOne" or topology == "entrainAll" ):
-		r = eva.oracle_mTwistOrderParameter(phi[-int(numb_av_T*1.0/(F1*dt)):, :], k)	# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
-		orderparam = eva.oracle_mTwistOrderParameter(phi[:, :], k)				# calculate the m-twist order parameter for all times
-
+		phi_constant_expected = phiM;
+		r = eva.calcKuramotoOrderParEntrainSelfOrgState(phi[-int(numb_av_T*1.0/(F1*dt)):, :], phi_constant_expected);
+		orderparam = eva.calcKuramotoOrderParEntrainSelfOrgState(phi[:, :], phi_constant_expected);
 	# r = eva.oracle_mTwistOrderParameter(phi[-int(2*1.0/(F1*dt)):, :], k)			# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
 	# orderparam = eva.oracle_mTwistOrderParameter(phi[:, :], k)					# calculate the m-twist order parameter for all times
 	# print('mean of modulus of the order parameter, R, over 2T:', np.mean(r), ' last value of R', r[-1])
@@ -91,7 +91,7 @@ def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Ome
 # def multihelper_star(dynparam_fixparam):
 # 	return multihelper(*dynparam_fixparam)
 
-def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0, Ny=1, kx=0, ky=0, phiSr=[], show_plot=True):
+def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0, Ny=1, kx=0, ky=0, phiConfig=[], phiSr=[], show_plot=True):
 
 	mode = int(1);																# mode=0 -> algorithm usage mode, mode=1 -> single realization mode,
 																				# mode=2 -> brute force scanning mode for parameter interval scans
@@ -269,6 +269,9 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0, Ny
 	if topology == 'global':
 		phiM = np.zeros(N)														# for all-to-all coupling we assume no twist states with m > 0
 
+	if ( topology == 'entrainOne' or topology == 'entrainAll' ):				# in this case the phase-configuration is given by the solution of the dynamical equations
+		phiM = phiConfig;
+
 	# print('time-step dt=', dt)
 	# print('delay:', delay)
 	t0 = time.time()
@@ -299,7 +302,7 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0, Ny
 	''' PLOT PHASE & FREQUENCY TIME SERIES '''
 	if plot_Phases_Freq:
 		print('Plot realization! np.shape(phi)', np.shape(phi), '   type(phi)', type(phi));
-		out.plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, c, cPD, cPD_t, K_adiab_t, -1, couplingfct, Tsim, Fsim, show_plot)
+		out.plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, phiM, topology, c, cPD, cPD_t, K_adiab_t, -1, couplingfct, Tsim, Fsim, show_plot)
 
 	''' SAVE RESULTS '''
 	np.savez('results/orderparam_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cPD%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), results=results)
@@ -360,6 +363,7 @@ if __name__ == '__main__':
 	mx			= int(sys.argv[13])												# twist number in x-direction (also kx)
 	my			= int(sys.argv[14])												# twist number in y-direction (also ky)
 	cPD			= float(sys.argv[15])											# diff constant of GWN in LF
-	phiSr 		= np.asarray([float(phi) for phi in sys.argv[16:(16+N)]])		# this input allows to simulate specific points in !rotated phase space plane
+	phiConfig 	= np.asarray([float(phi) for phi in sys.argv[16:(16+N)]])		# this input allows to simulate specific points in !rotated phase space plane
+	phiSr 		= np.asarray([float(phi) for phi in sys.argv[(16+N+1):(16+2*N+1)]])# this input allows to simulate specific points in !rotated phase space plane
 
-	singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx, Ny, mx, my, phiSr, True)
+	singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx, Ny, mx, my, phiConfig, phiSr, True)
