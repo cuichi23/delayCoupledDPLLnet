@@ -273,9 +273,11 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0
 			# scanValues[i,:] = np.linspace(phiMr[i+1]-np.pi, phiMr[i+1]+np.pi, paramDiscretization) # all entries are in rotated, and reduced phase space
 			if i==0:															# theta2 (x-axis)
 				#scanValues[i,:] = np.linspace(-(np.pi), +(np.pi), paramDiscretization) 	# all entries are in rotated, and reduced phase space NOTE: adjust unit cell accordingly!
+				#scanValues[i,:] = np.linspace(-0.25*np.pi, 0.25*np.pi, paramDiscretization)
 				scanValues[i,:] = np.linspace(-1.0*np.pi, 1.0*np.pi, paramDiscretization)
 			else:																# theta3 (y-axis)
 				#scanValues[i,:] = np.linspace(-(1.35*np.pi), +(1.35*np.pi), paramDiscretization)
+				#scanValues[i,:] = np.linspace(-0.35*np.pi, 0.35*np.pi, paramDiscretization)
 				scanValues[i,:] = np.linspace(-1.35*np.pi, 1.35*np.pi, paramDiscretization)
 
 			#print('row', i,'of matrix with all intervals of the rotated phase space:\n', scanValues[i,:], '\n')

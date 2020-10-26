@@ -14,6 +14,7 @@ if not os.environ.get('SGE_ROOT') == None:										# this environment variable 
 	matplotlib.use('Agg') #'%pylab inline'
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+from scipy import optimize
 from mpl_toolkits.axes_grid1.inset_locator import zoomed_inset_axes
 from mpl_toolkits.axes_grid1.inset_locator import mark_inset
 from scipy.interpolate import spline
@@ -31,28 +32,35 @@ plt.rcParams['agg.path.chunksize'] = 10000
 
 ''' STYLEPACKS '''
 titlefont = {
-        'family' : 'serif',
-        'color'  : 'black',
-        'weight' : 'normal',
-        'size'   : 9,
-        }
+		'family' : 'serif',
+		'color'  : 'black',
+		'weight' : 'normal',
+		'size'   : 9,
+		}
 
 labelfont = {
-        'family' : 'sans-serif',
-        'color'  : 'black',
-        'weight' : 'normal',
-        'size'   : 16,
-        }
+		'family' : 'sans-serif',
+		'color'  : 'black',
+		'weight' : 'normal',
+		'size'   : 16,
+		}
 
 annotationfont = {
-        'family' : 'monospace',
-        'color'  : (0, 0.27, 0.08),
-        'weight' : 'normal',
-        'size'   : 14,
-        }
+		'family' : 'monospace',
+		'color'  : (0, 0.27, 0.08),
+		'weight' : 'normal',
+		'size'   : 14,
+		}
 
 ''' EVALUATION SINGLE REALIZATION '''
 def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, phiM, topology, c, cPD, cPD_t=[], Kadiab_t=[], K_adiab_r=(-1), coupFct='triang', Tsim=53, Fsim=None, show_plot=True):
+
+	# plot parameter
+	axisLabel = 12;
+	titleLabel= 10;
+	dpi_val	  = 150;
+	figwidth  = 6;
+	figheight = 5;
 
 	if np.size(Kadiab_t) == 0 and np.size(cPD_t) != 0:
 		Trelax 			= Tsim
@@ -79,7 +87,9 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, phiM, topolo
 	else:
 		F1=.1
 	# print('\n\nUncomment \"matplotlib.use(\'Agg\')\" in ouput.py to enable plotting figures to the desktop, DISABLE for queue-jobs!')
-	phi = phi[:,:,:]; orderparam = orderparam[0,:]								# there is only one realization of interest -reduces dimension of phi array
+	orderparam = orderparam[0,:]												# there is only one realization of interest -reduces dimension of phi array
+	#phi = phi[:,:,:];
+
 	# afterTransients = int( round( 0.5*Tsim / dt ) )
 	# phiSpect = phi[:,-afterTransients:,:]
 
@@ -88,35 +98,122 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, phiM, topolo
 	if np.size(cPD_t) == 0 and np.size(Kadiab_t) == 0:
 		if coupFct == 'triang':
 			print('Calculate spectrum for square wave signals. Fsim=%d' %Fsim)
-			# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'square')				# calculate spectrum of signals, i.e., of this state
-			f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'square')					# calculate spectrum of signals, i.e., of this state
+			# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'square')			# calculate spectrum of signals, i.e., of this state
+			f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'square')				# calculate spectrum of signals, i.e., of this state
 		elif coupFct == 'triangshift':
 			print('Calculate spectrum for ??? wave signals, here triang[x]+a*triang[b*x]. Fsim=%d' %Fsim)
-			# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'square')				# calculate spectrum of signals, i.e., of this state
-			f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'square')					# calculate spectrum of signals, i.e., of this state
+			# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'square')			# calculate spectrum of signals, i.e., of this state
+			f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'square')				# calculate spectrum of signals, i.e., of this state
 		elif coupFct == 'sin':
 			print('check that... sine coupFct only if cos and sin signal input')
-			# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'sin')				# calculate spectrum of signals, i.e., of this state
-			f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'sin')						# calculate spectrum of signals, i.e., of this state
+			# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'sin')			# calculate spectrum of signals, i.e., of this state
+			f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'sin')					# calculate spectrum of signals, i.e., of this state
 		elif coupFct == 'cos':
 			print('Calculate spectrum for cosinusoidal signals. Fsim=%d' %Fsim)
-			# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'cos')				# calculate spectrum of signals, i.e., of this state
-			f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'cos')						# calculate spectrum of signals, i.e., of this state
+			# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'cos')			# calculate spectrum of signals, i.e., of this state
+			f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'cos')					# calculate spectrum of signals, i.e., of this state
 		elif coupFct == 'sincos':
 			print('Calculate spectrum for mix sine and cosine signals. Fsim=%d' %Fsim)
-			# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'cos')				# calculate spectrum of signals, i.e., of this state
-			f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'sin')						# calculate spectrum of signals, i.e., of this state
+			# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'cos')			# calculate spectrum of signals, i.e., of this state
+			f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'sin')					# calculate spectrum of signals, i.e., of this state
+		np.savez('results/powerSpec_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cPD%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), powerspec=powerspec)
 
+		peak_power_val = [];
 		plt.figure('spectrum of synchronized state')							# plot spectrum
 		plt.clf()
 		for i in range (len(f)):
+			peak_freq_coup1 = np.argmax(Pxx_db[i]);								# find the principle peak of the free-running SLL
+			peak_freq1_val  = f[i][peak_freq_coup1];
+			peak_power_val.append(Pxx_db[i][peak_freq_coup1]);
 			plt.plot(f[i], Pxx_db[i], '-')
-		plt.title('power spectrum', fontdict = titlefont)
+		plt.title(r'power spectrum $\Delta f=$%0.5E, peak at Pxx(0)=%0.2f' %((f[0][2]-f[0][1]), peak_power_val[0]), fontdict = titlefont)
 		plt.xlim(0,F1+20*K);	#plt.ylim(-100,0);
 		plt.xlabel('frequencies [Hz]', fontdict = labelfont); plt.ylabel('P [dB]', fontdict = labelfont)
 		plt.grid()
 		plt.savefig('results/powerdensity_dB_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day))
 		plt.savefig('results/powerdensity_dB_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), dpi=300)
+		plt.xlim(peak_freq1_val-1.2*K,peak_freq1_val+1.2*K);
+		plt.savefig('results/powerdensity1stHarm_dB_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day))
+		plt.savefig('results/powerdensity1stHarm_dB_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), dpi=300)
+		plt.xlim(0,F1+20*K);
+		################################################################################################################# fix
+
+		def test_func(f, gamma, f0, peakhight):
+			return peakhight*((gamma**2)/((f-f0)**2+gamma**2))
+		fitwidth = 0.005
+		param = []; params = []; params_covariance_gamma = [];
+		plt.figure('fit of frequency spectrum')									# plot spectrum
+		plt.clf()
+		for i in range (len(f)):
+			peak_freq_coup1 = np.argmax(Pxx_db[i]);								# find the principle peak of the free-running SLL
+			peak_freq1_val  = f[i][peak_freq_coup1];
+			fitwin = int(fitwidth*F1/(f[i][2]-f[i][1]));
+			print('fit window: [',f[i][peak_freq_coup1-fitwin], ', ', f[i][peak_freq_coup1+fitwin],']')
+			plt.plot(f[i][peak_freq_coup1-fitwin:peak_freq_coup1+fitwin],
+								Pxx_db[i][peak_freq_coup1-fitwin:peak_freq_coup1+fitwin], label='data PLL%i' %(i))
+			# fit curve
+			# temp_param, temp_param_covariance = optimize.curve_fit(test_func, f[i][peak_freq_coup1-fitwin:peak_freq_coup1+fitwin],
+			#					Pxx_db[i][peak_freq_coup1-fitwin:peak_freq_coup1+fitwin], p0=[0.01*peak_freq1_val, peak_freq1_val, np.mean(peak_power_val)])
+			# params.append(temp_param); params_covariance.append(temp_param_covariance);
+			# plt.plot(f[i][peak_freq_coup1-fitwin:peak_freq_coup1+fitwin],
+			#					test_func(f[i][peak_freq_coup1-fitwin:peak_freq_coup1+fitwin], params[i][0], params[i][1], params[i][2]), label=r'fit PLL%i, $\gamma_{%i}=$%0.4E' %(i, i, params[i][0]))
+			for bins in range(2,15):
+				#print('np.mean(peak_power_val)=',np.mean(peak_power_val))
+				temp_param, temp_param_covariance = optimize.curve_fit(test_func, f[i][peak_freq_coup1-bins:peak_freq_coup1+bins],
+									Pxx_db[i][peak_freq_coup1-bins:peak_freq_coup1+bins], p0=[0.01*peak_freq1_val, peak_freq1_val, np.mean(peak_power_val)])
+				#print(temp_param,'\nand\n', temp_param_covariance)
+				param.append(temp_param); params_covariance_gamma.append(temp_param_covariance[0,0]);
+			#print('params_covariance=',params_covariance_gamma,'\nand\nparam=',param)
+			params.append(param[np.argmin(params_covariance_gamma)])
+			print('PLL',i,' params of Lorentzian fit: ', params[i])
+			plt.plot(f[i][peak_freq_coup1-fitwin:peak_freq_coup1+fitwin],
+								test_func(f[i][peak_freq_coup1-fitwin:peak_freq_coup1+fitwin], params[i][0], params[i][1], params[i][2]), label=r'fit PLL%i, $\gamma_{%i}=$%0.4E' %(i, i, params[i][0]))
+
+		plt.legend()
+		plt.title(r'PSD fits, PLL0 $\gamma_0=$%0.4E, $f_0=$%0.4f, $P_{xx,\textrm{peak}}=$%0.4E' %(params[0][0], params[0][1], params[0][2]), fontdict = titlefont)
+		#plt.title(r'PSD fits, PLL0 $\gamma_0=$%0.4E, $f_0=$%0.4f, $P_{xx,\textrm{peak}}=$%0.4E' %(params[0], params[1], params[2]), fontdict = titlefont)
+		plt.xlim(f[i][peak_freq_coup1-fitwin-3],f[i][peak_freq_coup1+fitwin+3]);	#plt.ylim(-100,0);
+		plt.xlabel('frequencies [Hz]', fontdict = labelfont); plt.ylabel('P [dB]', fontdict = labelfont)
+		plt.grid()
+		plt.savefig('results/powerfit_dB_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day))
+		plt.savefig('results/powerfit_dB_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), dpi=300)
+
+		################################################################################################################
+		fig100 = plt.figure(num=100, figsize=(figwidth, figheight), dpi=dpi_val, facecolor='w', edgecolor='k')	# plot spectrum
+		plt.clf()
+		xHz = 0.001;															# distance from the principle peak to measure damping
+		Freqres = f[0][2]-f[0][3];
+		for i in range (len(f)):
+			# mutually coupled SLL1
+			peak_freq_coup1 = np.argmax(Pxx_db[i]);								# find the principle peak of the free-running SLL
+			peak_freq1_val  = f[i][peak_freq_coup1];
+			coup1_times_X	= np.argmax(f[i] >= 2.25*peak_freq1_val);
+			m3dB_freqcind1  = peak_freq_coup1 + np.argmax(Pxx_db[i][peak_freq_coup1:]>=Pxx_db[i][peak_freq_coup1]-3);
+			m3dB_freqc_val  = f[i][m3dB_freqcind1];
+			coup1_delt_3dB  = np.abs( m3dB_freqc_val - peak_freq1_val ) 		# - Freqres
+			print('Calculating: f[peak]-f[-3dB]=', peak_freq1_val,'-',m3dB_freqc_val,'=',coup1_delt_3dB, '\n power 1st harmonic', Pxx_db[i][peak_freq_coup1],'\n')
+			if coup1_delt_3dB == 0:
+				print('\n\n frequency resolution of power spectrum too large or power spectrum approaching delta-like peak!\n\n')
+			coup_qual_SLL1  = peak_freq1_val / ( 2.0*coup1_delt_3dB );
+			coup1_plus_xHz  = np.argmax(f[i] >= (peak_freq1_val + xHz));		# find the frequency that is xHz larger then the principle peak frequency of the free-running SLL
+			coupPS_steep    = Pxx_db[i][peak_freq_coup1] - Pxx_db[i][coup1_plus_xHz]
+			print('For the mutually coupled SLL',i,' we find the principle peak at f =', peak_freq1_val, ', -3dB delta_f =', coup1_delt_3dB, ', and hence a quality factor Q = ', coup_qual_SLL1)
+			if f[i][m3dB_freqcind1]-peak_freq1_val > 0:
+				plt.plot(10.0*np.log10(1E-12), Pxx_db[i][peak_freq_coup1], 'r*',markersize=2)
+				plt.plot(10.0*np.log10(f[i][m3dB_freqcind1]-peak_freq1_val), Pxx_db[i][m3dB_freqcind1], 'r+',markersize=2)
+			else:
+				print('CHECK frequency resolution of power spectrum and noise strength.')
+			plt.plot(10.0*np.log10(f[i][peak_freq_coup1:coup1_times_X]-peak_freq1_val), Pxx_db[i][peak_freq_coup1:coup1_times_X], label='PSD SLL%i' %(i), markersize=2)
+
+		#plt.plot(10.0*np.log10(powerspecPLL1['f'][0][peak_freq_coup1:coup1_times_X].copy()-peak_freq1_val), !!!!! , 'y-', label=r'$1/f^2$')
+		plt.legend()
+		# plt.xlim(0,f01+20*max(Kvco1,Kvco2));	#plt.ylim(-100,0);
+		plt.xlabel(r'$10\log_{10}\left(f-f_{\rm peak}\right)$ [Hz]', fontsize = axisLabel); plt.ylabel(r'$P$ [dB]', fontsize = axisLabel)
+		plt.grid()
+		plt.savefig('results/ponsidedPSD_dB_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day))
+		plt.savefig('results/onsidedPSD_dB_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), dpi=300)
+		#################################################################################################################
+
 
 	phi = phi[0,:,:];															# from here on the phi array is reduced in dimension - realization 0 picked
 	t = np.arange(phi.shape[0])													# plot the phases of the oscillators over time
@@ -199,8 +296,8 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, phiM, topolo
 	plt.plot((t*dt),((phi[:,0]-phi[:,2]+np.pi)%(2.*np.pi))-np.pi,label=r'$\phi_{0}-\phi_{2}$')
 	plt.plot(delay, ((phi[int(round(delay/dt)),0]-phi[int(round(delay/dt)),1]+np.pi)%(2.*np.pi))-np.pi, 'yo', ms=5)
 	#plt.axvspan(t[-int(5.5*1.0/(F1*dt))]*dt, t[-1]*dt, color='b', alpha=0.3)
-	plt.title(r'phase differences $\Delta\phi_{01}=%.4f$, $\Delta\phi_{12}=%.4f$, $\Delta\phi_{02}=%.4f$  [rad]' %( np.mod(phi[-10][0]-phi[-10][1]+np.pi, 2.0*np.pi)-np.pi,
-																	np.mod(phi[-10][1]-phi[-10][2]+np.pi, 2.0*np.pi)-np.pi, np.mod(phi[-10][0]-phi[-10][2]+np.pi, 2.0*np.pi)-np.pi ), fontdict = titlefont)
+	plt.title(r'phases $\phi_{0}=%.4f$, $\phi_{1}=%.4f$, $\phi_{R}=%.4f$  [rad]' %( (-1)*(np.mod(phi[-10][2]-phi[-10][0]+np.pi, 2.0*np.pi)-np.pi),
+																				np.mod(phi[-10][1]-phi[-10][0]+np.pi, 2.0*np.pi)-np.pi - (np.mod(phi[-10][2]-phi[-10][0]+np.pi, 2.0*np.pi)-np.pi), 0 ), fontdict = titlefont)
 	plt.xlabel(r'$t$ $[s]$', fontdict = labelfont)
 	plt.ylabel(r'$\phi_k(t)-\phi_0(t)$', fontdict = labelfont)
 	plt.legend();
@@ -371,8 +468,8 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	}
 
 	# cmaps['Diverging'] = [
-    #        'PiYG', 'PRGn', 'BrBG', 'PuOr', 'RdGy', 'RdBu',
-    #        'RdYlBu', 'RdYlGn', 'Spectral', 'coolwarm', 'bwr', 'seismic']
+	#        'PiYG', 'PRGn', 'BrBG', 'PuOr', 'RdGy', 'RdBu',
+	#        'RdYlBu', 'RdYlGn', 'Spectral', 'coolwarm', 'bwr', 'seismic']
 
 	# if (topology == 'entrainOne' or topology == 'entrainAll'):
 	# 	# cmap=plt.cm.get_cmap('Blues', 6)
@@ -437,7 +534,8 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	tempresults = results[:,0].reshape((paramDiscretization, paramDiscretization))   #np.flipud()
 	tempresults = np.transpose(tempresults)
 	tempresults_ma = ma.masked_where(tempresults < 0, tempresults)				# Create masked array
-	plt.imshow(tempresults_ma, interpolation='nearest', cmap=cm.coolwarm, aspect='auto', origin='lower', extent=(allPoints[:,0].min()+phiMr[d1], allPoints[:,0].max()+phiMr[d1], allPoints[:,1].min()+phiMr[d2], allPoints[:,1].max()+phiMr[d2]), vmin=0, vmax=1)
+	plt.imshow(tempresults_ma, interpolation='nearest', cmap=cm.coolwarm, aspect='auto', origin='lower',
+			extent=(allPoints[:,0].min()+phiMr[d1], allPoints[:,0].max()+phiMr[d1], allPoints[:,1].min()+phiMr[d2], allPoints[:,1].max()+phiMr[d2]), vmin=0, vmax=1)
 	plt.title(r'mean $R(t,m=%d )$, constant dim: $\phi_0^{\prime}=%.2f$' %(int(k) ,initPhiPrime0) )
 	if N==3:
 		plt.xlabel(r'$\phi_1^{\prime}$')
@@ -462,7 +560,8 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 	tempresults = results[:,1].reshape((paramDiscretization, paramDiscretization))   #np.flipud()
 	tempresults = np.transpose(tempresults)
 	tempresults_ma = ma.masked_where(tempresults < 0, tempresults)				# Create masked array
-	plt.imshow(tempresults_ma, interpolation='nearest', cmap=cm.coolwarm, aspect='auto', origin='lower', extent=(allPoints[:,0].min()+phiMr[d1], allPoints[:,0].max()+phiMr[d1], allPoints[:,1].min()+phiMr[d2], allPoints[:,1].max()+phiMr[d2]), vmin=0, vmax=1)
+	plt.imshow(tempresults_ma, interpolation='nearest', cmap=cm.coolwarm, aspect='auto', origin='lower',
+			extent=(allPoints[:,0].min()+phiMr[d1], allPoints[:,0].max()+phiMr[d1], allPoints[:,1].min()+phiMr[d2], allPoints[:,1].max()+phiMr[d2]), vmin=0, vmax=1)
 	plt.title(r'last $R(t,m=%d )$, constant dim: $\phi_0^{\prime}=%.2f$' %(int(k) ,initPhiPrime0) )
 	if N==3:
 		plt.xlabel(r'$\phi_1^{\prime}$')
@@ -556,6 +655,14 @@ def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints,
 
 ''' EVALUATION MANY (noisy, dstributed parameters) REALIZATIONS '''
 def doEvalManyNoisy(F, Fc, F_Omeg, K, N, Nx, Ny, k, mx, my, delay, c, cPD, Tsim, Fsim, topology, domega, twistdelta, results, allPoints, dt, orderparam, r, phi, omega_0, K_0, delays_0, show_plot=True, coupFct='triang'):
+
+	# plot parameter
+	axisLabel = 12;
+	titleLabel= 10;
+	dpi_val	  = 150;
+	figwidth  = 6;
+	figheight = 5;
+
 	orderparam = np.array(orderparam)
 	r          = np.array(r)
 
@@ -647,6 +754,7 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, Nx, Ny, k, mx, my, delay, c, cPD, Tsim,
 		plt.figure('histo: orderparameter at t=TSim over all realizations') 		# plot the distribution of order parameters
 		plt.clf()
 		binrange = 4*np.std(orderparam[:,-1])
+		print('\n\nbinrange:',binrange)
 		plt.hist(orderparam[:,-1],
 						bins=np.linspace(np.mean(orderparam[:,-1])-binrange, np.mean(orderparam[:,-1])+binrange, num=histo_bins),
 						rwidth=0.75, histtype='bar', normed=True, log=True)
@@ -734,13 +842,13 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, Nx, Ny, k, mx, my, delay, c, cPD, Tsim,
 		plt.clf()
 		if (delay==0):
 			common_bins = np.linspace(	min( np.array([firstfreqsext[:,int(round((.1/F1)/dt)),:].flatten(), lastfreq[:,:,:].flatten()]).flatten() ),
-								  	max( np.array([firstfreqsext[:,int(round((.1/F1)/dt)),:].flatten(), lastfreq[:,:,:].flatten()]).flatten() ),
+									max( np.array([firstfreqsext[:,int(round((.1/F1)/dt)),:].flatten(), lastfreq[:,:,:].flatten()]).flatten() ),
 									num=histo_bins )
 			plt.hist(firstfreqsext[:,int(round((.1/F1)/dt)),:].flatten(), bins=common_bins,
 								rwidth=0.75, normed=True, log=True, histtype='bar', label='t=0.1*Tf')
 		else:
 			common_bins = np.linspace(	min( np.array([firstfreqsext[:,int(round((.1/F1)/dt)),:].flatten(), lastfreq[:,:,:].flatten()]).flatten() ),
-								  	max( np.array([firstfreqsext[:,int(round((.1/F1)/dt)),:].flatten(), lastfreq[:,:,:].flatten()]).flatten() ),
+									max( np.array([firstfreqsext[:,int(round((.1/F1)/dt)),:].flatten(), lastfreq[:,:,:].flatten()]).flatten() ),
 									num=histo_bins )
 			plt.hist(firstfreqsext[:,int(round((.1/F1)/dt)),:].flatten(), bins=common_bins,
 							rwidth=0.75, normed=True, log=True, histtype='bar', label='t=0.1*Tf')
@@ -767,7 +875,7 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, Nx, Ny, k, mx, my, delay, c, cPD, Tsim,
 									max( np.array([firstfreqsext[:,t1,:].flatten(), firstfreqsext[:,t4,:].flatten()]).flatten() ),
 									num=histo_bins )
 		plt.hist(firstfreqsext[:,t1,:].flatten(), bins=common_bins,
-		 					rwidth=0.75, normed=True, log=True, histtype='bar', alpha=0.9, label='t=2*Tf')
+							rwidth=0.75, normed=True, log=True, histtype='bar', alpha=0.9, label='t=2*Tf')
 		plt.hist(firstfreqsext[:,t2,:].flatten(), bins=common_bins,
 							rwidth=0.75, normed=True, log=True, histtype='bar', alpha=0.75, label='t=4*Tf')
 		plt.hist(firstfreqsext[:,t3,:].flatten(), bins=common_bins,
@@ -786,7 +894,7 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, Nx, Ny, k, mx, my, delay, c, cPD, Tsim,
 									max( np.array([firstfreqsext[:,t1,:].flatten(), firstfreqsext[:,t4,:].flatten()]).flatten() ),
 									num=histo_bins )
 		plt.hist(firstfreqsext[:,t1,:].flatten(), bins=common_bins,
-		 					rwidth=0.75, normed=True, log=True, histtype='bar', alpha=0.9, label='t=2*tau')
+							rwidth=0.75, normed=True, log=True, histtype='bar', alpha=0.9, label='t=2*tau')
 		plt.hist(firstfreqsext[:,t2,:].flatten(), bins=common_bins,
 							rwidth=0.75, normed=True, log=True, histtype='bar', alpha=0.75, label='t=4*tau')
 		plt.hist(firstfreqsext[:,t3,:].flatten(), bins=common_bins,
@@ -881,7 +989,6 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, Nx, Ny, k, mx, my, delay, c, cPD, Tsim,
 	plt.savefig('results/freq-vs-time_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day))
 	plt.savefig('results/freq-vs-time_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), dpi=dpi_value)
 
-	phi_first = phi[0,:,:]
 	# PLOT power spectrum
 	if coupFct == 'triang':
 		print('Calculate spectrum for square wave signals. Fsim=%d' %Fsim)
@@ -904,17 +1011,103 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, Nx, Ny, k, mx, my, delay, c, cPD, Tsim,
 		# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'cos')				# calculate spectrum of signals, i.e., of this state
 		f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'sin')						# calculate spectrum of signals, i.e., of this state
 
+	powerspec = np.array([f, Pxx_db])
+	# powerspec = {'frequency': f, 'Pxx_db': Pxx_db}
+	np.savez('results/powerSpec_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cPD%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), powerspec=powerspec)
+
+	peak_power_val = [];
 	plt.figure('spectrum of synchronized state')								# plot spectrum
 	plt.clf()
 	for i in range (len(f)):
+		peak_freq_coup1 = np.argmax(Pxx_db[i]);								# find the principle peak of the free-running SLL
+		peak_freq1_val  = f[i][peak_freq_coup1];
+		peak_power_val.append(Pxx_db[i][peak_freq_coup1]);
 		plt.plot(f[i], Pxx_db[i], '-')
-	plt.title('power spectrum', fontdict = titlefont)
+	plt.title(r'power spectrum $\Delta f=$%0.5E, peak at Pxx(0)=%0.2f' %((f[0][2]-f[0][1]), peak_power_val[0]), fontdict = titlefont)
 	plt.xlim(0,F1+20*K);	#plt.ylim(-100,0);
 	plt.xlabel('frequencies [Hz]', fontdict = labelfont); plt.ylabel('P [dB]', fontdict = labelfont)
 	plt.grid()
 	plt.savefig('results/powerdensity_dB_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day))
 	plt.savefig('results/powerdensity_dB_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), dpi=300)
+	plt.xlim(peak_freq1_val-1.2*K,peak_freq1_val+1.2*K);
+	plt.savefig('results/powerdensity1stHarm_dB_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day))
+	plt.savefig('results/powerdensity1stHarm_dB_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), dpi=300)
+	plt.xlim(0,F1+20*K);
 
+	def test_func(f, gamma, f0, peakhight):
+		return peakhight*((gamma**2)/((f-f0)**2+gamma**2))
+	fitwidth = 0.005
+	param = []; params = []; params_covariance_gamma = [];
+	plt.figure('fit of frequency spectrum')									# plot spectrum
+	plt.clf()
+	for i in range (len(f)):
+		peak_freq_coup1 = np.argmax(Pxx_db[i]);								# find the principle peak of the free-running SLL
+		peak_freq1_val  = f[i][peak_freq_coup1];
+		fitwin = int(fitwidth*F1/(f[i][2]-f[i][1]));
+		print('fit window: [',f[i][peak_freq_coup1-fitwin], ', ', f[i][peak_freq_coup1+fitwin],']')
+		plt.plot(f[i][peak_freq_coup1-fitwin:peak_freq_coup1+fitwin],
+							Pxx_db[i][peak_freq_coup1-fitwin:peak_freq_coup1+fitwin], label='data PLL%i' %(i))
+		# fit curve
+		# temp_param, temp_param_covariance = optimize.curve_fit(test_func, f[i][peak_freq_coup1-fitwin:peak_freq_coup1+fitwin],
+		#					Pxx_db[i][peak_freq_coup1-fitwin:peak_freq_coup1+fitwin], p0=[0.01*peak_freq1_val, peak_freq1_val, np.mean(peak_power_val)])
+		# params.append(temp_param); params_covariance.append(temp_param_covariance);
+		# plt.plot(f[i][peak_freq_coup1-fitwin:peak_freq_coup1+fitwin],
+		#					test_func(f[i][peak_freq_coup1-fitwin:peak_freq_coup1+fitwin], params[i][0], params[i][1], params[i][2]), label=r'fit PLL%i, $\gamma_{%i}=$%0.4E' %(i, i, params[i][0]))
+		for bins in range(2,15):
+			#print('np.mean(peak_power_val)=',np.mean(peak_power_val))
+			temp_param, temp_param_covariance = optimize.curve_fit(test_func, f[i][peak_freq_coup1-bins:peak_freq_coup1+bins],
+								Pxx_db[i][peak_freq_coup1-bins:peak_freq_coup1+bins], p0=[0.01*peak_freq1_val, peak_freq1_val, np.mean(peak_power_val)])
+			#print(temp_param,'\nand\n', temp_param_covariance)
+			param.append(temp_param); params_covariance_gamma.append(temp_param_covariance[0,0]);
+		#print('params_covariance=',params_covariance_gamma,'\nand\nparam=',param)
+		params.append(param[np.argmin(params_covariance_gamma)])
+		print('PLL',i,' params of Lorentzian fit: ', params[i])
+		plt.plot(f[i][peak_freq_coup1-fitwin:peak_freq_coup1+fitwin],
+							test_func(f[i][peak_freq_coup1-fitwin:peak_freq_coup1+fitwin], params[i][0], params[i][1], params[i][2]), label=r'fit PLL%i, $\gamma_{%i}=$%0.4E' %(i, i, params[i][0]))
+
+	plt.legend()
+	plt.title(r'PSD fits, PLL0 $\gamma_0=$%0.4E, $f_0=$%0.4f, $P_{xx,\textrm{peak}}=$%0.4E' %(params[0][0], params[0][1], params[0][2]), fontdict = titlefont)
+	#plt.title(r'PSD fits, PLL0 $\gamma_0=$%0.4E, $f_0=$%0.4f, $P_{xx,\textrm{peak}}=$%0.4E' %(params[0], params[1], params[2]), fontdict = titlefont)
+	plt.xlim(f[i][peak_freq_coup1-fitwin-3],f[i][peak_freq_coup1+fitwin+3]);	#plt.ylim(-100,0);
+	plt.xlabel('frequencies [Hz]', fontdict = labelfont); plt.ylabel('P [dB]', fontdict = labelfont)
+	plt.grid()
+	plt.savefig('results/powerfit_dB_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day))
+	plt.savefig('results/powerfit_dB_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), dpi=300)
+
+	################################################################################################################
+	fig100 = plt.figure(num=100, figsize=(figwidth, figheight), dpi=dpi_val, facecolor='w', edgecolor='k')	# plot spectrum
+	plt.clf()
+	xHz = 0.001;															# distance from the principle peak to measure damping
+	Freqres = f[0][2]-f[0][3];
+	for i in range (len(f)):
+		# mutually coupled SLL1
+		peak_freq_coup1 = np.argmax(Pxx_db[i]);								# find the principle peak of the free-running SLL
+		peak_freq1_val  = f[i][peak_freq_coup1];
+		coup1_times_X	= np.argmax(f[i] >= 2.25*peak_freq1_val);
+		m3dB_freqcind1  = peak_freq_coup1 + np.argmax(Pxx_db[i][peak_freq_coup1:]>=Pxx_db[i][peak_freq_coup1]-3);
+		m3dB_freqc_val  = f[i][m3dB_freqcind1];
+		coup1_delt_3dB  = np.abs( m3dB_freqc_val - peak_freq1_val ) 		# - Freqres
+		print('Calculating: f[peak]-f[-3dB]=', peak_freq1_val,'-',m3dB_freqc_val,'=',coup1_delt_3dB, '\n power 1st harmonic', Pxx_db[i][peak_freq_coup1],'\n')
+		if coup1_delt_3dB == 0:
+			print('\n\n frequency resolution of power spectrum too large or power spectrum approaching delta-like peak!\n\n')
+		coup_qual_SLL1  = peak_freq1_val / ( 2.0*coup1_delt_3dB );
+		coup1_plus_xHz  = np.argmax(f[i] >= (peak_freq1_val + xHz));		# find the frequency that is xHz larger then the principle peak frequency of the free-running SLL
+		coupPS_steep    = Pxx_db[i][peak_freq_coup1] - Pxx_db[i][coup1_plus_xHz]
+		print('For the mutually coupled SLL',i,' we find the principle peak at f =', peak_freq1_val, ', -3dB delta_f =', coup1_delt_3dB, ', and hence a quality factor Q = ', coup_qual_SLL1)
+		if f[i][m3dB_freqcind1]-peak_freq1_val > 0:
+			plt.plot(10.0*np.log10(1E-12), Pxx_db[i][peak_freq_coup1], 'r*',markersize=2)
+			plt.plot(10.0*np.log10(f[i][m3dB_freqcind1]-peak_freq1_val), Pxx_db[i][m3dB_freqcind1], 'r+',markersize=2)
+		else:
+			print('CHECK frequency resolution of power spectrum and noise strength.')
+		plt.plot(10.0*np.log10(f[i][peak_freq_coup1:coup1_times_X]-peak_freq1_val), Pxx_db[i][peak_freq_coup1:coup1_times_X], label='PSD SLL%i' %(i), markersize=2)
+
+	#plt.plot(10.0*np.log10(powerspecPLL1['f'][0][peak_freq_coup1:coup1_times_X].copy()-peak_freq1_val), !!!!! , 'y-', label=r'$1/f^2$')
+	plt.legend()
+	# plt.xlim(0,f01+20*max(Kvco1,Kvco2));	#plt.ylim(-100,0);
+	plt.xlabel(r'$10\log_{10}\left(f-f_{\rm peak}\right)$ [Hz]', fontsize = axisLabel); plt.ylabel(r'$P$ [dB]', fontsize = axisLabel)
+	plt.grid()
+	plt.savefig('results/ponsidedPSD_dB_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day))
+	plt.savefig('results/onsidedPSD_dB_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), dpi=300)
 
 	plt.draw()
 	if show_plot:

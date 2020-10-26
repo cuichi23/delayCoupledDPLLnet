@@ -82,7 +82,10 @@ def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Ome
 def multihelper(phiSr,initPhiPrime0,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx,Ny,kx,ky,plot_Phases_Freq,mode):
 	if N > 2:
 		phiSr = np.insert(phiSr, 0, initPhiPrime0)								# insert the first variable in the rotated space, constant initPhiPrime0
-	phiS = eva.rotate_phases(phiSr, isInverse=False)							# rotate back into physical phase space
+	if N > 1:
+		phiS = eva.rotate_phases(phiSr, isInverse=False)						# rotate back into physical phase space
+	else:
+		phiS = phiSr
 	np.random.seed()
 	return simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx,Ny,kx,ky,plot_Phases_Freq)
 
@@ -119,18 +122,22 @@ def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0, Ny=
 	print('many noisy realizations mode with evaluation')						# -- ATTENTION TO SCALING OF NOISE WITH RESPECT TO INTRINSIC FREQUENCIES')
 
 	initPhiPrime0 = 0															# here, this is just set to be handed over to the next modules
-	if len(phiSr)==N:
+	if len(phiSr) == N and N > 1:
 		print('Parameters set, perturbations provided manually in rotated phase space of phases.')
 		# phiSr[0] = initPhiPrime0												# should not be set to zero in this case, since we do not intend to exclude this perturbation
 		phiS 	   = eva.rotate_phases(phiSr, isInverse=False)					# rotate back into physical phase space
 		phiSValues = []
 		for i in range (Nsim):
 			phiSValues.append(phiS)												# create vector that will contain the initial perturbation (in the history) for each realizations
-	else:
+	elif len(phiSr) != N and N > 1:
 		print('Either no initial perturbations given, or Error in parameters - supply: \ncase_[sim_mode].py [topology] [#osci] [K] [F_c] [delay] [F_Omeg] [k] [Tsim] [c] [Nsim] [Nx] [Ny] [kx] [ky] [N entries for the value of the perturbation to oscis]')
 		# sys.exit(0)
 		phiSValues = np.zeros((Nsim, N), dtype=np.float)						# create vector that will contain the initial perturbation (in the history) for each realizations
 		print('\nNo perturbation set, hence all perturbations have the default value zero (in original phase space of phases)!')
+	elif N == 1:
+		print('Computing the single PLL case!')
+		phiSValues 	= np.zeros((Nsim, N), dtype=np.float)
+		phiM		= np.zeros(N)
 
 	if F > 0.0:
 		Tsim   = Tsim*(1.0/F)				  									# simulation time in multiples of the period of the uncoupled oscillators
@@ -144,7 +151,7 @@ def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0, Ny=
 	plot_Phases_Freq = False													# whether or not the phases and frequencies are being plotted
 
 	twistdelta=0; cheqdelta=0; twistdelta_x=0; twistdelta_y=0;
-	if not ( topology == 'ring' or topology == 'chain' ):
+	if not N == 1 and ( topology == 'ring' or topology == 'chain' ):
 		if topology == 'square-open' or topology == 'hexagon' or topology == 'octagon':
 			cheqdelta_x = np.pi 												# phase difference between neighboring oscillators in a stable chequerboard state
 			cheqdelta_y = np.pi 												# phase difference between neighboring oscillators in a stable chequerboard state
@@ -194,7 +201,7 @@ def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0, Ny=
 						phiMreorder[counter]=phiM[i][j]; counter=counter+1;
 				phiM = phiMreorder%(2.0*np.pi)
 				# phiM = phiM.flatten(); # print('phiM: ', phiM)
-	if ( topology == 'ring' or topology == 'chain' ):
+	if N > 1 and ( topology == 'ring' or topology == 'chain' ):
 		if topology == 'chain':
 			cheqdelta = np.pi													# phase difference between neighboring oscillators in a stable chequerboard state
 			print('phase differences of',k,' chequerboard:', cheqdelta, '\n')

@@ -121,10 +121,17 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0, Ny
 
 	if ( topology == 'entrainOne' or topology == 'entrainAll' ):
 		print('Provide phase-configuration for these cases in physical coordinates!')
-		phiM  = eva.rotate_phases(phiSr.flatten(), isInverse=False);
-		phiS  = [0, 0, 0];
-		phiSr = eva.rotate_phases(phiSr.flatten(), isInverse=True)
-		print('For entrainOne and entrainAll assumed initial phase-configuration of entrained synced state (physical coordinates):', phiM, ' and on top a perturbation of (rotated coordinates):', phiSr, '\n')
+		#phiM  = eva.rotate_phases(phiSr.flatten(), isInverse=False);
+		phiM  = phiConfig;
+		special_case = 0;
+		if special_case == 1:
+			phiS  = np.array([2., 2., 2.]);
+			phiSr = eva.rotate_phases(phiS.flatten(), isInverse=True)
+		else:
+			phiS = eva.rotate_phases(phiSr.flatten(), isInverse=False)
+			#print('Calculated phiS=',phiS,' from phiSr=',phiSr,'.\n')
+		print('For entrainOne and entrainAll assumed initial phase-configuration of entrained synced state (physical coordinates):', phiM,
+				' and on top a perturbation of (rotated coordinates):', phiSr, '  and in (original coordinates):', phiS, '\n')
 		#phiS  = phiSr;
 		#phiSr =	eva.rotate_phases(phiS.flatten(), isInverse=True)		  		# rotate back into rotated phase space for simulation
 		#print('For entrainOne and entrainAll assumed initial phase-configuration of entrained synced state (physical coordinates):', phiS, ' and (rotated coordinates):', phiSr, '\n')
@@ -265,12 +272,9 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0, Ny
 			else:
 				phiM = np.arange(0.0, N*twistdelta, twistdelta)					# vector mit N entries from 0 increasing by twistdelta for every element, i.e., the phase-configuration
 				phiM = np.array(phiM)%(2.0*np.pi)								# bring back into interval [0 2pi]
-				# print('phiM: ', phiM)											# in the original phase space of an m-twist solution
+		print('phiM: ', phiM)													# in the original phase space of an m-twist solution
 	if topology == 'global':
 		phiM = np.zeros(N)														# for all-to-all coupling we assume no twist states with m > 0
-
-	if ( topology == 'entrainOne' or topology == 'entrainAll' ):				# in this case the phase-configuration is given by the solution of the dynamical equations
-		phiM = phiConfig;
 
 	# print('time-step dt=', dt)
 	# print('delay:', delay)
@@ -363,7 +367,9 @@ if __name__ == '__main__':
 	mx			= int(sys.argv[13])												# twist number in x-direction (also kx)
 	my			= int(sys.argv[14])												# twist number in y-direction (also ky)
 	cPD			= float(sys.argv[15])											# diff constant of GWN in LF
-	phiConfig 	= np.asarray([float(phi) for phi in sys.argv[16:(16+N)]])		# this input allows to simulate specific points in !rotated phase space plane
-	phiSr 		= np.asarray([float(phi) for phi in sys.argv[(16+N+1):(16+2*N+1)]])# this input allows to simulate specific points in !rotated phase space plane
+	phiConfig 	= np.asarray([float(phi1) for phi1 in sys.argv[16:(16+N)]])		# this input allows to simulate specific points in !rotated phase space plane
+	phiSr 		= np.asarray([float(phi2) for phi2 in sys.argv[(16+N):(16+2*N)]])# this input allows to simulate specific points in !rotated phase space plane
+
+	# print(phiConfig, phiSr, 16, 16+N-1, 16+N+1, 16+2*N+1)
 
 	singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx, Ny, mx, my, phiConfig, phiSr, True)
