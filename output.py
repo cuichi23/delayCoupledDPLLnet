@@ -7,6 +7,7 @@ import evaluation as eva
 import numpy as np
 import numpy.ma as ma
 import matplotlib
+import codecs
 import csv
 import os
 if not os.environ.get('SGE_ROOT') == None:										# this environment variable is set within the queue network, i.e., if it exists, 'Agg' mode to supress output
@@ -53,8 +54,7 @@ annotationfont = {
 		}
 
 ''' EVALUATION SINGLE REALIZATION '''
-def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, phiM, topology, c, cPD, cPD_t=[], Kadiab_t=[], K_adiab_r=(-1), coupFct='triang', Tsim=53, Fsim=None, show_plot=True):
-
+def plotTimeSeries(phi, F, Fc, dt, orderparam, k, mx, my, delay, F_Omeg, K, N, Nx, Ny, phiM, topology, c, cPD, cPD_t=[], Kadiab_t=[], K_adiab_r=(-1), coupFct='triang', Tsim=53, Fsim=None, show_plot=True):
 	# plot parameter
 	axisLabel = 12;
 	titleLabel= 10;
@@ -116,7 +116,7 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, phiM, topolo
 			print('Calculate spectrum for mix sine and cosine signals. Fsim=%d' %Fsim)
 			# f, Pxx_db = eva.calcSpectrum( (phiSpect), Fsim, 'cos')			# calculate spectrum of signals, i.e., of this state
 			f, Pxx_db = eva.calcSpectrum( (phi), Fsim, 'sin')					# calculate spectrum of signals, i.e., of this state
-		np.savez('results/powerSpec_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cPD%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), powerspec=powerspec)
+		np.savez('results/powerSpec_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cPD%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), powerspec=np.array([f, Pxx_db]))
 
 		peak_power_val = [];
 		plt.figure('spectrum of synchronized state')							# plot spectrum
@@ -220,7 +220,7 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, phiM, topolo
 
 	plt.figure('histogram of frequencies')										# plot a histogram of the frequencies of the oscillators over time
 	plt.clf()
-	lastfreqs = (np.diff(phi[-int(2*1.0/(F1*dt)):, :], axis=0).flatten()/(dt))
+	lastfreqs = (np.diff(phi[-int(2.5*1.0/(F1*dt)):, :], axis=0).flatten()/(dt))
 	plt.hist(lastfreqs, bins=np.linspace(2*np.pi*(F1-2.*abs(K)), 2*np.pi*(F1+2.*abs(K)), num=21), rwidth=0.75 )
 	plt.axvspan(t[-int(2*1.0/(F1*dt))]*dt, t[-1]*dt, color='b', alpha=0.3)
 	plt.xlim((2*np.pi*(F1-abs(K)), 2*np.pi*(F1+abs(K))))
@@ -399,6 +399,41 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, delay, F_Omeg, K, phiM, topolo
 	plt.draw()
 	if show_plot:
 		plt.show()
+
+	if len(orderparam[:]) > 5000*int(1.0/(F1*dt)):								# only save if realization Tsim exceed a given number of cycles
+		writeHeaderFlag = 0;
+		# SAVE DATA, APPEND TO RESULTS FILE
+		#csvReader = csv.reader(codecs.open('results/1Anoisy_single_res.csv', 'rU', 'utf-16'))
+		with codecs.open('results/1Anoisy_single_res.csv', 'rU', 'utf-16') as f:# open in readmode to check whether first line is empty, if so add header!
+			reader = csv.reader(f, delimiter=',')
+			if ([0] in reader) in (None, ''):
+				writeHeaderFlag = 1;
+		print('Writing results to 1Anoisy_single_res.csv')
+		temp = []; TempOrdParame = [];
+		with codecs.open('results/1Anoisy_single_res.csv', 'a', 'utf-16') as f:	# 'a' means append to file! other modes: 'w' write only and replace existing file, 'r' readonly...
+			writer = csv.writer(f, delimiter=',')
+																				#, dtype={'K':np.float, 'Fc':np.float, 'delay':np.float, 'F_Omeg':np.float, 'k':np.int,
+																				#'Tsim':np.int, 'id':np.int, 'ReLambda':np.float, 'SimSeconds':np.float, 'topology':np.str,
+																				#'c':np.float, 'N':np.int, 'couplingfct':np.str, 'Nx':np.int, 'Ny':np.int, 'mx':np.int, 'my':np.int})
+			if writeHeaderFlag == 1:
+				writer.writerow(['Nx', 'Ny', 'mx', ',my', 'K', 'Fc', 'delay', 'topology', 'F1', 'F_Omeg', 'Tsim', 'reali', 'c', 'cPD',
+								'mean R over 2.5T',	'std mean R	mean', 'freq over 2.5T', 'std mean freq', 'PSD fit PLL0 f0', 'PSD fit PLL1 f0',	'PSD fit PLL2 f0',
+								'PSDfit HWHM PLL0',	'PSDfit HWHM PLL1',	'PSDfit HWHM PLL2',	'PSDfit maxdB PLL0', 'PSDfit maxdB PLL1', 'PSDfit maxdB PLL2',
+								'mean R over 2.5T'	'std mean R' 'mean freq over 2.5T', 'year', 'month', 'day'])
+			#lastLineCsvF = len(param_cases_csv.sort_values('id'))+3			# add 3 in order to account for the header of the csv file
+			meanR2p5T = np.mean(orderparam[-int(2.5*1.0/(F1*dt)):])
+			std_R2p5T = np.std(orderparam[-int(2.5*1.0/(F1*dt)):])
+			meanf2p5T = np.mean(lastfreqs[-int(2.5*1.0/(F1*dt)):])
+			std_f2p5T = np.std(lastfreqs[-int(2.5*1.0/(F1*dt)):])
+			temp = [str(int(Nx)), str(int(Ny)), str(int(mx)), str(int(my)), str(float(K)), str(float(Fc)), str(float(delay)), str(topology), str(float(F1)),
+					str(float(F_Omeg)), str(int(Tsim)), str(float(c)), str(float(cPD)), str(float(meanR2p5T)), str(float(std_R2p5T)),
+					str(float(meanf2p5T)), str(float(std_f2p5T)), str(float(params[0][1])), str(float(params[1][1])), str(float(params[2][1])),
+					str(float(params[0][0])), str(float(params[1][0])), str(float(params[2][0])), str(float(params[0][2])), str(float(params[1][2])),
+					str(float(params[2][2])), str(now.year), str(now.month), str(now.day)]	#list of strings containing the information
+			print('\nWRITEOUT:', temp, '\n')
+			writer.writerow(temp)
+	else:
+		print('Realization not long enough to obtain statistics/highres power spectrum.')
 
 ''' EVALUATION BRUTE-FORCE BASIN OF ATTRACTION '''
 def doEvalBruteForce(Fc, F_Omeg, K, N, k, delay, twistdelta, results, allPoints, initPhiPrime0, phiMr, paramDiscretization, delays_0, twistdelta_x, twistdelta_y, topology, phiConfig, show_plot=True):

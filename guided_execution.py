@@ -565,7 +565,7 @@ def singleAdiabatChange(params):
 				distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale = chooseDistribution()
 			else:
 				distrib='gamma'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
-			pert = []
+			pert = []; phiconfig=[];
 			#for i in range (Nsim):
 			#	pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
 			# There should be another loop over the different NSim cases for the different initial conditions in pert vector... CHECK! is that not in case_noisy.py?
@@ -607,7 +607,7 @@ def singleAdiabatChange(params):
 				# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 				cadiab.singleadiabatic(str(topology), int(para_mat[0,0]), float(para_mat[0,2]), float((para_mat[0,3])), float(delay), float(para_mat[0,6]),
 								int(para_mat[0,5]), int(round(float(para_mat[0,9]))), float(c), float(cPD), float(Trelax), float(Kadiab_value_r), int(1), int(Nx), int(Ny), int(kx), int(ky),
-								pert, plot_out)
+								phiconfig, pert, plot_out)
 				gc.collect()
 			break
 
@@ -638,7 +638,7 @@ def singleAdiabatChange(params):
 				distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale = chooseDistribution()
 			else:
 				distrib='gamma'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
-			pert = []
+			pert = []; phiconfig=[];
 			#for i in range (Nsim):
 			#	pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
 			# There should be another loop over the different NSim cases for the different initial conditions in pert vector... CHECK! is that not in case_noisy.py?
@@ -679,7 +679,7 @@ def singleAdiabatChange(params):
 				# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 				cadiab.singleadiabatic(str(topology), int(para_mat[0,0]), float(para_mat[0,2]), float((para_mat[0,3])), float(delay), float(para_mat[0,6]),
 								int(para_mat[0,5]), int(round(float(para_mat[0,9]))), float(c), float(cPD_value), float(Trelax), int(1), int(Nx), int(Ny), int(kx), int(ky),
-								pert, plot_out)
+								phiconfig, pert, plot_out)
 				gc.collect()
 			break
 
@@ -710,7 +710,7 @@ def singleAdiabatChange(params):
 				distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale = chooseDistribution()
 			else:
 				distrib='gamma'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
-			pert = []
+			pert = []; phiconfig=[];
 			#for i in range (Nsim):
 			#	pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
 			# There should be another loop over the different NSim cases for the different initial conditions in pert vector... CHECK! is that not in case_noisy.py?
@@ -751,7 +751,7 @@ def singleAdiabatChange(params):
 				# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 				cadiab.singleadiabatic(str(topology), int(para_mat[0,0]), float(para_mat[0,2]), float((para_mat[0,3])), float(delay), float(para_mat[0,6]),
 								int(para_mat[0,5]), int(round(float(para_mat[0,9]))), float(c_value), float(cPD), float(Trelax), int(1), int(Nx), int(Ny), int(kx), int(ky),
-								pert, plot_out)
+								phiconfig, pert, plot_out)
 				gc.collect()
 			break
 
@@ -800,7 +800,7 @@ def singleRealization(params):
 				distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale = chooseDistribution()
 			else:
 				distrib='NONE'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
-			pert = []
+			pert = []; phiconfig=[];
 			#for i in range (Nsim):
 			#	pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
 			# There should be another loop over the different NSim cases for the different initial conditions in pert vector... CHECK! is that not in case_noisy.py?
@@ -839,6 +839,9 @@ def singleRealization(params):
 						print('\n\nNOTE: here the simulation time has been altered to a SMALLER value... correct for that if necessary! \n\n')
 						para_mat[i,9]=upper_TSim
 
+				para_mat[i,9]=25000;
+				plot_out = False
+
 				if len(para_mat[:,0]) == 1:
 					print('Estimated time until perturbations have decayed to exp(-25) times the initial perturbations: ', para_mat[0,9])
 					if str( raw_input(' Change? [y]es / [n]o: ') ) == 'y':
@@ -848,6 +851,7 @@ def singleRealization(params):
 						print('Simulation time remains as calculated/approximated by synctools.py')
 				else:
 					print('\nCould implement here to change TSim also in the case of parameter sweeps. Length para_mat: ', len(para_mat))
+					para_mat[0,9] = chooseTSim()
 
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
@@ -866,7 +870,7 @@ def singleRealization(params):
 					#HILFE: def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0, Ny=1, kx=0, ky=0, phiSr=[], show_plot=True)
 					csing.singleout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
 									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cPD), int(1), int(Nx), int(Ny), int(kx), int(ky),
-									pert, plot_out)
+									phiconfig, pert, plot_out)
 					gc.collect()
 			break
 
@@ -902,7 +906,7 @@ def singleRealization(params):
 				distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale = chooseDistribution()
 			else:
 				distrib='gamma'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
-			pert = []
+			pert = []; phiconfig=[];
 			#for i in range (Nsim):
 			#	pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
 			# There should be another loop over the different NSim cases for the different initial conditions in pert vector... CHECK! is that not in case_noisy.py?
@@ -967,7 +971,7 @@ def singleRealization(params):
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					csing.singleout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
 									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cPD), int(1), int(Nx), int(Ny), int(kx), int(ky),
-									pert, plot_out)
+									phiconfig, pert, plot_out)
 					gc.collect()
 			break
 
@@ -997,7 +1001,7 @@ def singleRealization(params):
 				distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale = chooseDistribution()
 			else:
 				distrib='gamma'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
-			pert = []
+			pert = []; phiconfig=[];
 			#for i in range (Nsim):
 			#	pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
 			# There should be another loop over the different NSim cases for the different initial conditions in pert vector... CHECK! is that not in case_noisy.py?
@@ -1062,7 +1066,7 @@ def singleRealization(params):
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					csing.singleout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
 									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cPD), int(1), int(Nx), int(Ny), int(kx), int(ky),
-									pert, plot_out)
+									phiconfig, pert, plot_out)
 					gc.collect()
 			break
 
@@ -1101,7 +1105,7 @@ def singleRealization(params):
 				distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale = chooseDistribution()
 			else:
 				distrib='gamma'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
-			pert = []
+			pert = []; phiconfig=[];
 			#for i in range (Nsim):
 			#	pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
 			# There should be another loop over the different NSim cases for the different initial conditions in pert vector... CHECK! is that not in case_noisy.py?
@@ -1172,7 +1176,7 @@ def singleRealization(params):
 					# print('\ncall singleout from guided_execution with: ', str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]), int(para_mat[i,5]), int(round(float(para_mat[i,9]))), c, 1, pert, '\n')
 					csing.singleout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float(delay), float(para_mat[i,6]),
 									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(new_cPD_values[j]), int(1), int(Nx), int(Ny), int(kx), int(ky),
-									pert, plot_out)
+									phiconfig, pert, plot_out)
 					gc.collect()
 			break
 
@@ -1220,7 +1224,7 @@ def noisyStatistics(params):
 			else:
 				distrib='gamma'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
 
-			pert = []
+			pert = []; phiconfig=[];
 			#for i in range (Nsim):
 			#	pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
 			# There should be another loop over the different NSim cases for the different initial conditions in pert vector... CHECK! is that not in case_noisy.py?
@@ -1283,7 +1287,7 @@ def noisyStatistics(params):
 					# def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, Nsim, Nx=0, Ny=0, kx=0, ky=0, phiSr=[], show_plot=True):
 					cnois.noisyout(str(topology), int(para_mat[i,0]), float(para_mat[i,2]), float((para_mat[i,3])), float((para_mat[i,4])), float(para_mat[i,6]),
 									int(para_mat[i,5]), int(round(float(para_mat[i,9]))), float(c), float(cPD), int(Nsim), int(Nx), int(Ny), int(kx), int(ky),
-									pert, plot_out)
+									phiconfig, pert, plot_out)
 					gc.collect()
 			break
 
@@ -1322,7 +1326,7 @@ def noisyStatistics(params):
 			else:
 				distrib='gamma'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
 
-			pert = []
+			pert = []; phiconfig=[];
 			for i in range (Nsim):
 				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
 
@@ -1421,7 +1425,7 @@ def noisyStatistics(params):
 				distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale = chooseDistribution()
 			else:
 				distrib='gamma'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
-			pert = []
+			pert = []; phiconfig=[];
 			for i in range (Nsim):
 				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
 
@@ -1508,7 +1512,7 @@ def noisyStatistics(params):
 				distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale = chooseDistribution()
 			else:
 				distrib='gamma'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
-			pert = []
+			pert = []; phiconfig=[];
 			for i in range (Nsim):
 				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
 
@@ -1595,7 +1599,7 @@ def noisyStatistics(params):
 				distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale = chooseDistribution()
 			else:
 				distrib='gamma'; min_pert=0; max_pert=0; meanvaluePert=0; diffconstPert=0; shape=0; scale=0;
-			pert = []
+			pert = []; phiconfig=[];
 			for i in range (Nsim):
 				pert.append(setDeltaPertubation(N, case, rot_vs_orig, distrib, min_pert, max_pert, meanvaluePert, diffconstPert, shape, scale, k))	# calls function that calls delta-like perturbation as choosen before
 
@@ -1688,7 +1692,7 @@ def bruteForce(params, param_cases_csv):
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
 			cPD		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
 			# pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
-			pert = [];
+			pert = []; phiconfig=[];
 			# Nsim    = chooseNsim()											# calls function that asks user for input for number of realizations
 
 			# if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
@@ -1768,7 +1772,7 @@ def bruteForce(params, param_cases_csv):
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
 			cPD		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
 			# pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
-			pert = []
+			pert = []; phiconfig=[];
 			# Nsim    = chooseNsim()												# calls function that asks user for input for number of realizations
 
 			# if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module
@@ -1837,7 +1841,7 @@ def bruteForce(params, param_cases_csv):
 			c 		= chooseDiffConst()											# calls function that asks user for input of diffusion constant GWN dynamic noise (VCO)
 			cPD		= chooseLF_DiffConst()										# calls function that asks user for input of diffusion constant GWN dynamic noise (LF)
 			# pert 	= chooseDeltaPert(N)										# calls function that asks user for input for delta-like perturbation
-			pert = []
+			pert = []; phiconfig=[];
 			# Nsim    = chooseNsim()												# calls function that asks user for input for number of realizations
 
 			# if str(params['DEFAULT']['couplingfct']) == 'triang':				# set the coupling function for evaluating the frequency and stability with Daniel's module

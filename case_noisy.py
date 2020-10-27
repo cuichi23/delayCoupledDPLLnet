@@ -92,7 +92,7 @@ def multihelper(phiSr,initPhiPrime0,topology,couplingfct,histtype,F,Nsteps,dt,c,
 def multihelper_star(dynparam_fixparam):
 	return multihelper(*dynparam_fixparam)
 
-def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0, Ny=0, kx=0, ky=0, phiSr=[], show_plot=True):
+def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0, Ny=0, kx=0, ky=0, phiConfig=[], phiSr=[], show_plot=True):
 
 	mode = int(3);																# mode=0 -> algorithm usage mode, mode=1 -> single realization mode,
 																				# mode=2 -> brute force scanning mode for parameter interval scans
@@ -120,24 +120,41 @@ def noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0, Ny=
 
 	now = datetime.datetime.now()
 	print('many noisy realizations mode with evaluation')						# -- ATTENTION TO SCALING OF NOISE WITH RESPECT TO INTRINSIC FREQUENCIES')
-
 	initPhiPrime0 = 0															# here, this is just set to be handed over to the next modules
-	if len(phiSr) == N and N > 1:
-		print('Parameters set, perturbations provided manually in rotated phase space of phases.')
-		# phiSr[0] = initPhiPrime0												# should not be set to zero in this case, since we do not intend to exclude this perturbation
-		phiS 	   = eva.rotate_phases(phiSr, isInverse=False)					# rotate back into physical phase space
-		phiSValues = []
-		for i in range (Nsim):
-			phiSValues.append(phiS)												# create vector that will contain the initial perturbation (in the history) for each realizations
-	elif len(phiSr) != N and N > 1:
-		print('Either no initial perturbations given, or Error in parameters - supply: \ncase_[sim_mode].py [topology] [#osci] [K] [F_c] [delay] [F_Omeg] [k] [Tsim] [c] [Nsim] [Nx] [Ny] [kx] [ky] [N entries for the value of the perturbation to oscis]')
-		# sys.exit(0)
-		phiSValues = np.zeros((Nsim, N), dtype=np.float)						# create vector that will contain the initial perturbation (in the history) for each realizations
-		print('\nNo perturbation set, hence all perturbations have the default value zero (in original phase space of phases)!')
-	elif N == 1:
-		print('Computing the single PLL case!')
-		phiSValues 	= np.zeros((Nsim, N), dtype=np.float)
-		phiM		= np.zeros(N)
+
+	if ( topology == 'entrainOne' or topology == 'entrainAll' ):
+		print('Provide phase-configuration for these cases in physical coordinates!')
+		#phiM  = eva.rotate_phases(phiSr.flatten(), isInverse=False);
+		phiM  = phiConfig;
+		special_case = 0;
+		if special_case == 1:
+			phiS  = np.array([2., 2., 2.]);
+			phiSr = eva.rotate_phases(phiS.flatten(), isInverse=True)
+		else:
+			phiS = eva.rotate_phases(phiSr.flatten(), isInverse=False)
+			#print('Calculated phiS=',phiS,' from phiSr=',phiSr,'.\n')
+		print('For entrainOne and entrainAll assumed initial phase-configuration of entrained synced state (physical coordinates):', phiM,
+				' and on top a perturbation of (rotated coordinates):', phiSr, '  and in (original coordinates):', phiS, '\n')
+		#phiS  = phiSr;
+		#phiSr =	eva.rotate_phases(phiS.flatten(), isInverse=True)		  		# rotate back into rotated phase space for simulation
+		#print('For entrainOne and entrainAll assumed initial phase-configuration of entrained synced state (physical coordinates):', phiS, ' and (rotated coordinates):', phiSr, '\n')
+	else:
+		if len(phiSr) == N and N > 1:
+			print('Parameters set, perturbations provided manually in rotated phase space of phases.')
+			# phiSr[0] = initPhiPrime0												# should not be set to zero in this case, since we do not intend to exclude this perturbation
+			phiS 	   = eva.rotate_phases(phiSr, isInverse=False)					# rotate back into physical phase space
+			phiSValues = []
+			for i in range (Nsim):
+				phiSValues.append(phiS)												# create vector that will contain the initial perturbation (in the history) for each realizations
+		elif len(phiSr) != N and N > 1:
+			print('Either no initial perturbations given, or Error in parameters - supply: \ncase_[sim_mode].py [topology] [#osci] [K] [F_c] [delay] [F_Omeg] [k] [Tsim] [c] [Nsim] [Nx] [Ny] [kx] [ky] [N entries for the value of the perturbation to oscis]')
+			# sys.exit(0)
+			phiSValues = np.zeros((Nsim, N), dtype=np.float)						# create vector that will contain the initial perturbation (in the history) for each realizations
+			print('\nNo perturbation set, hence all perturbations have the default value zero (in original phase space of phases)!')
+		elif N == 1:
+			print('Computing the single PLL case!')
+			phiSValues 	= np.zeros((Nsim, N), dtype=np.float)
+			phiM		= np.zeros(N)
 
 	if F > 0.0:
 		Tsim   = Tsim*(1.0/F)				  									# simulation time in multiples of the period of the uncoupled oscillators
@@ -365,6 +382,7 @@ if __name__ == '__main__':
 	mx			= int(sys.argv[13])												# twist number in x-direction
 	my			= int(sys.argv[14])												# twist number in y-direction
 	cPD			= float(sys.argv[15])											# diff constant of GWN in LF
-	phiSr 		= np.asarray([float(phi) for phi in sys.argv[16:(16+N)]])		# this input allows to simulate specific points in !rotated phase space plane
+	phiConfig 	= np.asarray([float(phi1) for phi1 in sys.argv[16:(16+N)]])		# this input allows to simulate specific points in !rotated phase space plane
+	phiSr 		= np.asarray([float(phi2) for phi2 in sys.argv[(16+N):(16+2*N)]])# this input allows to simulate specific points in !rotated phase space plane
 
-	noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx, Ny, mx, my, phiSr, True)
+	noisyout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx, Ny, mx, my, phiConfig, phiSr, True)
