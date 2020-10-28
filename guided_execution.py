@@ -1030,15 +1030,12 @@ def singleRealization(params):
 						print('\n\nNOTE: here the simulation time has been altered to a SMALLER value... correct for that if necessary! \n\n')
 						para_mat[i,9]=upper_TSim
 
-				if len(para_mat[:,0]) == 1:
-					print('Estimated time until perturbations have decayed to exp(-25) times the initial perturbations: ', para_mat[0,9])
-					if str( raw_input(' Change? [y]es / [n]o: ') ) == 'y':
-						para_mat[0,9] = chooseTSim()
-						print('\nNew TSim set.')
-					else:
-						print('Simulation time remains as calculated/approximated by synctools.py')
+				print('Estimated time until perturbations have decayed to exp(-25) times the initial perturbations: ', para_mat[:,9])
+				if str( raw_input(' Change (for all)? [y]es / [n]o: ') ) == 'y':
+					para_mat[:,9] = chooseTSim()
+					print('\nNew TSim times set.')
 				else:
-					print('\nCould implement here to change TSim also in the case of parameter sweeps. Length para_mat: ', len(para_mat))
+					print('Simulation time remains as calculated/approximated by synctools.py')
 
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
@@ -1135,15 +1132,12 @@ def singleRealization(params):
 						print('\n\nNOTE: here the simulation time has been altered to a SMALLER value... correct for that if necessary! \n\n')
 						para_mat[i,9]=upper_TSim
 
-				if len(para_mat[:,0]) == 1:
-					print('Estimated time until perturbations have decayed to exp(-25) times the initial perturbations: ', para_mat[0,9])
-					if str( raw_input(' Change? [y]es / [n]o: ') ) == 'y':
-						para_mat[0,9] = chooseTSim()
-						print('\nNew TSim set.')
-					else:
-						print('Simulation time remains as calculated/approximated by synctools.py')
+				print('Estimated time until perturbations have decayed to exp(-25) times the initial perturbations: ', para_mat[:,9])
+				if str( raw_input(' Change (for all)? [y]es / [n]o: ') ) == 'y':
+					para_mat[:,9] = chooseTSim()
+					print('\nNew TSim times set.')
 				else:
-					print('\nCould implement here to change TSim also in the case of parameter sweeps. Length para_mat: ', len(para_mat))
+					print('Simulation time remains as calculated/approximated by synctools.py')
 
 				# print( 'length of para_mat[:,0]:', len(para_mat[:,0]) )
 				# print( 'length of new_c_values :', len(new_c_values)  )
@@ -1259,6 +1253,13 @@ def noisyStatistics(params):
 						print('\n\nNOTE: here the simulation time has been altered to a SMALLER value... correct for that if necessary! \n\n')
 						para_mat[i,9]=upper_TSim
 
+				print('Estimated time until perturbations have decayed to exp(-25) times the initial perturbations: ', para_mat[:,9])
+				if str( raw_input(' Change (for all)? [y]es / [n]o: ') ) == 'y':
+					para_mat[:,9] = chooseTSim()
+					print('\nNew TSim times set.')
+				else:
+					print('Simulation time remains as calculated/approximated by synctools.py')
+
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:
@@ -1356,6 +1357,13 @@ def noisyStatistics(params):
 						print('\n\nNOTE: here the simulation time has been altered to a SMALLER value... correct for that if necessary! \n\n')
 						para_mat[i,9]=upper_TSim
 
+				print('Estimated time until perturbations have decayed to exp(-25) times the initial perturbations: ', para_mat[:,9])
+				if str( raw_input(' Change (for all)? [y]es / [n]o: ') ) == 'y':
+					para_mat[:,9] = chooseTSim()
+					print('\nNew TSim times set.')
+				else:
+					print('Simulation time remains as calculated/approximated by synctools.py')
+
 				# print( 'length of para_mat[:,0]:', len(para_mat[:,0]) )
 				# print( 'length of new_c_values :', len(new_c_values)  )
 				if ( len(para_mat[:,0]) > 1 or len(new_c_values) > 1 ):
@@ -1450,6 +1458,13 @@ def noisyStatistics(params):
 						print('\n\nNOTE: here the simulation time has been altered to a SMALLER value... correct for that if necessary! \n\n')
 						para_mat[i,9]=upper_TSim
 
+				print('Estimated time until perturbations have decayed to exp(-25) times the initial perturbations: ', para_mat[:,9])
+				if str( raw_input(' Change (for all)? [y]es / [n]o: ') ) == 'y':
+					para_mat[:,9] = chooseTSim()
+					print('\nNew TSim times set.')
+				else:
+					print('Simulation time remains as calculated/approximated by synctools.py')
+
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
 				elif len(para_mat[:,0]) == 1:
@@ -1538,6 +1553,13 @@ def noisyStatistics(params):
 						print('\n\nNOTE: here the simulation time has been altered to a SMALLER value... correct for that if necessary! \n\n')
 						para_mat[i,9]=upper_TSim
 
+				print('Estimated time until perturbations have decayed to exp(-25) times the initial perturbations: ', para_mat[:,9])
+				if str( raw_input(' Change (for all)? [y]es / [n]o: ') ) == 'y':
+					para_mat[:,9] = chooseTSim()
+					print('\nNew TSim times set.')
+				else:
+					print('Simulation time remains as calculated/approximated by synctools.py')
+
 				# print( 'length of para_mat[:,0]:', len(para_mat[:,0]) )
 				# print( 'length of new_c_values :', len(new_c_values)  )
 				if ( len(para_mat[:,0]) > 1 or len(new_cPD_values) > 1 ):
@@ -1620,6 +1642,13 @@ def noisyStatistics(params):
 				if para_mat[i,9]>upper_TSim:
 					print('\n\nNOTE: here the simulation time has been altered to a SMALLER value... correct for that if necessary! \n\n')
 					para_mat[i,9]=upper_TSim
+
+			print('Estimated time until perturbations have decayed to exp(-25) times the initial perturbations: ', para_mat[:,9])
+			if str( raw_input(' Change (for all)? [y]es / [n]o: ') ) == 'y':
+				para_mat[:,9] = chooseTSim()
+				print('\nNew TSim times set.')
+			else:
+				print('Simulation time remains as calculated/approximated by synctools.py')
 
 			if not para_mat == [] and not len(para_mat) == 0:
 				if len(para_mat[:,0]) > 1:
@@ -1712,6 +1741,14 @@ def bruteForce(params, param_cases_csv):
 				else:
 					plot_out = False
 
+				print('Estimated time until perturbations have decayed to exp(-25) times the initial perturbations: ', para_mat[:,9])
+				if c>0 or cPD>0:
+					if str( raw_input(' Change (for all)? [y]es / [n]o: ') ) == 'y':
+						para_mat[:,9] = chooseTSim()
+						print('\nNew TSim times set.')
+					else:
+						print('Simulation time remains as calculated/approximated by synctools.py')
+
 				for i in range (len(para_mat[:,0])):
 					print('Tsim: ',     para_mat[i,9])
 					if para_mat[i,9] < 2:
@@ -1791,6 +1828,14 @@ def bruteForce(params, param_cases_csv):
 				else:
 					plot_out = False
 
+			print('Estimated time until perturbations have decayed to exp(-25) times the initial perturbations: ', para_mat[:,9])
+			if c>0 or cPD>0:
+				if str( raw_input(' Change (for all)? [y]es / [n]o: ') ) == 'y':
+					para_mat[:,9] = chooseTSim()
+					print('\nNew TSim times set.')
+				else:
+					print('Simulation time remains as calculated/approximated by synctools.py')
+
 				for i in range (len(para_mat[:,0])):
 					print('Tsim: ',     para_mat[i,9])
 					if para_mat[i,9] < 2:
@@ -1859,6 +1904,14 @@ def bruteForce(params, param_cases_csv):
 					plot_out = True
 				else:
 					plot_out = False
+
+			print('Estimated time until perturbations have decayed to exp(-25) times the initial perturbations: ', para_mat[:,9])
+			if c>0 or cPD>0:
+				if str( raw_input(' Change (for all)? [y]es / [n]o: ') ) == 'y':
+					para_mat[:,9] = chooseTSim()
+					print('\nNew TSim times set.')
+				else:
+					print('Simulation time remains as calculated/approximated by synctools.py')
 
 				for i in range (len(para_mat[:,0])):
 					print('Tsim: ',     para_mat[i,9])

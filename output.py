@@ -157,7 +157,7 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, mx, my, delay, F_Omeg, K, N, N
 			# params.append(temp_param); params_covariance.append(temp_param_covariance);
 			# plt.plot(f[i][peak_freq_coup1-fitwin:peak_freq_coup1+fitwin],
 			#					test_func(f[i][peak_freq_coup1-fitwin:peak_freq_coup1+fitwin], params[i][0], params[i][1], params[i][2]), label=r'fit PLL%i, $\gamma_{%i}=$%0.4E' %(i, i, params[i][0]))
-			for bins in range(2,15):
+			for bins in range(1,15):
 				#print('np.mean(peak_power_val)=',np.mean(peak_power_val))
 				try:
 					temp_param, temp_param_covariance = optimize.curve_fit(test_func, f[i][peak_freq_coup1-bins:peak_freq_coup1+bins],
@@ -1097,7 +1097,7 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, Nx, Ny, k, mx, my, delay, c, cPD, Tsim,
 		# params.append(temp_param); params_covariance.append(temp_param_covariance);
 		# plt.plot(f[i][peak_freq_coup1-fitwin:peak_freq_coup1+fitwin],
 		#					test_func(f[i][peak_freq_coup1-fitwin:peak_freq_coup1+fitwin], params[i][0], params[i][1], params[i][2]), label=r'fit PLL%i, $\gamma_{%i}=$%0.4E' %(i, i, params[i][0]))
-		for bins in range(2,15):
+		for bins in range(1,15):
 			#print('np.mean(peak_power_val)=',np.mean(peak_power_val))
 			try:
 				temp_param, temp_param_covariance = optimize.curve_fit(test_func, f[i][peak_freq_coup1-bins:peak_freq_coup1+bins],
