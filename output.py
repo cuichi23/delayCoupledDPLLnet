@@ -159,12 +159,19 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, mx, my, delay, F_Omeg, K, N, N
 			#					test_func(f[i][peak_freq_coup1-fitwin:peak_freq_coup1+fitwin], params[i][0], params[i][1], params[i][2]), label=r'fit PLL%i, $\gamma_{%i}=$%0.4E' %(i, i, params[i][0]))
 			for bins in range(2,15):
 				#print('np.mean(peak_power_val)=',np.mean(peak_power_val))
-				temp_param, temp_param_covariance = optimize.curve_fit(test_func, f[i][peak_freq_coup1-bins:peak_freq_coup1+bins],
+				try:
+					temp_param, temp_param_covariance = optimize.curve_fit(test_func, f[i][peak_freq_coup1-bins:peak_freq_coup1+bins],
 									Pxx_db[i][peak_freq_coup1-bins:peak_freq_coup1+bins], p0=[0.01*peak_freq1_val, peak_freq1_val, np.mean(peak_power_val)])
-				#print(temp_param,'\nand\n', temp_param_covariance)
-				param.append(temp_param); params_covariance_gamma.append(temp_param_covariance[0,0]);
+					#print(temp_param,'\nand\n', temp_param_covariance)
+					param.append(temp_param); params_covariance_gamma.append(temp_param_covariance[0,0]);
+				except:
+					print('fit attempt for bins=',bins,' failed! Parameter set {Tsim, K, Fc, tau, c, cPD}={',Tsim, K , Fc, delay, c, cPD,'}.\n')
+
 			#print('params_covariance=',params_covariance_gamma,'\nand\nparam=',param)
-			params.append(param[np.argmin(params_covariance_gamma)])
+			try:
+				params.append(param[np.argmin(params_covariance_gamma)])
+			except:
+				print('None of the fit attempts seem to have been successful!')
 			print('PLL',i,' params of Lorentzian fit: ', params[i])
 			plt.plot(f[i][peak_freq_coup1-fitwin:peak_freq_coup1+fitwin],
 								test_func(f[i][peak_freq_coup1-fitwin:peak_freq_coup1+fitwin], params[i][0], params[i][1], params[i][2]), label=r'fit PLL%i, $\gamma_{%i}=$%0.4E' %(i, i, params[i][0]))
@@ -193,7 +200,7 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, mx, my, delay, F_Omeg, K, N, N
 			coup1_delt_3dB  = np.abs( m3dB_freqc_val - peak_freq1_val ) 		# - Freqres
 			print('Calculating: f[peak]-f[-3dB]=', peak_freq1_val,'-',m3dB_freqc_val,'=',coup1_delt_3dB, '\n power 1st harmonic', Pxx_db[i][peak_freq_coup1],'\n')
 			if coup1_delt_3dB == 0:
-				print('\n\n frequency resolution of power spectrum too large or power spectrum approaching delta-like peak!\n\n')
+				print('frequency resolution of power spectrum too large or power spectrum approaching delta-like peak!')
 			coup_qual_SLL1  = peak_freq1_val / ( 2.0*coup1_delt_3dB );
 			coup1_plus_xHz  = np.argmax(f[i] >= (peak_freq1_val + xHz));		# find the frequency that is xHz larger then the principle peak frequency of the free-running SLL
 			coupPS_steep    = Pxx_db[i][peak_freq_coup1] - Pxx_db[i][coup1_plus_xHz]
@@ -258,6 +265,7 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, mx, my, delay, F_Omeg, K, N, N
 	plt.title(r'time series phases, inst. freq: $\dot{\phi}_0(t_{start})=%.4f$, $\dot{\phi}_0(t_{end})=%.4f$  [rad Hz]' %( (phi[int(2*1.0/(F1*dt))][0]-phi[1][0])/(2*1.0/F1-dt), (phi[-4][0]-phi[-3-int(2*1.0/(F1*dt))][0])/(2*1.0/F1-dt) ), fontdict = titlefont)
 	plt.xlabel(r'$t$ $[s]$', fontdict = labelfont)
 	plt.ylabel(r'$\phi(t)$', fontdict = labelfont)
+	plt.xlim([0.0, 20.0/F1])
 	plt.savefig('results/phases-t_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day))
 	plt.savefig('results/phases-t_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), dpi=300)
 	print(r'frequency of zeroth osci at the beginning and end of the simulation:, freqStart=%.4f, freqEnd=%.4f  [rad Hz]' %( (phi[int(2*1.0/(F1*dt))][0]-phi[1][0])/(2*1.0/F1-dt), (phi[-4][0]-phi[-4-int(2*1.0/(F1*dt))][0])/(2*1.0/F1-dt) ) )
@@ -271,6 +279,7 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, mx, my, delay, F_Omeg, K, N, N
 	plt.title(r'time series phases, inst. freq: $\dot{\phi}_0(t_{start})=%.4f$, $\dot{\phi}_0(t_{end})=%.4f$  [rad Hz]' %( (phi[int(2*1.0/(F1*dt))][0]-phi[1][0])/(2*1.0/F1-dt), (phi[-4][0]-phi[-3-int(2*1.0/(F1*dt))][0])/(2*1.0/F1-dt) ), fontdict = titlefont)
 	plt.xlabel(r'$t$ $[s]$', fontdict = labelfont)
 	plt.ylabel(r'$\phi(t)$', fontdict = labelfont)
+	plt.xlim([Tsim-8.0/F1, Tsim])
 	plt.savefig('results/phases2pi-t_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day))
 	plt.savefig('results/phases2pi-t_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), dpi=300)
 
@@ -406,8 +415,8 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, mx, my, delay, F_Omeg, K, N, N
 		#csvReader = csv.reader(codecs.open('results/1Anoisy_single_res.csv', 'rU', 'utf-16'))
 		with codecs.open('results/1Anoisy_single_res.csv', 'rU', 'utf-16') as f:# open in readmode to check whether first line is empty, if so add header!
 			reader = csv.reader(f, delimiter=',')
-			if ([0] in reader) in (None, ''):
-				writeHeaderFlag = 1;
+			#if ([0] in reader) in (None, ''):
+			#	writeHeaderFlag = 1;
 		print('Writing results to 1Anoisy_single_res.csv')
 		temp = []; TempOrdParame = [];
 		with codecs.open('results/1Anoisy_single_res.csv', 'a', 'utf-16') as f:	# 'a' means append to file! other modes: 'w' write only and replace existing file, 'r' readonly...
@@ -417,9 +426,9 @@ def plotTimeSeries(phi, F, Fc, dt, orderparam, k, mx, my, delay, F_Omeg, K, N, N
 																				#'c':np.float, 'N':np.int, 'couplingfct':np.str, 'Nx':np.int, 'Ny':np.int, 'mx':np.int, 'my':np.int})
 			if writeHeaderFlag == 1:
 				writer.writerow(['Nx', 'Ny', 'mx', ',my', 'K', 'Fc', 'delay', 'topology', 'F1', 'F_Omeg', 'Tsim', 'reali', 'c', 'cPD',
-								'mean R over 2.5T',	'std mean R	mean', 'freq over 2.5T', 'std mean freq', 'PSD fit PLL0 f0', 'PSD fit PLL1 f0',	'PSD fit PLL2 f0',
+								'mean_R_over_2p5T',	'std mean R	mean', 'freq over 2p5T', 'std mean freq', 'PSD fit PLL0 f0', 'PSD fit PLL1 f0',	'PSD fit PLL2 f0',
 								'PSDfit HWHM PLL0',	'PSDfit HWHM PLL1',	'PSDfit HWHM PLL2',	'PSDfit maxdB PLL0', 'PSDfit maxdB PLL1', 'PSDfit maxdB PLL2',
-								'mean R over 2.5T'	'std mean R' 'mean freq over 2.5T', 'year', 'month', 'day'])
+								'mean R over 2p5T'	'std mean R' 'mean freq over 2p5T', 'year', 'month', 'day'])
 			#lastLineCsvF = len(param_cases_csv.sort_values('id'))+3			# add 3 in order to account for the header of the csv file
 			meanR2p5T = np.mean(orderparam[-int(2.5*1.0/(F1*dt)):])
 			std_R2p5T = np.std(orderparam[-int(2.5*1.0/(F1*dt)):])
@@ -1090,12 +1099,18 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, Nx, Ny, k, mx, my, delay, c, cPD, Tsim,
 		#					test_func(f[i][peak_freq_coup1-fitwin:peak_freq_coup1+fitwin], params[i][0], params[i][1], params[i][2]), label=r'fit PLL%i, $\gamma_{%i}=$%0.4E' %(i, i, params[i][0]))
 		for bins in range(2,15):
 			#print('np.mean(peak_power_val)=',np.mean(peak_power_val))
-			temp_param, temp_param_covariance = optimize.curve_fit(test_func, f[i][peak_freq_coup1-bins:peak_freq_coup1+bins],
+			try:
+				temp_param, temp_param_covariance = optimize.curve_fit(test_func, f[i][peak_freq_coup1-bins:peak_freq_coup1+bins],
 								Pxx_db[i][peak_freq_coup1-bins:peak_freq_coup1+bins], p0=[0.01*peak_freq1_val, peak_freq1_val, np.mean(peak_power_val)])
-			#print(temp_param,'\nand\n', temp_param_covariance)
-			param.append(temp_param); params_covariance_gamma.append(temp_param_covariance[0,0]);
+				#print(temp_param,'\nand\n', temp_param_covariance)
+				param.append(temp_param); params_covariance_gamma.append(temp_param_covariance[0,0]);
+			except:
+				print('fit attempt for bins=',bins,' failed! Parameter set {K, Fc, tau, c, cPD}={',K , Fc, delay, c, cPD,'}.\n')
 		#print('params_covariance=',params_covariance_gamma,'\nand\nparam=',param)
-		params.append(param[np.argmin(params_covariance_gamma)])
+		try:
+			params.append(param[np.argmin(params_covariance_gamma)])
+		except:
+			print('None of the fit attempts seem to have been successful!')
 		print('PLL',i,' params of Lorentzian fit: ', params[i])
 		plt.plot(f[i][peak_freq_coup1-fitwin:peak_freq_coup1+fitwin],
 							test_func(f[i][peak_freq_coup1-fitwin:peak_freq_coup1+fitwin], params[i][0], params[i][1], params[i][2]), label=r'fit PLL%i, $\gamma_{%i}=$%0.4E' %(i, i, params[i][0]))
@@ -1153,8 +1168,8 @@ def doEvalManyNoisy(F, Fc, F_Omeg, K, N, Nx, Ny, k, mx, my, delay, c, cPD, Tsim,
 		# SAVE DATA, APPEND TO RESULTS FILE
 		with open('results/1Anoisy_res.csv') as f:								# open in readmode to check whether first line is empty, if so add header!
 			reader = csv.reader(f, delimiter=',')
-			if ([0] in reader) in (None, ''):
-				writeHeaderFlag = 1;
+			#if ([0] in reader) in (None, ''):
+			#	writeHeaderFlag = 1;
 		print('Writing results to noisy_results.csv')
 		temp = []; TempOrdParame = [];
 		with open('results/1Anoisy_res.csv', 'a') as f:							# 'a' means append to file! other modes: 'w' write only and replace existing file, 'r' readonly...

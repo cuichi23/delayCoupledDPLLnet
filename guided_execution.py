@@ -839,19 +839,12 @@ def singleRealization(params):
 						print('\n\nNOTE: here the simulation time has been altered to a SMALLER value... correct for that if necessary! \n\n')
 						para_mat[i,9]=upper_TSim
 
-				para_mat[i,9]=25000;
-				plot_out = False
-
-				if len(para_mat[:,0]) == 1:
-					print('Estimated time until perturbations have decayed to exp(-25) times the initial perturbations: ', para_mat[0,9])
-					if str( raw_input(' Change? [y]es / [n]o: ') ) == 'y':
-						para_mat[0,9] = chooseTSim()
-						print('\nNew TSim set.')
-					else:
-						print('Simulation time remains as calculated/approximated by synctools.py')
+				print('Estimated time until perturbations have decayed to exp(-25) times the initial perturbations: ', para_mat[:,9])
+				if str( raw_input(' Change (for all)? [y]es / [n]o: ') ) == 'y':
+					para_mat[:,9] = chooseTSim()
+					print('\nNew TSim times set.')
 				else:
-					print('\nCould implement here to change TSim also in the case of parameter sweeps. Length para_mat: ', len(para_mat))
-					para_mat[0,9] = chooseTSim()
+					print('Simulation time remains as calculated/approximated by synctools.py')
 
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
@@ -945,15 +938,12 @@ def singleRealization(params):
 						print('\n\nNOTE: here the simulation time has been altered to a SMALLER value... correct for that if necessary! \n\n')
 						para_mat[i,9]=upper_TSim
 
-				if len(para_mat[:,0]) == 1:
-					print('Estimated time until perturbations have decayed to exp(-25) times the initial perturbations: ', para_mat[0,9])
-					if str( raw_input(' Change? [y]es / [n]o: ') ) == 'y':
-						para_mat[0,9] = chooseTSim()
-						print('\nNew TSim set.')
-					else:
-						print('Simulation time remains as calculated/approximated by synctools.py')
+				print('Estimated time until perturbations have decayed to exp(-25) times the initial perturbations: ', para_mat[:,9])
+				if str( raw_input(' Change (for all)? [y]es / [n]o: ') ) == 'y':
+					para_mat[:,9] = chooseTSim()
+					print('\nNew TSim times set.')
 				else:
-					print('\nCould implement here to change TSim also in the case of parameter sweeps. Length para_mat: ', len(para_mat))
+					print('Simulation time remains as calculated/approximated by synctools.py')
 
 				if len(para_mat[:,0]) > 1:
 					plot_out = False
