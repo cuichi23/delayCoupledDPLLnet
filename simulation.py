@@ -1217,14 +1217,14 @@ def generatePllObjects(mode,div,topology,couplingfct,histtype,Nplls,dt,c,delay,f
 				raise ValueError('Npll is not valid: sqrt(N) is not an integer')
 
 		if topology == 'square-open':
-			G = nx.grid_2d_graph(Nx,Ny)
+			G = nx.grid_2d_graph(Nx, Ny, periodic=False)
 
 		elif topology == 'square-periodic':
-			G = nx.grid_2d_graph(Nx,Ny, periodic=True)                            # for periodic boundary conditions:
+			G = nx.grid_2d_graph(Nx, Ny, periodic=True)                            # for periodic boundary conditions:
 
 		elif topology == 'hexagon':
 			print('\nIf Nx =! Ny, then check the graph that is generated again!')
-			G=nx.grid_2d_graph(Nx,Ny)											# why not ..._graph(Nx,Ny) ? NOTE the for n in G: loop has to be changed, loop over nx and ny respectively, etc....
+			G=nx.grid_2d_graph(Nx, Ny)											# why not ..._graph(Nx,Ny) ? NOTE the for n in G: loop has to be changed, loop over nx and ny respectively, etc....
 			for n in G:
 				x,y=n
 				if x>0 and y>0:
@@ -1419,16 +1419,21 @@ def generatePllObjects(mode,div,topology,couplingfct,histtype,Nplls,dt,c,delay,f
 										NoisyVoltageControlledOscillator(F_intrin[idx_pll],Fc_k[idx_pll],F_Omeg,K_k[idx_pll],dt,domega,diffconstK,histtype,c_k[idx_pll],phi=phiM[idx_pll]) # set intrinsic frequency of VCO, frequency of synchronized state under investigation, coupling strength
 										)  for idx_pll in range(Nplls) ]		# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
 				elif ( Nplls==9 and ( mode==2 or mode==1 or mode==0 ) and couplingfct == 'triang' and topology == 'square-open' ):
-					HF_components = False;
-					K_k = np.zeros(Nplls)+K; c_k = np.zeros(Nplls)+c; F_k = np.zeros(Nplls)+F;
-					if False:
-						K_k[0] = 0; c_k[0] = c_k[0]*0.01; F_k[0] = 1.0;
+					HF_components  = False;
+					makeOnePLL_Ref = True;
+					K_k = np.zeros(Nplls)+K; c_k = np.zeros(Nplls)+c; F_k = np.zeros(Nplls)+F; neighbors = [];
+					for i in range(Nplls):									# extract neighbor relations to modify them
+						neighbors.append(list(G.neighbors(i)))
+					print('neighbors:', neighbors)
+					if makeOnePLL_Ref:
+						c_k[0] = c_k[0]*0.01; F_k[0] = 1.0; neighbors[0] = [];										# delete neighbors of PLL0
+						print('neighbors:', neighbors)
 						print('Set coupling strength PLL0 to %.2f and reduced its noise strength by %.2f.' %(K_k[0], c_k[0]/c_k[1]))
 					if HF_components == True:
 						print('\nSPECIAL MODE: N coupled PLLs, simulation including HF terms of the PD!\n')
 						pll_list = [ PhaseLockedLoop(									# setup PLLs and storage in a list as PLL class objects
 										Delayer(delay,dt,feedback_delay,diffconstSendDelay),		# delayer takes a time series and returns values at t and t-tau
-										PhaseDetectorCombinerHighFreq(idx_pll, G.neighbors(idx_pll), div),
+										PhaseDetectorCombinerHighFreq(idx_pll, neighbors[idx_pll], div),
 										LowPass(Fc,dt,K_k[idx_pll],F_Omeg,F_k[idx_pll],cLF,Trelax=0,y=y0),
 										NoisyVoltageControlledOscillator(F_k[idx_pll],Fc,F_Omeg,K_k[idx_pll],dt,domega,diffconstK,histtype,c_k[idx_pll],phi=phiM[idx_pll]) # set intrinsic frequency of VCO, frequency of synchronized state under investigation, coupling strength
 										)  for idx_pll in range(Nplls) ]			# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
@@ -1436,7 +1441,7 @@ def generatePllObjects(mode,div,topology,couplingfct,histtype,Nplls,dt,c,delay,f
 						print('\nSPECIAL MODE: N coupled PLLs, simulation DOES NOT include HF terms of the PD!\n')
 						pll_list = [ PhaseLockedLoop(									# setup PLLs and storage in a list as PLL class objects
 										Delayer(delay,dt,feedback_delay,diffconstSendDelay),		# delayer takes a time series and returns values at t and t-tau
-										PhaseDetectorCombiner(idx_pll, G.neighbors(idx_pll), div),
+										PhaseDetectorCombiner(idx_pll, neighbors[idx_pll], div),
 										LowPass(Fc,dt,K_k[idx_pll],F_Omeg,F_k[idx_pll],cLF,Trelax=0,y=y0),
 										NoisyVoltageControlledOscillator(F_k[idx_pll],Fc,F_Omeg,K_k[idx_pll],dt,domega,diffconstK,histtype,c_k[idx_pll],phi=phiM[idx_pll]) # set intrinsic frequency of VCO, frequency of synchronized state under investigation, coupling strength
 										)  for idx_pll in range(Nplls) ]			# time-step value, and provide phiM, the phases at the beginning of the history that need to be provided
