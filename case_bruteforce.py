@@ -19,9 +19,9 @@ import time
 import datetime
 
 ''' SIMULATION CALL '''
-def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx=0,Ny=0,kx=0,ky=0,isPlottingTimeSeries=False):
+def simulatePllNetwork(mode,div,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx=0,Ny=0,kx=0,ky=0,isPlottingTimeSeries=False):
 	''' SIMULATION OF NETWORK & UNIT CELL CHECK '''
-	simresult = sim.simulateNetwork(mode,N,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,topology,couplingfct,histtype,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx,Ny)
+	simresult = sim.simulateNetwork(mode,div,N,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,topology,couplingfct,histtype,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx,Ny)
 	phi     = simresult['phases']
 	omega_0 = simresult['intrinfreq']
 	K_0     = simresult['coupling_strength']
@@ -91,7 +91,7 @@ def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Ome
 	return {'mean_order': np.mean(r), 'last_orderP': r[len(r)-1], 'stdev_orderP': np.var(r), # 'phases': phi, --> DO NOT RETURN PHASES...
 	 		'intrinfreq': omega_0, 'coupling_strength': K_0, 'transdelays': delays_0}
 
-def multihelper(phiSr,initPhiPrime0,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx,Ny,kx,ky,plot_Phases_Freq,mode):
+def multihelper(phiSr,initPhiPrime0,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx,Ny,kx,ky,plot_Phases_Freq,mode,div):
 	if N > 2:
 		phiSr = np.insert(phiSr, 0, initPhiPrime0)								# insert the first variable in the rotated space, constant initPhiPrime0
 	phiS = eva.rotate_phases(phiSr, isInverse=False)							# rotate back into physical phase space
@@ -106,7 +106,7 @@ def multihelper(phiSr,initPhiPrime0,topology,couplingfct,histtype,F,Nsteps,dt,c,
 		 		'intrinfreq': np.zeros(1), 'coupling_strength': np.zeros(1), 'transdelays': delay}
 	else:
 		np.random.seed()
-		return simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx,Ny,kx,ky,plot_Phases_Freq)
+		return simulatePllNetwork(mode,div,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx,Ny,kx,ky,plot_Phases_Freq)
 
 def multihelper_star(dynparam_fixparam):
 	return multihelper(*dynparam_fixparam)
@@ -131,6 +131,7 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0
 	diffconstSendDelay	= float(params['DEFAULT']['diffconstSendDelay'])		# the diffusion constant [variance=2*diffconst] of the gaussian distribution for the transmission delays
 	feedback_delay		= float(params['DEFAULT']['feedbackDelay'])				# feedback delay of the nodes
 	histtype			= str(params['DEFAULT']['histtype'])	  				# what history is being set? uncoupled PLLs (uncoupled), or PLLs in the synchronized state under investigation (syncstate)
+	div					= int(params['DEFAULT']['division'])					# division factor for cross-coupling signals
 	# Tsim 				= int(params['DEFAULT']['Tsim'])						# simulation time in multiples of the period of the uncoupled oscillators
 
 	dt					= 1.0/Fsim												# [ dt = T / #samples ] -> #samples per period... with [ T = 1 / F -> dt = 1 / ( #samples * F ) ]
@@ -309,7 +310,7 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0
 							itertools.repeat(F), itertools.repeat(Nsteps), itertools.repeat(dt), itertools.repeat(c),itertools.repeat(Fc), itertools.repeat(F_Omeg), itertools.repeat(K),
 							itertools.repeat(N), itertools.repeat(k), itertools.repeat(delay), itertools.repeat(feedback_delay), itertools.repeat(phiM), itertools.repeat(domega),
 							itertools.repeat(diffconstK), itertools.repeat(diffconstSendDelay), itertools.repeat(cPD), itertools.repeat(Nx), itertools.repeat(Ny), itertools.repeat(kx),
-							itertools.repeat(ky), itertools.repeat(plot_Phases_Freq), itertools.repeat(mode) ) ) )
+							itertools.repeat(ky), itertools.repeat(plot_Phases_Freq), itertools.repeat(mode), itertools.repeat(div) ) ) )
 		results=[]; phi=[]; omega_0=[]; K_0=[]; delays_0=[]; #cPD_t=[]
 		for i in range(Nsim):
 			''' evaluate dictionaries '''
@@ -321,8 +322,8 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0
 			# cPD_t.append( pool_data[0][i]['cPD'] )
 
 		''' SAVE RESULTS '''
-		np.savez('results/orderparam_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), results=results)
-		np.savez('results/allInitPerturbPoints_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, now.year, now.month, now.day), allPoints=allPoints)
+		np.savez('results/orderparam_K%.2f_Fc%.2f_FOm%.2f_div%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, div, delay, now.year, now.month, now.day), results=results)
+		np.savez('results/allInitPerturbPoints_K%.2f_Fc%.2f_FOm%.2f_div%.2f_tau%.2f_%d_%d_%d.npz' %(K, Fc, F_Omeg, div, delay, now.year, now.month, now.day), allPoints=allPoints)
 		del pool_data; del _allPoints;											# emtpy pool data, allPoints variables to free memory
 
 		print( 'size {omega_0, K_0, delays_0, results}:', sys.getsizeof(omega_0), '\t', sys.getsizeof(K_0), '\t', sys.getsizeof(delays_0), '\t', sys.getsizeof(results), '\n' )
@@ -353,7 +354,7 @@ def bruteforceout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0
 			#print( 'type of phiS', type(phiS))
 			#print( 'type of initPhiPrime0', type(initPhiPrime0))
 			#print( 'phiS = ', phiS, '\n')
-			data = simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx,Ny,kx,ky,plot_Phases_Freq)
+			data = simulatePllNetwork(mode,div,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx,Ny,kx,ky,plot_Phases_Freq)
 
 			''' evaluate dictionaries '''
 			np.concatenate((results, [ data['mean_order'],  data['last_orderP'], data['stdev_orderP'] ] ))

@@ -5,7 +5,7 @@ import psutil
 from os import listdir
 import shutil
 import csv
-import sys
+import sys, gc
 import errno
 import pandas as pd
 import numpy as np
@@ -26,6 +26,9 @@ import case_noisy as cnois
 import case_bruteforce as cbrut
 import case_singleout as csing
 import case_singleadiabatic as cadiab
+
+''' Enable automatic carbage collector '''
+gc.enable();
 
 sys.path.append(os.path.abspath('./GlobFreq_LinStab'))
 # import synctools

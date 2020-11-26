@@ -1,0 +1,65 @@
+import scipy
+from scipy.signal import square
+axisLabel = 12;
+titleLabel= 10;
+dpi_val	  = 150;
+figwidth  = 6;
+figheight = 5;
+######################################################################################################################################
+freq	= 24E9;
+beta0	= 0;
+c	= 1E-8;
+ 
+Fsample	= freq*125; 
+dt	= 1/(Fsample);
+T_mult	= 1000000; 
+t	= np.arange(0,T_mult/freq,dt);
+
+phi = np.zeros(len(t)-1);
+for i in range(0,len(t)-2):
+	phi[i+1] = phi[i] + 2.0*np.pi*freq*dt + np.random.normal(loc=0.0, scale=np.sqrt(2.0*c*dt))
+#phi	= 2.0*np.pi*freq*t  + beta0   + np.random.normal(loc=0.0, scale=np.sqrt(2.0*c*dt), size=len(t))
+sig	= square(phi)
+
+if False:
+	fig1 = plt.figure(num=1, figsize=(figwidth, figheight), dpi=dpi_val, facecolor='w', edgecolor='k')
+	fig1.canvas.set_window_title('VCO output signal')	# plot spectrum
+	plt.clf()
+	plot(t[:-1], sig)
+
+Pxx_dBm=[]; Pxx_dBV=[]; f=[];
+windowset='hamming' #'hamming', 'boxcar'
+	
+# choose window from: boxcar (rectangular), triang, blackman, hamming, hann, bartlett, flattop, parzen, bohman, blackmanharris, nuttall,
+# barthann, kaiser (needs beta), gaussian (needs std), general_gaussian (needs power, width), slepian (needs width), chebwin (needs attenuation)
+window = scipy.signal.get_window(windowset, int(Fsample), fftbins=True)
+phisteps = len(phi)	# determine length of time-series of phi, then only analyze the part without the transients
+analyzeL = int(1.00 * phisteps)
+print('Analyzed time-series for ', analyzeL/Fsample,' seconds.')
+
+# return Pxx with dimensions [V^2] if scaling='spectrum' and [V^2/Hz] if if scaling='density'
+ftemp, Pxx = scipy.signal.periodogram(square(phi[-analyzeL:]), Fsample, return_onesided=True, window=windowset, scaling='density', axis=0) 
+# for P0 in [mW/Hz] and R [ohm]
+P0 = 1E-3; R=50; 
+Pxx_dBm.append( 10*np.log10((Pxx/R)/P0) );
+Pxx_dBm=np.array([Pxx_dBm]).flatten();
+f.append(ftemp);
+f=np.array([f]).flatten();
+
+df = f[1]-f[0]
+f0 = f[np.argmax(Pxx_dBm)]
+fend_onsided = np.argmax(f >= 2.25*f0);
+
+fig2 = plt.figure(num=2, figsize=(figwidth, figheight), dpi=dpi_val, facecolor='w', edgecolor='k')
+fig2.canvas.set_window_title('spectral density free VCO')	# plot spectrum
+plt.clf()
+plt.plot(f, Pxx_dBm, '-', label='noisy VCO')
+plt.xlim(0, 5.0*freq)
+plt.xlabel('frequencies [Hz]', fontsize = axisLabel); plt.ylabel('P [dBm]', fontsize = axisLabel)
+
+fig3 = plt.figure(num=3, figsize=(figwidth, figheight), dpi=dpi_val, facecolor='w', edgecolor='k')
+fig3.canvas.set_window_title('spectral density free VCO')	# plot spectrum
+plt.clf()
+plt.plot(10.0*np.log10(f[np.argmax(Pxx_dBm):fend_onsided]-f0+df), np.array([Pxx_dBm]).flatten()[np.argmax(Pxx_dBm):fend_onsided], '-', label='noisy VCO')
+plt.xlabel(r'$10\log_{10}\left(f-f_{\rm peak}\right)$ [Hz]', fontsize = axisLabel); plt.ylabel(r'$P$ [dBm]', fontsize = axisLabel)
+

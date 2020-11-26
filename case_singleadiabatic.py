@@ -19,9 +19,9 @@ import time
 import datetime
 
 ''' SIMULATION CALL '''
-def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Trelax,Kadiab_value_r,Nx=0,Ny=0,kx=0,ky=0,isPlottingTimeSeries=False):
+def simulatePllNetwork(mode,div,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Trelax,Kadiab_value_r,Nx=0,Ny=0,kx=0,ky=0,isPlottingTimeSeries=False):
 	''' SIMULATION OF NETWORK '''
-	simresult = sim.simulateNetwork(mode,N,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,topology,couplingfct,histtype,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx,Ny,Trelax,Kadiab_value_r)
+	simresult = sim.simulateNetwork(mode,div,N,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,topology,couplingfct,histtype,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx,Ny,Trelax,Kadiab_value_r)
 	phi      = simresult['phases']
 	omega_0  = simresult['intrinfreq']
 	K_0      = simresult['coupling_strength']
@@ -101,7 +101,7 @@ def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Ome
 # 		phiSr = np.insert(phiSr, 0, initPhiPrime0)								# insert the first variable in the rotated space, constant initPhiPrime0
 # 	phiS = eva.rotate_phases(phiSr, isInverse=False)							# rotate back into physical phase space
 # 	np.random.seed()
-# 	return simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, Nx, Ny, kx, ky, plot_Phases_Freq)
+# 	return simulatePllNetwork(mode,div, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, Nx, Ny, kx, ky, plot_Phases_Freq)
 #
 # def multihelper_star(dynparam_fixparam):
 # 	return multihelper(*dynparam_fixparam)
@@ -125,6 +125,7 @@ def singleadiabatic(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Trelax, 
 	diffconstSendDelay	= float(params['DEFAULT']['diffconstSendDelay'])		# the diffusion constant [variance=2*diffconst] of the gaussian distribution for the transmission delays
 	feedback_delay		= float(params['DEFAULT']['feedbackDelay'])				# feedback delay of the nodes
 	histtype			= str(params['DEFAULT']['histtype'])	  				# what history is being set? uncoupled PLLs (uncoupled), or PLLs in the synchronized state under investigation (syncstate)
+	div					= int(params['DEFAULT']['division'])					# division factor for cross-coupling signals
 	# Tsim 				= int(params['DEFAULT']['Tsim'])						# simulation time in multiples of the period of the uncoupled oscillators
 
 	dt					= 1.0/Fsim												# [ dt = T / #samples ] -> #samples per period... with [ T = 1 / F -> dt = 1 / ( #samples * F ) ]
@@ -292,7 +293,7 @@ def singleadiabatic(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Trelax, 
 
 	# print('time-step dt=', dt)
 	t0 = time.time()
-	data = simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Trelax,Kadiab_value_r,Nx,Ny,kx,ky,plot_Phases_Freq) # initiates simulation and saves result in results container
+	data = simulatePllNetwork(mode,div,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Trelax,Kadiab_value_r,Nx,Ny,kx,ky,plot_Phases_Freq) # initiates simulation and saves result in results container
 	print('time needed for execution of simulation: ', (time.time()-t0), ' seconds')
 
 	''' evaluate dictionaries '''

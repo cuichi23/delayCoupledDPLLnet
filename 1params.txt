@@ -22,6 +22,8 @@ diffconstSendDelay = 0
 feedbackDelay = 0
 #11: type of history change, either set history to the synchronized state under investigation, or set the history as if the oscillators were uncoupled {syncstate,uncoupled} - for singleout and bruteforce at the moment, see line if (histtype == 'uncoupled' and ( mode == 2 or mode == 1 ) ): simulation.py
 histtype = syncstate
-#12: multiples of the period of the uncoupled oscillators to set simulation time -- usually set with argument on startup
+#12: division factor for cross-coupling
+division = 1
+#13: multiples of the period of the uncoupled oscillators to set simulation time -- usually set with argument on startup
 tsim = 125
 

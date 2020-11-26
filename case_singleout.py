@@ -5,7 +5,7 @@ from __future__ import print_function
 import configparser
 from configparser import ConfigParser
 
-import sys
+import sys, gc
 import simulation as sim
 import output as out
 import evaluation as eva
@@ -15,13 +15,17 @@ from multiprocessing import Pool, freeze_support
 import itertools
 from itertools import permutations as permu
 from itertools import combinations as combi
+import matplotlib.pyplot as plt
 import time
 import datetime
 
+''' Enable automatic carbage collector '''
+gc.enable();
+
 ''' SIMULATION CALL '''
-def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx=0,Ny=0,kx=0,ky=0,isPlottingTimeSeries=False):
+def simulatePllNetwork(mode,div,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx=0,Ny=0,kx=0,ky=0,isPlottingTimeSeries=False):
 	''' SIMULATION OF NETWORK '''
-	simresult = sim.simulateNetwork(mode,N,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,topology,couplingfct,histtype,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx,Ny)
+	simresult = sim.simulateNetwork(mode,div,N,F,F_Omeg,K,Fc,delay,feedback_delay,dt,c,Nsteps,topology,couplingfct,histtype,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx,Ny)
 	phi     = simresult['phases']
 	omega_0 = simresult['intrinfreq']
 	K_0     = simresult['coupling_strength']
@@ -58,6 +62,26 @@ def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Ome
 		# ry = np.nonzero(rmat > 0.995)[0]
 		# rx = np.nonzero(rmat > 0.995)[1]
 		orderparam = eva.oracle_CheckerboardOrderParameter2d(phi[:, :], Nx, Ny, ktemp)
+	elif topology == "compareEntrVsMutual":
+		rMut 	 = eva.oracle_mTwistOrderParameter(phi[-int(numb_av_T*1.0/(F1*dt)):, 0:2], k);
+		orderMut = eva.oracle_mTwistOrderParameter(phi[:, 0:2], k);
+		rEnt 	 = eva.oracle_mTwistOrderParameter(phi[-int(numb_av_T*1.0/(F1*dt)):, 2:4], k);
+		orderEnt = eva.oracle_mTwistOrderParameter(phi[:, 2:4], k);
+		if isPlottingTimeSeries:
+			figwidth  = 6; figheight = 5; t = np.arange(phi.shape[0]); now = datetime.datetime.now();
+			fig0 = plt.figure(num=0, figsize=(figwidth, figheight), dpi=150, facecolor='w', edgecolor='k')
+			fig0.canvas.set_window_title('order parameters mutual and entrained')	# plot orderparameter
+			plt.clf()
+			plt.plot((t*dt), orderMut,'b-',  label='2 mutual coupled PLLs' )
+			plt.plot((t*dt), orderEnt,'r--', label='one entrained PLL')
+			plt.plot(delay, orderMut[int(round(delay/dt))], 'yo', ms=5)			# mark where the simulation starts
+			plt.axvspan(t[-int(2*1.0/(F1*dt))]*dt, t[-1]*dt, color='b', alpha=0.3)
+			plt.xlabel(r'$t$ $[s]$'); plt.legend();
+			plt.ylabel(r'$R( t,m = %d )$' % k)
+			plt.savefig('results/orderparam_mutual_entrained_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.pdf' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day))
+			plt.savefig('results/orderparam_mutual_entrained_K%.2f_Fc%.2f_FOm%.2f_tau%.4f_c%.7e_cPD%.7e_%d_%d_%d.png' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), dpi=300)
+			r = np.zeros(len(phi[-int(numb_av_T*1.0/(F1*dt)):,0]))
+			orderparam = np.zeros(len(phi[:,0]))
 	elif topology == "chain":
 		"""
 				k  > 0 : x  checkerboard state
@@ -68,7 +92,7 @@ def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Ome
 	elif ( topology == "ring" or topology == 'global'):
 		r = eva.oracle_mTwistOrderParameter(phi[-int(numb_av_T*1.0/(F1*dt)):, :], k)		# calculate the m-twist order parameter for a time interval of 2 times the eigenperiod, ry is imaginary part
 		orderparam = eva.oracle_mTwistOrderParameter(phi[:, :], k)				# calculate the m-twist order parameter for all times
-	elif ( topology == "entrainOne" or topology == "entrainAll" ):
+	elif ( topology == "entrainOne" or topology == "entrainAll" or topology == "entrainPLLsHierarch"):
 		phi_constant_expected = phiM;
 		r = eva.calcKuramotoOrderParEntrainSelfOrgState(phi[-int(numb_av_T*1.0/(F1*dt)):, :], phi_constant_expected);
 		orderparam = eva.calcKuramotoOrderParEntrainSelfOrgState(phi[:, :], phi_constant_expected);
@@ -86,7 +110,7 @@ def simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Ome
 # 		phiSr = np.insert(phiSr, 0, initPhiPrime0)								# insert the first variable in the rotated space, constant initPhiPrime0
 # 	phiS = eva.rotate_phases(phiSr, isInverse=False)							# rotate back into physical phase space
 # 	np.random.seed()
-# 	return simulatePllNetwork(mode, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, Nx, Ny, kx, ky, plot_Phases_Freq)
+# 	return simulatePllNetwork(mode,div, topology, couplingfct, F, Nsteps, dt, c, Fc, F_Omeg, K, N, k, delay, phiS, phiM, domega, diffconstK, Nx, Ny, kx, ky, plot_Phases_Freq)
 #
 # def multihelper_star(dynparam_fixparam):
 # 	return multihelper(*dynparam_fixparam)
@@ -111,6 +135,7 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0, Ny
 	diffconstSendDelay	= float(params['DEFAULT']['diffconstSendDelay'])		# the diffusion constant [variance=2*diffconst] of the gaussian distribution for the transmission delays
 	feedback_delay		= float(params['DEFAULT']['feedbackDelay'])				# feedback delay of the nodes
 	histtype			= str(params['DEFAULT']['histtype'])	  				# what history is being set? uncoupled PLLs (uncoupled), or PLLs in the synchronized state under investigation (syncstate)
+	div					= int(params['DEFAULT']['division'])					# division factor for cross-coupling signals
 	# Tsim 				= int(params['DEFAULT']['Tsim'])						# simulation time in multiples of the period of the uncoupled oscillators
 
 	dt					= 1.0/Fsim												# [ dt = T / #samples ] -> #samples per period... with [ T = 1 / F -> dt = 1 / ( #samples * F ) ]
@@ -135,6 +160,11 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0, Ny
 		#phiS  = phiSr;
 		#phiSr =	eva.rotate_phases(phiS.flatten(), isInverse=True)		  		# rotate back into rotated phase space for simulation
 		#print('For entrainOne and entrainAll assumed initial phase-configuration of entrained synced state (physical coordinates):', phiS, ' and (rotated coordinates):', phiSr, '\n')
+	elif topology == 'compareEntrVsMutual':
+		phiM  = phiConfig;
+		if len(phiSr) == 0:
+			phiS = np.zeros(Nplls);
+		phiS  = eva.rotate_phases(phiSr.flatten(), isInverse=False);
 	else:
 		print('Test single evaluation and plot phase and frequency time series, PROVIDE initial condition in ROTATED phase space!')
 		phiS=[]
@@ -181,7 +211,6 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0, Ny
 		print('total simulation time in Tsim*2.0:', int(Tsim*2.0),'\n')
 
 	print('in case_singleout.singleout, F_Omeg:', F_Omeg)
-	print('NOTE: single realizations will be simulated for 2*Tsim to have enough waveforms after transients have decayed to plot spectral density.')
 	Nsteps 	= int(round(Tsim*Fsim))												# calculate number of iterations -- add output?
 	Nsim 	= 1
 
@@ -273,13 +302,14 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0, Ny
 				phiM = np.arange(0.0, N*twistdelta, twistdelta)					# vector mit N entries from 0 increasing by twistdelta for every element, i.e., the phase-configuration
 				phiM = np.array(phiM)%(2.0*np.pi)								# bring back into interval [0 2pi]
 		print('phiM: ', phiM)													# in the original phase space of an m-twist solution
-	if topology == 'global':
+	if topology == 'global' or topology == 'entrainPLLsHierarch':
 		phiM = np.zeros(N)														# for all-to-all coupling we assume no twist states with m > 0
+
 
 	# print('time-step dt=', dt)
 	# print('delay:', delay)
 	t0 = time.time()
-	data = simulatePllNetwork(mode,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx,Ny,kx,ky,plot_Phases_Freq) # initiates simulation and saves result in results container
+	data = simulatePllNetwork(mode,div,topology,couplingfct,histtype,F,Nsteps,dt,c,Fc,F_Omeg,K,N,k,delay,feedback_delay,phiS,phiM,domega,diffconstK,diffconstSendDelay,cPD,Nx,Ny,kx,ky,plot_Phases_Freq) # initiates simulation and saves result in results container
 	print('time needed for execution of simulation: ', (time.time()-t0), ' seconds')
 
 	''' evaluate dictionaries '''
@@ -306,7 +336,7 @@ def singleout(topology, N, K, Fc, delay, F_Omeg, k, Tsim, c, cPD, Nsim, Nx=0, Ny
 	''' PLOT PHASE & FREQUENCY TIME SERIES '''
 	if plot_Phases_Freq:
 		print('Plot realization! np.shape(phi)', np.shape(phi), '   type(phi)', type(phi));
-		out.plotTimeSeries(phi, F, Fc, dt, orderparam, k, kx, ky, delay, F_Omeg, K, N, Nx, Ny, phiM, topology, c, cPD, cPD_t, K_adiab_t, -1, couplingfct, Tsim, Fsim, show_plot)
+		out.plotTimeSeries(phi, F, Fc, dt, orderparam, k, kx, ky, delay, F_Omeg, K, N, Nx, Ny, phiM, topology, c, cPD, cPD_t, K_adiab_t, -1, couplingfct, Tsim, Fsim, show_plot, div)
 
 	''' SAVE RESULTS '''
 	np.savez('results/orderparam_K%.2f_Fc%.2f_FOm%.2f_tau%.2f_c%.7e_cPD%.7e_%d_%d_%d.npz' %(K, Fc, F_Omeg, delay, c, cPD, now.year, now.month, now.day), results=results)

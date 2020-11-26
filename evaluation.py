@@ -3,7 +3,7 @@
 from __future__ import division
 from __future__ import print_function
 
-import sys
+import sys, gc
 import simulation as sim
 import numpy as np
 import multiprocessing as mp
@@ -25,6 +25,9 @@ import time
 import datetime
 import scipy
 from scipy import signal
+
+''' Enable automatic carbage collector '''
+gc.enable();
 
 ''' All plots in latex mode '''
 from matplotlib import rc
@@ -415,25 +418,37 @@ def oracle_CheckerboardOrderParameter2d(phi, nx, ny, k):
 
 ''' CALCULATE SPECTRUM '''
 def calcSpectrum(phi,Fsample,waveform=None,decayTimeSlowestMode=None):
-	Pxx_db=[]; f=[];
-	windowset='boxcar' #'hamming'
+	Pxx_dBm=[]; Pxx_dBV=[]; f=[];
+	windowset='hamming' #'hamming', 'boxcar'
 	print('current window option is', windowset, 'for waveform', waveform)
-	window = scipy.signal.get_window(windowset, int(Fsample), fftbins=True)		# choose window from: boxcar, triang, blackman, hamming, hann, bartlett, flattop, parzen, bohman, blackmanharris, nuttall,
+	window = scipy.signal.get_window(windowset, int(Fsample), fftbins=True)		# choose window from: boxcar (rectangular), triang, blackman, hamming, hann, bartlett, flattop, parzen, bohman, blackmanharris, nuttall,
 																				# barthann, kaiser (needs beta), gaussian (needs std), general_gaussian (needs power, width), slepian (needs width), chebwin (needs attenuation)
-	print('calculate spectrum for signals with waveform:', waveform, 'and cut the beginning 25percent of the time-series. Implement better solution using decay times.')
-	phisteps = len(phi[0,:,0])													# determine length of time-series of phi, then only analyze the part without the transients
-	analyzeL = int(0.75 * phisteps)
-	for i in range ( len(phi[0,0,:]) ):
-		tsdata = generateOscillationSignal(phi[0,-analyzeL:,i],waveform=waveform)
-		ftemp, Pxx = scipy.signal.periodogram(tsdata, Fsample, return_onesided=True, window=windowset, axis=0)
-		Pxx_db.append( 10*np.log10(Pxx) )
+	print('Calculate spectrum for signals with waveform:', waveform,
+			'and cut the beginning 25percent of the time-series. Implement better solution using decay times.')
+	if phi.ndim == 3:
+		phisteps = len(phi[0,:,0])													# determine length of time-series of phi, then only analyze the part without the transients
+		analyzeL = int(0.75 * phisteps)
+		print('Analyzed time-series for ', analyzeL/Fsample,' seconds.')
+		for i in range ( len(phi[0,0,:]) ):
+			tsdata = generateOscillationSignal(phi[0,-analyzeL:,i],waveform=waveform)
+			ftemp, Pxx = scipy.signal.periodogram(tsdata, Fsample, return_onesided=True, window=windowset, scaling='density', axis=0) #  returns Pxx with dimensions [V^2] if scaling='spectrum' and [V^2/Hz] if if scaling='density'
+			P0 = 1E-3; R=50; # for P0 in [mW/Hz] and R [ohm]
+			Pxx_dBm.append( 10*np.log10((Pxx/R)/P0) )
+			f.append( ftemp )
+	elif phi.ndim == 2:
+		phisteps = len(phi[0,:])													# determine length of time-series of phi, then only analyze the part without the transients
+		analyzeL = int(0.75 * phisteps)
+		print('Analyzed time-series for ', analyzeL/Fsample,' seconds.')
+		tsdata = generateOscillationSignal(phi[0,-analyzeL:],waveform=waveform)
+		ftemp, Pxx = scipy.signal.periodogram(tsdata, Fsample, return_onesided=True, window=windowset, scaling='density', axis=0) #  returns Pxx with dimensions [V^2] if scaling='spectrum' and [V^2/Hz] if if scaling='density'
+		P0 = 1E-3; R=50; # for P0 in [mW/Hz] and R [ohm]
+		Pxx_dBm.append( 10*np.log10((Pxx/R)/P0) )
 		f.append( ftemp )
-
 	# ma = np.ma.masked_inside(f_db,0,2)										# mask spectrum
 
 	# print('f_db:', f_db, 'Pxx_db:', Pxx_db)
 	# return f_db[ma.mask], Pxx_db[ma.mask]
-	return f, Pxx_db
+	return f, Pxx_dBm
 
 ''' GENERATE OSCILLATION SIGNAL -- a function to call different coupling functions'''
 def generateOscillationSignal(phi,waveform):
